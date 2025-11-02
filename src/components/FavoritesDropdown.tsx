@@ -5,12 +5,15 @@ import Image from "next/image";
 import { formatPrice, type Property } from "@/components/PropertyCard";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type FavoritesDropdownProps = {
 	favorites: Property[];
 };
 
 export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
+	const { t } = useTranslation();
+
 	if (favorites.length === 0) {
 		return (
 			<div className="w-80 p-6 text-center">
@@ -19,9 +22,9 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 						<Heart className="h-8 w-8 text-gray-400" />
 					</div>
 				</div>
-				<p className="text-sm text-muted-foreground mb-2">No favorites yet</p>
+				<p className="text-sm text-muted-foreground mb-2">{t("favorites.noFavoritesYet")}</p>
 				<p className="text-xs text-muted-foreground">
-					Click the heart icon on properties to save them here
+					{t("favorites.clickToSave")}
 				</p>
 			</div>
 		);
@@ -53,7 +56,7 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 								{property.address}
 							</p>
 							<p className="text-xs text-muted-foreground">
-								{property.beds} bd · {property.baths} ba
+								{property.beds} {t("favorites.bd")} · {property.baths} {t("favorites.ba")}
 							</p>
 						</div>
 					</Link>
@@ -62,13 +65,13 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 			{favorites.length > 5 && (
 				<div className="p-3 border-t bg-muted/50">
 					<p className="text-xs text-center text-muted-foreground mb-2">
-						+{favorites.length - 5} more favorites
+						+{favorites.length - 5} {t("favorites.moreFavorites")}
 					</p>
 				</div>
 			)}
 			<div className="p-3 border-t">
 				<Button asChild variant="outline" className="w-full">
-					<Link href="/dashboard">View All Favorites</Link>
+					<Link href="/dashboard">{t("favorites.viewAll")}</Link>
 				</Button>
 			</div>
 		</div>

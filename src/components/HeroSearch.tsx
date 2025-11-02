@@ -1,94 +1,77 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
-// Portugal and Spain cities list
-const POPULAR_CITIES = [
-	// Portugal - Algarve region
-	"Lagos, Portugal",
-	"Faro, Portugal",
-	"Albufeira, Portugal",
-	"Tavira, Portugal",
-	"Vilamoura, Portugal",
-	"Portimão, Portugal",
-	"Loulé, Portugal",
-	"Carvoeiro, Portugal",
-	"Olhão, Portugal",
-	"Quarteira, Portugal",
-	"Vila do Bispo, Portugal",
-	"Lagoa, Portugal",
-	"Silves, Portugal",
-	"Armação de Pêra, Portugal",
-	// Portugal - Other regions
-	"Lisboa, Portugal",
-	"Porto, Portugal",
-	"Coimbra, Portugal",
-	"Braga, Portugal",
-	"Évora, Portugal",
-	"Setúbal, Portugal",
-	"Aveiro, Portugal",
-	"Funchal, Portugal",
-	// Spain - Andalusia (near Portugal)
-	"Sevilla, Spain",
-	"Málaga, Spain",
-	"Cádiz, Spain",
-	"Granada, Spain",
-	"Córdoba, Spain",
-	"Jerez de la Frontera, Spain",
-	"Marbella, Spain",
-	"Almería, Spain",
-	"Ronda, Spain",
-	"Estepona, Spain",
-	"Nerja, Spain",
-	"Torremolinos, Spain",
-	"Fuengirola, Spain",
-	// Spain - Other major cities
-	"Madrid, Spain",
-	"Barcelona, Spain",
-	"Valencia, Spain",
-	"Bilbao, Spain",
-	"Zaragoza, Spain",
-	"Murcia, Spain",
-	"Alicante, Spain",
-	"Palma, Spain",
-];
+import { searchLocations, debounce, type SearchLocation } from "@/lib/geocoding";
+import { MapPin, Loader2 } from "lucide-react";
 
 export function HeroSearch() {
 	const router = useRouter();
 	const [query, setQuery] = useState("");
-	const [suggestions, setSuggestions] = useState<string[]>([]);
+	const [searchType, setSearchType] = useState<"buy" | "rent">("buy");
+	const [suggestions, setSuggestions] = useState<SearchLocation[]>([]);
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [selectedIndex, setSelectedIndex] = useState(-1);
+	const [isSearching, setIsSearching] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
-	// Filter cities based on input
-	useEffect(() => {
-		if (query.length > 0) {
-			const filtered = POPULAR_CITIES
-				.filter(city => 
-					city.toLowerCase().startsWith(query.toLowerCase())
-				)
-				.slice(0, 10); // Limit to 10 suggestions
-			setSuggestions(filtered);
-			setShowSuggestions(filtered.length > 0);
+	// Debounced geocoding search - very fast response (50ms)
+	const debouncedSearch = useCallback(
+		debounce(async (searchQuery: string) => {
+			if (searchQuery.length < 2) {
+				setSuggestions([]);
+				setShowSuggestions(false);
+				setIsSearching(false);
+				return;
+			}
+
+			setIsSearching(true);
+			const results = await searchLocations(searchQuery);
+			setSuggestions(results);
+			setShowSuggestions(results.length > 0);
 			setSelectedIndex(-1);
+			setIsSearching(false);
+		}, 50),
+		[]
+	);
+
+	// Trigger geocoding search when query changes
+	useEffect(() => {
+		if (query.length >= 2) {
+			setIsSearching(true);
+			debouncedSearch(query);
 		} else {
 			setSuggestions([]);
 			setShowSuggestions(false);
+			setIsSearching(false);
 		}
-	}, [query]);
+	}, [query, debouncedSearch]);
 
 
 	function onSubmit(e: React.FormEvent) {
 		e.preventDefault();
 		setShowSuggestions(false);
-		const params = new URLSearchParams();
-		if (query.trim()) params.set("q", query.trim());
-		router.push(`/homes?${params.toString()}`);
+		
+		// If there's a selected suggestion, use it
+		if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+			const location = suggestions[selectedIndex];
+			const params = new URLSearchParams();
+			params.set("lat", location.lat.toString());
+			params.set("lng", location.lng.toString());
+			params.set("zoom", "12");
+			params.set("q", location.name);
+			params.set("for", searchType);
+			router.push(`/homes?${params.toString()}`);
+		} else if (query.trim()) {
+			// Otherwise just use the query text
+			const params = new URLSearchParams();
+			params.set("q", query.trim());
+			params.set("for", searchType);
+			router.push(`/homes?${params.toString()}`);
+		}
 	}
 
 	// Handle keyboard navigation
@@ -114,12 +97,17 @@ export function HeroSearch() {
 			case "Enter":
 				e.preventDefault();
 				if (selectedIndex >= 0) {
-					setQuery(suggestions[selectedIndex]);
+					const location = suggestions[selectedIndex];
+					setQuery(location.name);
 					setShowSuggestions(false);
-					// Submit with selected city
+					// Submit with selected location
 					setTimeout(() => {
 						const params = new URLSearchParams();
-						params.set("q", suggestions[selectedIndex]);
+						params.set("lat", location.lat.toString());
+						params.set("lng", location.lng.toString());
+						params.set("zoom", "12");
+						params.set("q", location.name);
+						params.set("for", searchType);
 						router.push(`/homes?${params.toString()}`);
 					}, 0);
 				}
@@ -131,11 +119,17 @@ export function HeroSearch() {
 		}
 	}
 
-	function handleSelect(city: string) {
-		setQuery(city);
+	function handleSelect(location: SearchLocation) {
+		setQuery(location.name);
 		setShowSuggestions(false);
-		// Optionally auto-submit on selection
-		// router.push(`/homes?q=${encodeURIComponent(city)}`);
+		// Auto-submit with geocoded location
+		const params = new URLSearchParams();
+		params.set("lat", location.lat.toString());
+		params.set("lng", location.lng.toString());
+		params.set("zoom", "12");
+		params.set("q", location.name);
+		params.set("for", searchType);
+		router.push(`/homes?${params.toString()}`);
 	}
 
 	// Close dropdown when clicking outside
@@ -156,48 +150,86 @@ export function HeroSearch() {
 	}, []);
 
 	return (
-		<div className="relative mx-auto w-full max-w-2xl">
+		<div className="relative mx-auto w-full">
 			<form onSubmit={onSubmit}>
-				<div className="relative group">
-					<Input
-						ref={inputRef}
-						value={query}
-						onChange={(e) => setQuery(e.target.value)}
-						onFocus={() => query.length > 0 && suggestions.length > 0 && setShowSuggestions(true)}
-						onKeyDown={handleKeyDown}
-						placeholder="Enter a city, neighborhood, or ZIP"
-						className="h-16 w-full rounded-full border-2 border-white/30 bg-white/95 backdrop-blur-md pl-6 pr-36 text-base shadow-2xl transition-all duration-300 hover:shadow-[0_20px_60px_rgba(25,135,84,0.3)] hover:border-[#198754]/50 focus:border-[#198754] focus:shadow-[0_20px_60px_rgba(25,135,84,0.4)] focus:bg-white placeholder:text-gray-400"
-					/>
+				<div className="relative group flex gap-2 items-center">
+					{/* Buy/Rent Buttons */}
+					<button
+						type="button"
+						onClick={() => setSearchType("buy")}
+						className={`px-6 py-4 rounded-xl font-semibold transition-all text-base ${
+							searchType === "buy"
+								? "bg-[#2C477D] text-white border-2 border-[#6A90D0] shadow-lg"
+								: "bg-white text-gray-700 hover:bg-gray-50 shadow-md"
+						}`}
+					>
+						Buy
+					</button>
+					<button
+						type="button"
+						onClick={() => setSearchType("rent")}
+						className={`px-6 py-4 rounded-xl font-semibold transition-all text-base ${
+							searchType === "rent"
+								? "bg-[#2C477D] text-white border-2 border-[#6A90D0] shadow-lg"
+								: "bg-white text-gray-700 hover:bg-gray-50 shadow-md"
+						}`}
+					>
+						Rent
+					</button>
+
+					{/* Search Input Container */}
+					<div className="relative flex-1">
+						<Input
+							ref={inputRef}
+							value={query}
+							onChange={(e) => setQuery(e.target.value)}
+							onFocus={() => query.length > 0 && suggestions.length > 0 && setShowSuggestions(true)}
+							onKeyDown={handleKeyDown}
+							placeholder="Enter a city, neighborhood, or ZIP"
+							className="h-16 w-full rounded-l-xl border-0 bg-white pl-6 pr-12 text-base shadow-md placeholder:text-gray-400 focus:ring-2 focus:ring-[#2C477D]"
+						/>
+						{isSearching && (
+							<div className="absolute right-4 top-1/2 -translate-y-1/2">
+								<Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+							</div>
+						)}
+					</div>
+
+					{/* Search Button */}
 					<Button 
 						type="submit" 
-						className="absolute right-2 top-2 h-12 rounded-full px-8 bg-[#198754] hover:bg-[#0d5c37] shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+						className="h-16 rounded-r-xl px-6 bg-[#2C477D] hover:bg-[#1e3a8a] shadow-md border-0"
 					>
-						Search
+						<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+						</svg>
 					</Button>
-					{showSuggestions && suggestions.length > 0 && (
-						<div
-							ref={dropdownRef}
-							className="absolute top-full left-0 right-0 z-50 mt-3 max-h-60 w-full overflow-auto rounded-2xl border border-white/20 bg-white/98 backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300"
-						>
-							{suggestions.map((city, index) => (
-								<button
-									key={city}
-									type="button"
-									onClick={() => handleSelect(city)}
-									className={`w-full px-6 py-3 text-left text-sm transition-all duration-200 cursor-pointer flex items-center gap-3 ${
-										index === selectedIndex ? "bg-[#198754]/10 text-[#198754] font-medium" : "hover:bg-gray-50 text-gray-700"
-									}`}
-								>
-									<svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-									</svg>
-									{city}
-								</button>
-							))}
-						</div>
-					)}
 				</div>
+
+				{/* Autocomplete Dropdown */}
+				{showSuggestions && suggestions.length > 0 && (
+					<div
+						ref={dropdownRef}
+						className="absolute top-full left-[180px] right-[65px] z-50 mt-3 max-h-80 overflow-auto rounded-xl border border-gray-200 bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300"
+					>
+						{suggestions.map((location, index) => (
+							<button
+								key={location.id}
+								type="button"
+								onClick={() => handleSelect(location)}
+								className={`w-full px-4 py-3 text-left text-sm transition-all duration-200 cursor-pointer flex items-center gap-3 border-b border-gray-100 last:border-b-0 ${
+									index === selectedIndex ? "bg-[#2C477D]/10 text-[#2C477D] font-medium" : "hover:bg-gray-50 text-gray-700"
+								}`}
+							>
+								<MapPin className={`h-4 w-4 flex-shrink-0 ${index === selectedIndex ? "text-[#2C477D]" : "text-gray-400"}`} />
+								<div className="flex-1 min-w-0">
+									<div className="font-medium truncate">{location.name}</div>
+									<div className="text-xs text-gray-500 truncate">{location.displayName}</div>
+								</div>
+							</button>
+						))}
+					</div>
+				)}
 			</form>
 		</div>
 	);

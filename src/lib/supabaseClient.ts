@@ -1,6 +1,7 @@
 "use client";
 
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 // Environment variables required in .env.local:
 // NEXT_PUBLIC_SUPABASE_URL=your_project_url
@@ -15,13 +16,7 @@ export function getSupabaseClient(): SupabaseClient | null {
 		return null;
 	}
 	if (!supabase) {
-		supabase = createClient(url, key, {
-			auth: {
-				persistSession: true,
-				autoRefreshToken: true,
-				detectSessionInUrl: true,
-			},
-		});
+		supabase = createBrowserClient(url, key);
 	}
 	return supabase;
 }

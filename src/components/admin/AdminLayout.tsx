@@ -13,7 +13,8 @@ import {
 	X,
 	Moon,
 	Sun,
-	LogOut
+	LogOut,
+	Languages
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -27,6 +28,7 @@ const navigation = [
 	{ name: "Properties", href: "/admin/properties", icon: Home },
 	{ name: "Agents", href: "/admin/agents", icon: Users },
 	{ name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
+	{ name: "Translations", href: "/admin/translations", icon: Languages },
 	{ name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

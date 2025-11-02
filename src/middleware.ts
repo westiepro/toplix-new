@@ -3,10 +3,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-	let response = NextResponse.next({
-		request: {
-			headers: request.headers,
-		},
+	let supabaseResponse = NextResponse.next({
+		request,
 	});
 
 	// Check if Supabase is configured
@@ -14,8 +12,9 @@ export async function middleware(request: NextRequest) {
 	const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 	if (!supabaseUrl || !supabaseAnonKey) {
-		// Supabase not configured, allow access
-		return response;
+		// Supabase not configured, allow access (for development)
+		console.log("Middleware: Supabase not configured, allowing access");
+		return supabaseResponse;
 	}
 
 	// Create a Supabase client configured to use cookies
@@ -28,19 +27,15 @@ export async function middleware(request: NextRequest) {
 					return request.cookies.getAll();
 				},
 				setAll(cookiesToSet) {
-					cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
-					response = NextResponse.next({
-						request,
+					cookiesToSet.forEach(({ name, value, options }) => {
+						supabaseResponse.cookies.set(name, value, options);
 					});
-					cookiesToSet.forEach(({ name, value, options }) =>
-						response.cookies.set(name, value, options)
-					);
 				},
 			},
 		}
 	);
 
-	// Refresh session if expired - required for Server Components
+	// Refresh session - this is important for server-side auth
 	const {
 		data: { session },
 	} = await supabase.auth.getSession();
@@ -53,20 +48,23 @@ export async function middleware(request: NextRequest) {
 
 	// Admin login page should be accessible
 	if (request.nextUrl.pathname === "/admin/login") {
-		return response;
+		return supabaseResponse;
 	}
 
 	// If accessing a protected route without a session, redirect to home
 	if (isProtectedRoute && !session) {
+		console.log("Middleware: No session found, redirecting to home");
 		const redirectUrl = new URL("/", request.url);
-		return NextResponse.redirect(redirectUrl);
+		const redirectResponse = NextResponse.redirect(redirectUrl);
+		return redirectResponse;
 	}
 
-	return response;
+	console.log("Middleware: User authenticated, allowing access to", request.nextUrl.pathname);
+	return supabaseResponse;
 }
 
 export const config = {
-	matcher: ["/dashboard/:path*", "/admin/:path*"],
+	matcher: ["/dashboard", "/dashboard/:path*", "/admin", "/admin/:path*"],
 };
 
 

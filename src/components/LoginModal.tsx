@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface LoginModalProps {
 	open: boolean;
@@ -16,6 +17,7 @@ interface LoginModalProps {
 type ModalState = "initial" | "existing_user" | "check_email";
 
 export function LoginModal({ open, onOpenChange }: LoginModalProps) {
+	const { t } = useTranslation();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [modalState, setModalState] = useState<ModalState>("initial");
@@ -36,37 +38,45 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 
 	const handleContinueWithEmail = async () => {
 		if (!email || !email.includes("@")) {
-			toast.error("Please enter a valid email address");
+			toast.error(t("login.enterValidEmail"));
 			return;
 		}
 
 		setIsLoading(true);
 
-		// First, try to sign in to check if user exists
-		const { error: signInError } = await signIn(email, "");
+		console.log("Continue with email clicked for:", email);
+
+		// Try to sign up - this will create user and log them in instantly
+		const { error: signUpError, data } = await signUp(email);
 		
-		if (signInError) {
-			// User doesn't exist or password is wrong
-			// Try to sign up (send magic link)
-			const { error: signUpError } = await signUp(email);
-			
-			if (signUpError) {
-				toast.error(signUpError.message);
+		console.log("Sign up response:", { error: signUpError, data });
+		
+		if (signUpError) {
+			// If error is "already registered", show password field for existing users
+			if (signUpError.message?.includes("already registered") || signUpError.message?.includes("User already registered")) {
+				setModalState("existing_user");
 				setIsLoading(false);
-			} else {
-				setModalState("check_email");
-				setIsLoading(false);
+				return;
 			}
-		} else {
-			// User exists, show password field
-			setModalState("existing_user");
+			
+			// Show detailed error message
+			toast.error(signUpError.message, {
+				duration: 10000,
+			});
 			setIsLoading(false);
+		} else {
+			// Success! User is created and logged in instantly
+			console.log("User created successfully!");
+			toast.success(t("login.welcomeLoggedIn"));
+			setIsLoading(false);
+			onOpenChange(false);
+			// The AuthContext will handle the session automatically
 		}
 	};
 
 	const handleSignIn = async () => {
 		if (!password) {
-			toast.error("Please enter your password");
+			toast.error(t("login.enterPassword"));
 			return;
 		}
 
@@ -77,7 +87,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 			toast.error(error.message);
 			setIsLoading(false);
 		} else {
-			toast.success("Signed in successfully!");
+			toast.success(t("login.signedInSuccess"));
 			onOpenChange(false);
 		}
 	};
@@ -95,7 +105,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 
 	const handleGuestMode = () => {
 		continueAsGuest();
-		toast.success("Browsing as guest");
+		toast.success(t("login.browsingAsGuest"));
 		onOpenChange(false);
 	};
 
@@ -117,41 +127,18 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 					className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground z-10"
 				>
 					<X className="h-4 w-4" />
-					<span className="sr-only">Close</span>
+					<span className="sr-only">{t("login.close")}</span>
 				</button>
 
 				<div className="p-6 pt-8">
-					<DialogHeader className="mb-6">
-						<DialogTitle className="text-center text-xl font-semibold">
-							{modalState === "check_email" ? "Check your email" : "Sign in or Create Account"}
-						</DialogTitle>
-					</DialogHeader>
+				<DialogHeader className="mb-6">
+					<DialogTitle className="text-center text-xl font-semibold">
+						{t("login.title")}
+					</DialogTitle>
+				</DialogHeader>
 
-					{modalState === "check_email" ? (
-						<div className="space-y-4 text-center">
-							<div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-								<Mail className="h-8 w-8 text-primary" />
-							</div>
-							<div className="space-y-2">
-								<p className="text-sm text-muted-foreground">
-									We've sent a verification link to
-								</p>
-								<p className="font-medium">{email}</p>
-								<p className="text-sm text-muted-foreground">
-									Click the link in the email to verify your account and set a password.
-								</p>
-							</div>
-							<Button
-								variant="outline"
-								onClick={() => setModalState("initial")}
-								className="w-full"
-							>
-								Back
-							</Button>
-						</div>
-					) : (
-						<div className="space-y-4">
-							{/* Social Login Buttons */}
+				<div className="space-y-4">
+					{/* Social Login Buttons */}
 							<Button
 								variant="outline"
 								className="w-full justify-start gap-3 h-11"
@@ -176,7 +163,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 										d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
 									/>
 								</svg>
-								<span>Continue with Google</span>
+								<span>{t("login.continueWithGoogle")}</span>
 							</Button>
 
 							<Button
@@ -188,7 +175,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 								<svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
 									<path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
 								</svg>
-								<span>Continue with Apple</span>
+								<span>{t("login.continueWithApple")}</span>
 							</Button>
 
 							{/* Divider */}
@@ -198,7 +185,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 								</div>
 								<div className="relative flex justify-center text-xs uppercase">
 									<span className="bg-background px-2 text-muted-foreground">
-										or enter your e-mail
+										{t("login.orEnterEmail")}
 									</span>
 								</div>
 							</div>
@@ -207,7 +194,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 							<div className="space-y-3">
 								<Input
 									type="email"
-									placeholder="E-mail"
+									placeholder={t("login.emailPlaceholder")}
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 									onKeyPress={handleKeyPress}
@@ -219,7 +206,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 								{modalState === "existing_user" && (
 									<Input
 										type="password"
-										placeholder="Password"
+										placeholder={t("login.passwordPlaceholder")}
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
 										onKeyPress={handleKeyPress}
@@ -235,7 +222,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 											disabled={isLoading}
 											className="w-full h-11"
 										>
-											{isLoading ? "Signing in..." : "Sign In"}
+											{isLoading ? t("login.signingIn") : t("login.signIn")}
 										</Button>
 										<Button
 											variant="ghost"
@@ -243,7 +230,7 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 											disabled={isLoading}
 											className="w-full"
 										>
-											Back
+											{t("login.back")}
 										</Button>
 									</div>
 								) : (
@@ -252,24 +239,23 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 										disabled={isLoading}
 										className="w-full h-11"
 									>
-										{isLoading ? "Please wait..." : "Continue with e-mail"}
+										{isLoading ? t("login.pleaseWait") : t("login.continueWithEmail")}
 									</Button>
 								)}
 							</div>
 
-							{/* Guest Mode Link */}
-							{modalState === "initial" && (
-								<div className="pt-2 text-center">
-									<button
-										onClick={handleGuestMode}
-										className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
-									>
-										Continue as guest
-									</button>
-								</div>
-							)}
+					{/* Guest Mode Link */}
+					{modalState === "initial" && (
+						<div className="pt-2 text-center">
+							<button
+								onClick={handleGuestMode}
+								className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
+							>
+								{t("login.continueAsGuest")}
+							</button>
 						</div>
 					)}
+				</div>
 				</div>
 			</DialogContent>
 		</Dialog>

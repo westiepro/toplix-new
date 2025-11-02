@@ -93,7 +93,22 @@ function HomesPageContent() {
 	// Initialize filters from URL params on mount
 	useEffect(() => {
 		const q = searchParams.get("q");
-		if (q) {
+		const lat = searchParams.get("lat");
+		const lng = searchParams.get("lng");
+		const zoom = searchParams.get("zoom");
+		
+		if (lat && lng) {
+			// Use geocoded coordinates from URL
+			setFilters({
+				q: q || "",
+				location: {
+					lat: parseFloat(lat),
+					lng: parseFloat(lng),
+					zoom: zoom ? parseFloat(zoom) : 12,
+				},
+			});
+		} else if (q) {
+			// Fallback to hardcoded city coordinates
 			const cityCoords = getCityCoordinates(q);
 			setFilters({
 				q,

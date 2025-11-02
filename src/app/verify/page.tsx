@@ -16,7 +16,9 @@ function VerifyContent() {
 	const [password, setPasswordValue] = useState("");
 	const [confirmPassword, setConfirmPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const [isVerifying, setIsVerifying] = useState(true);
 	const [isVerified, setIsVerified] = useState(false);
+	const [verificationError, setVerificationError] = useState<string | null>(null);
 
 	const validatePassword = (pwd: string): string | null => {
 		if (pwd.length < 8) {
@@ -38,11 +40,46 @@ function VerifyContent() {
 	};
 
 	useEffect(() => {
-		// Check if user is already authenticated (verification successful)
-		if (user) {
-			setIsVerified(true);
-		}
-	}, [user]);
+		const handleEmailConfirmation = async () => {
+			// Supabase automatically handles the token from the URL hash
+			// We just need to check if the user is authenticated after the redirect
+			
+			// Wait a moment for Supabase to process the URL hash
+			await new Promise(resolve => setTimeout(resolve, 1000));
+
+			// Import Supabase client
+			const { getSupabaseClient } = await import("@/lib/supabaseClient");
+			const supabase = getSupabaseClient();
+
+			if (!supabase) {
+				setVerificationError("Authentication service not configured");
+				setIsVerifying(false);
+				return;
+			}
+
+			// Check if user is now authenticated
+			const { data: { session }, error } = await supabase.auth.getSession();
+
+			if (error) {
+				console.error("Session error:", error);
+				setVerificationError(error.message);
+				setIsVerifying(false);
+				return;
+			}
+
+			if (session) {
+				// User is authenticated - email was verified
+				toast.success("Email verified! Please set your password.");
+				setIsVerifying(false);
+			} else {
+				// No session found
+				setVerificationError("Unable to verify email. The link may have expired. Please try signing up again.");
+				setIsVerifying(false);
+			}
+		};
+
+		handleEmailConfirmation();
+	}, [searchParams, user]);
 
 	const handleSetPassword = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -75,6 +112,39 @@ function VerifyContent() {
 			}, 1500);
 		}
 	};
+
+	if (isVerifying) {
+		return (
+			<div className="min-h-screen flex items-center justify-center p-4">
+				<Card className="w-full max-w-md">
+					<CardContent className="flex flex-col items-center justify-center py-16">
+						<Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+						<p className="text-lg font-medium">Verifying your email...</p>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
+
+	if (verificationError) {
+		return (
+			<div className="min-h-screen flex items-center justify-center p-4">
+				<Card className="w-full max-w-md">
+					<CardHeader className="text-center">
+						<CardTitle className="text-red-600">Verification Failed</CardTitle>
+						<CardDescription>
+							{verificationError}
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="text-center">
+						<Button onClick={() => router.push("/")} variant="outline" className="w-full">
+							Return to Home
+						</Button>
+					</CardContent>
+				</Card>
+			</div>
+		);
+	}
 
 	if (isVerified) {
 		return (
