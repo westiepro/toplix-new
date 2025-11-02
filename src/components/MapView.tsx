@@ -359,11 +359,15 @@ export function MapView({
 				return;
 			}
 			
+			// Smooth fly animation with easing
 			map.flyTo({
 				center: [location.lng, location.lat],
 				zoom: location.zoom,
-				duration: 1000,
+				duration: 2000, // Increased to 2 seconds for smoother effect
 				essential: true,
+				curve: 1.5, // More dramatic curve for the flight path
+				speed: 1.2, // Slightly faster speed
+				easing: (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t, // Custom easing function
 			});
 			
 			lastLocationRef.current = location;

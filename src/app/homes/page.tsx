@@ -132,7 +132,7 @@ function HomesPageContent() {
 						const { location, ...rest } = prev;
 						return rest;
 					});
-				}, 1200); // Clear after animation completes
+				}, 2500); // Clear after 2.5s to allow full animation to complete
 			}
 		}
 	};
