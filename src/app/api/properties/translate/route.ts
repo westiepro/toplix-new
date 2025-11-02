@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { getSupabaseServer } from "@/lib/supabaseServer";
 
-const openai = new OpenAI({
-	apiKey: process.env.OPENAI_API_KEY,
-});
-
 // POST: Translate property content for all languages or specific language
 export async function POST(request: NextRequest) {
 	try {
@@ -25,6 +21,11 @@ export async function POST(request: NextRequest) {
 				{ status: 500 }
 			);
 		}
+
+		// Initialize OpenAI client only when needed
+		const openai = new OpenAI({
+			apiKey: process.env.OPENAI_API_KEY,
+		});
 
 		const supabase = getSupabaseServer();
 		if (!supabase) {
