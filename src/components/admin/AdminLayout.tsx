@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { LocaleLink } from "@/components/LocaleLink";
 import { usePathname } from "next/navigation";
 import { 
 	LayoutDashboard, 
@@ -22,6 +22,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useTheme } from "next-themes";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const navigation = [
 	{ name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -35,12 +36,13 @@ const navigation = [
 export function AdminLayout({ children }: { children: React.ReactNode }) {
 	const pathname = usePathname();
 	const router = useRouter();
+	const { currentLanguage } = useLanguage();
 	const { theme, setTheme } = useTheme();
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 
 	const handleLogout = () => {
 		localStorage.removeItem("admin-authenticated");
-		router.push("/admin/login");
+		router.push(`/${currentLanguage}/admin/login`);
 	};
 
 	return (
@@ -63,12 +65,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 				<div className="flex h-full flex-col">
 					{/* Logo */}
 					<div className="flex h-16 items-center justify-between px-6 border-b border-border">
-						<Link href="/admin/dashboard" className="flex items-center gap-2">
+						<LocaleLink href="/admin/dashboard" className="flex items-center gap-2">
 							<div className="h-8 w-8 rounded-lg bg-[#198754] flex items-center justify-center">
 								<Home className="h-5 w-5 text-white" />
 							</div>
 							<span className="font-semibold text-lg">Admin</span>
-						</Link>
+						</LocaleLink>
 						<Button
 							variant="ghost"
 							size="icon"
@@ -82,9 +84,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 					{/* Navigation */}
 					<nav className="flex-1 px-4 py-6 space-y-1">
 						{navigation.map((item) => {
-							const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
+							const localizedHref = `/${currentLanguage}${item.href}`;
+							const isActive = pathname === localizedHref || pathname?.startsWith(localizedHref + "/");
 							return (
-								<Link
+								<LocaleLink
 									key={item.name}
 									href={item.href}
 									onClick={() => setSidebarOpen(false)}
@@ -97,7 +100,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 								>
 									<item.icon className="h-5 w-5" />
 									{item.name}
-								</Link>
+								</LocaleLink>
 							);
 						})}
 					</nav>
@@ -153,9 +156,9 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="w-56">
 								<DropdownMenuItem asChild>
-									<Link href="/admin/settings">
+									<LocaleLink href="/admin/settings">
 										Settings
-									</Link>
+									</LocaleLink>
 								</DropdownMenuItem>
 								<DropdownMenuItem onClick={handleLogout}>
 									<LogOut className="mr-2 h-4 w-4" />

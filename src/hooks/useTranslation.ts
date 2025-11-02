@@ -7,7 +7,7 @@ interface InterpolationParams {
 }
 
 export function useTranslation() {
-	const { translations, currentLanguage, isLoading } = useLanguage();
+	const { translations, currentLanguage } = useLanguage();
 
 	/**
 	 * Translate a key to the current language
@@ -57,7 +57,6 @@ export function useTranslation() {
 		hasTranslation,
 		tOr,
 		currentLanguage,
-		isLoading,
 	};
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocaleLink } from "@/components/LocaleLink";
 import Image from "next/image";
 import { formatPrice, type Property } from "@/components/PropertyCard";
 import { Button } from "@/components/ui/button";
@@ -36,7 +36,7 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 		<div className="w-96">
 			<div className="max-h-96 overflow-y-auto">
 				{displayFavorites.map((property) => (
-					<Link
+					<LocaleLink
 						key={property.id}
 						href={`/property/${property.id}`}
 						className="flex gap-3 p-3 hover:bg-accent transition-colors border-b last:border-b-0"
@@ -59,7 +59,7 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 								{property.beds} {t("favorites.bd")} · {property.baths} {t("favorites.ba")}
 							</p>
 						</div>
-					</Link>
+					</LocaleLink>
 				))}
 			</div>
 			{favorites.length > 5 && (
@@ -71,7 +71,7 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 			)}
 			<div className="p-3 border-t">
 				<Button asChild variant="outline" className="w-full">
-					<Link href="/dashboard">{t("favorites.viewAll")}</Link>
+					<LocaleLink href="/dashboard">{t("favorites.viewAll")}</LocaleLink>
 				</Button>
 			</div>
 		</div>

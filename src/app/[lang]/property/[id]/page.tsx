@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Share2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import AIComparisonSlider from "@/components/AIComparisonSlider";
+import { useTranslation } from "@/hooks/useTranslation";
 
 function sample(id: string): Property | null {
 	const list: Property[] = [
@@ -120,9 +121,23 @@ function sample(id: string): Property | null {
 }
 
 export default function PropertyPage() {
+	const { t } = useTranslation();
 	const params = useParams<{ id: string }>();
 	const property = useMemo(() => sample(params.id), [params.id]);
-	if (!property) return <div>Not found</div>;
+	
+	if (!property) {
+		return (
+			<main className="min-h-screen">
+				<Navbar />
+				<section className="mx-auto max-w-6xl p-4">
+					<div className="flex items-center justify-center h-96">
+						<p className="text-xl text-muted-foreground">{t("propertyDetail.notFound")}</p>
+					</div>
+				</section>
+			</main>
+		);
+	}
+	
 	return (
 		<main className="min-h-screen">
 			<Navbar />
@@ -134,11 +149,17 @@ export default function PropertyPage() {
 					<div>
 						<h1 className="text-2xl font-semibold">${(property.price).toLocaleString()}</h1>
 						<p className="text-muted-foreground">{property.address}, {property.city}</p>
-						<p className="text-sm">{property.beds} bd · {property.baths} ba · {property.area} sqft</p>
+						<p className="text-sm">
+							{property.beds} {t("propertyDetail.bd")} · {property.baths} {t("propertyDetail.ba")} · {property.area} {t("propertyDetail.sqft")}
+						</p>
 					</div>
 					<div className="flex gap-2">
-						<Button variant="outline" className="gap-2"><Heart className="h-4 w-4" /> Favorite</Button>
-						<Button variant="outline" className="gap-2"><Share2 className="h-4 w-4" /> Share</Button>
+						<Button variant="outline" className="gap-2">
+							<Heart className="h-4 w-4" /> {t("propertyDetail.favorite")}
+						</Button>
+						<Button variant="outline" className="gap-2">
+							<Share2 className="h-4 w-4" /> {t("propertyDetail.share")}
+						</Button>
 					</div>
 				</div>
 				{/* AI Comparison Slider */}
@@ -151,8 +172,10 @@ export default function PropertyPage() {
 				
 				<div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
 					<div>
-						<h2 className="mb-2 text-lg font-medium">Description</h2>
-						<p className="text-sm text-muted-foreground">Beautiful home in the heart of the city with modern finishes and plenty of natural light.</p>
+						<h2 className="mb-2 text-lg font-medium">{t("propertyDetail.description")}</h2>
+						<p className="text-sm text-muted-foreground">
+							{property.description || t("propertyDetail.defaultDescription")}
+						</p>
 					</div>
 					<div className="h-[320px] overflow-hidden rounded-md">
 						<MapView properties={[property]} />

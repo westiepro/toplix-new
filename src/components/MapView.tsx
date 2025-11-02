@@ -1,11 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import maplibregl from "maplibre-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Property } from "@/components/PropertyCard";
+import type { Property } from "@/lib/api";
+import { MapControls } from "@/components/MapControls";
+import { usePropertyImages } from "@/lib/api";
+import { getSliderImage } from "@/lib/cloudinary";
+import ReactDOM from "react-dom/client";
+import { Heart, Share2 } from "lucide-react";
 
 type Bounds = { minLat: number; maxLat: number; minLng: number; maxLng: number };
 

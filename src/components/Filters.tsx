@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { searchLocations, debounce, type SearchLocation } from "@/lib/geocoding";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export type FiltersState = {
 	q?: string;
@@ -20,6 +21,7 @@ export type FiltersState = {
 };
 
 export function Filters({ value, onChange, onClearBounds }: { value: FiltersState; onChange: (v: FiltersState) => void; onClearBounds?: () => void; }) {
+	const { t } = useTranslation();
 	const [local, setLocal] = useState<FiltersState>(value);
 	const [searchQuery, setSearchQuery] = useState(value.q || "");
 	const [suggestions, setSuggestions] = useState<SearchLocation[]>([]);
@@ -135,7 +137,7 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 				<div className="relative">
 					<Input 
 						ref={searchInputRef}
-						placeholder="Search city or address" 
+						placeholder={t("filters.searchCityOrAddress")}
 						value={searchQuery}
 						onChange={handleSearchChange}
 						onFocus={() => searchQuery.length > 0 && suggestions.length > 0 && setShowSuggestions(true)}
@@ -186,17 +188,17 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 			</div>
 			<div>
 				<Select onValueChange={(v) => update("minPrice", Number(v))}>
-					<SelectTrigger className="w-[140px]"><SelectValue placeholder="Min price" /></SelectTrigger>
+					<SelectTrigger className="w-[140px]"><SelectValue placeholder={t("filters.minPrice")} /></SelectTrigger>
 					<SelectContent>
 						{[0, 250000, 500000, 750000, 1000000].map((p) => (
-							<SelectItem key={p} value={String(p)}>{p === 0 ? "No min" : `$${p.toLocaleString()}`}</SelectItem>
+							<SelectItem key={p} value={String(p)}>{p === 0 ? t("filters.noMin") : `$${p.toLocaleString()}`}</SelectItem>
 						))}
 					</SelectContent>
 				</Select>
 			</div>
 			<div>
 				<Select onValueChange={(v) => update("maxPrice", Number(v))}>
-					<SelectTrigger className="w-[140px]"><SelectValue placeholder="Max price" /></SelectTrigger>
+					<SelectTrigger className="w-[140px]"><SelectValue placeholder={t("filters.maxPrice")} /></SelectTrigger>
 					<SelectContent>
 						{[500000, 750000, 1000000, 1500000, 2000000].map((p) => (
 							<SelectItem key={p} value={String(p)}>{`$${p.toLocaleString()}`}</SelectItem>
@@ -206,7 +208,7 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 			</div>
 			<div>
 				<Select onValueChange={(v) => update("beds", Number(v))}>
-					<SelectTrigger className="w-[120px]"><SelectValue placeholder="Beds" /></SelectTrigger>
+					<SelectTrigger className="w-[120px]"><SelectValue placeholder={t("filters.beds")} /></SelectTrigger>
 					<SelectContent>
 						{[1, 2, 3, 4, 5].map((n) => (<SelectItem key={n} value={String(n)}>{n}+</SelectItem>))}
 					</SelectContent>
@@ -214,7 +216,7 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 			</div>
 			<div>
 				<Select onValueChange={(v) => update("baths", Number(v))}>
-					<SelectTrigger className="w-[120px]"><SelectValue placeholder="Baths" /></SelectTrigger>
+					<SelectTrigger className="w-[120px]"><SelectValue placeholder={t("filters.baths")} /></SelectTrigger>
 					<SelectContent>
 						{[1, 2, 3, 4].map((n) => (<SelectItem key={n} value={String(n)}>{n}+</SelectItem>))}
 					</SelectContent>
@@ -222,16 +224,19 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 			</div>
 			<div>
 				<Select onValueChange={(v) => update("propertyType", v === "any" ? undefined : v)}>
-					<SelectTrigger className="w-[160px]"><SelectValue placeholder="Property type" /></SelectTrigger>
+					<SelectTrigger className="w-[160px]"><SelectValue placeholder={t("filters.propertyType")} /></SelectTrigger>
 					<SelectContent>
-						{["Any", "Apartment", "Villa", "Townhouse", "Land", "Commercial"].map((t) => (
-							<SelectItem key={t} value={t === "Any" ? "any" : t}>{t}</SelectItem>
-						))}
+						<SelectItem value="any">{t("filters.any")}</SelectItem>
+						<SelectItem value="Apartment">{t("filters.apartment")}</SelectItem>
+						<SelectItem value="Villa">{t("filters.villa")}</SelectItem>
+						<SelectItem value="Townhouse">{t("filters.townhouse")}</SelectItem>
+						<SelectItem value="Land">{t("filters.land")}</SelectItem>
+						<SelectItem value="Commercial">{t("filters.commercial")}</SelectItem>
 					</SelectContent>
 				</Select>
 			</div>
 			<div className="flex items-center gap-3">
-				<span className="text-sm text-muted-foreground">Min area</span>
+				<span className="text-sm text-muted-foreground">{t("filters.minArea")}</span>
 				<Slider className="w-[180px]" min={0} max={5000} step={100} defaultValue={[local.minArea ?? 0]} onValueChange={(v) => update("minArea", v[0] ?? 0)} />
 			</div>
 		</div>

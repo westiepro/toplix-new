@@ -11,7 +11,8 @@ export default function AdminLayoutWrapper({
 	children: React.ReactNode;
 }) {
 	const pathname = usePathname();
-	const isLoginPage = pathname === "/admin/login";
+	// Check if the path ends with /admin/login (works with any locale prefix)
+	const isLoginPage = pathname.endsWith("/admin/login");
 
 	return (
 		<ThemeProvider attribute="class" defaultTheme="system" enableSystem>

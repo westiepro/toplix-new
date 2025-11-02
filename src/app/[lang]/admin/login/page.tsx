@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeProvider } from "@/components/theme-provider";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const loginSchema = z.object({
 	email: z.string().email("Invalid email address"),
@@ -20,6 +21,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function AdminLoginPage() {
 	const router = useRouter();
+	const { currentLanguage } = useLanguage();
 	const [isLoading, setIsLoading] = useState(false);
 	const {
 		register,
@@ -36,7 +38,7 @@ export default function AdminLoginPage() {
 		setTimeout(() => {
 			// Store simple auth in localStorage (replace with proper auth in production)
 			localStorage.setItem("admin-authenticated", "true");
-			router.push("/admin/dashboard");
+			router.push(`/${currentLanguage}/admin/dashboard`);
 			setIsLoading(false);
 		}, 500);
 	};

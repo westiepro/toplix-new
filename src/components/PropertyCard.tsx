@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { LocaleLink } from "@/components/LocaleLink";
 import Image from "next/image";
 import { Heart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -17,11 +17,14 @@ export type Property = {
 	price: number;
 	address: string;
 	city: string;
+	country?: string;
 	beds: number;
 	baths: number;
-	area: number; // sqft
+	area: number; // sqft or m²
+	property_type?: string;
 	lat: number;
 	lng: number;
+	description?: string;
 	imageUrl: string;
 	original_image?: string; // Original property photo
 	ai_styles?: AIStyle[]; // AI-generated style variations
@@ -55,7 +58,7 @@ export function PropertyCard({ property, highlighted }: { property: Property; hi
 	};
 
 	return (
-		<Link href={`/property/${property.id}`}>
+		<LocaleLink href={`/property/${property.id}`}>
 			<Card className={`overflow-hidden transition hover:shadow-lg ${highlighted ? "ring-2 ring-green-600" : ""} p-0`}>
 				<div className="relative h-56 w-full">
 					<Image src={property.imageUrl} alt={property.address} fill className="object-cover" />
@@ -81,7 +84,7 @@ export function PropertyCard({ property, highlighted }: { property: Property; hi
 					<div className="text-sm text-muted-foreground">{property.city}</div>
 				</CardContent>
 			</Card>
-		</Link>
+		</LocaleLink>
 	);
 }
 

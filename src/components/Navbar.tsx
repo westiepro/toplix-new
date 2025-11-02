@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Heart, User, Map, Home, LogOut } from "lucide-react";
@@ -14,9 +13,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { LoginModal } from "@/components/LoginModal";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/hooks/useTranslation";
+import { LocaleLink } from "@/components/LocaleLink";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Navbar() {
 	const { t } = useTranslation();
+	const { currentLanguage } = useLanguage();
 	const router = useRouter();
 	const [showLoginModal, setShowLoginModal] = useState(false);
 	const { user, isGuest, signOut } = useAuth();
@@ -30,26 +32,26 @@ export function Navbar() {
 
 	const handleDashboardClick = () => {
 		console.log("Dashboard clicked - navigating to /dashboard");
-		router.push("/dashboard");
+		router.push(`/${currentLanguage}/dashboard`);
 	};
 
 	return (
 		<>
 			<header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur">
 				<div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-					<Link href="/" className="flex items-center gap-2 font-semibold">
+					<LocaleLink href="/" className="flex items-center gap-2 font-semibold">
 						<Home className="h-5 w-5" />
 						<span>{t("navbar.brand")}</span>
-					</Link>
+					</LocaleLink>
 					<nav className="hidden items-center gap-6 md:flex">
-						<Link href="/homes" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.buy")}</Link>
-						<Link href="/homes?for=rent" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.rent")}</Link>
-						<Link href="/sell" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.sell")}</Link>
+						<LocaleLink href="/homes" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.buy")}</LocaleLink>
+						<LocaleLink href="/homes?for=rent" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.rent")}</LocaleLink>
+						<LocaleLink href="/sell" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.sell")}</LocaleLink>
 					</nav>
 					<div className="flex items-center gap-2">
-						<Link href="/homes">
+						<LocaleLink href="/homes">
 							<Button variant="secondary" size="sm" className="gap-2"><Map className="h-4 w-4" /> {t("navbar.explore")}</Button>
-						</Link>
+						</LocaleLink>
 						
 						{user ? (
 							<DropdownMenu>
@@ -64,11 +66,11 @@ export function Navbar() {
 										<p className="font-medium">{user.email}</p>
 									</div>
 									<DropdownMenuSeparator />
-									<Link href="/dashboard" className="block">
+									<LocaleLink href="/dashboard" className="block">
 										<DropdownMenuItem className="cursor-pointer">
 											{t("navbar.dashboard")}
 										</DropdownMenuItem>
-									</Link>
+									</LocaleLink>
 									<DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
 										<LogOut className="mr-2 h-4 w-4" />
 										{t("navbar.signOut")}
