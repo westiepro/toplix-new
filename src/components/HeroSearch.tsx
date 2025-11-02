@@ -18,37 +18,27 @@ export function HeroSearch() {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 
-	// Debounced geocoding search - very fast response (50ms)
-	const debouncedSearch = useCallback(
-		debounce(async (searchQuery: string) => {
-			if (searchQuery.length < 2) {
-				setSuggestions([]);
-				setShowSuggestions(false);
-				setIsSearching(false);
-				return;
-			}
-
-			setIsSearching(true);
-			const results = await searchLocations(searchQuery);
-			setSuggestions(results);
-			setShowSuggestions(results.length > 0);
-			setSelectedIndex(-1);
-			setIsSearching(false);
-		}, 50),
-		[]
-	);
-
-	// Trigger geocoding search when query changes
-	useEffect(() => {
-		if (query.length >= 2) {
-			setIsSearching(true);
-			debouncedSearch(query);
-		} else {
+	// Instant search with smart caching
+	const performSearch = useCallback(async (searchQuery: string) => {
+		if (searchQuery.length < 2) {
 			setSuggestions([]);
 			setShowSuggestions(false);
 			setIsSearching(false);
+			return;
 		}
-	}, [query, debouncedSearch]);
+
+		setIsSearching(true);
+		const results = await searchLocations(searchQuery);
+		setSuggestions(results);
+		setShowSuggestions(results.length > 0);
+		setSelectedIndex(-1);
+		setIsSearching(false);
+	}, []);
+
+	// Trigger instant search when query changes
+	useEffect(() => {
+		performSearch(query);
+	}, [query, performSearch]);
 
 
 	function onSubmit(e: React.FormEvent) {
