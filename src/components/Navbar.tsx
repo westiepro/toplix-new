@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, User, Map, Home, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "@/hooks/useTranslation";
 import { LocaleLink } from "@/components/LocaleLink";
 import { useLanguage } from "@/contexts/LanguageContext";
+import type { Property } from "@/components/PropertyCard";
 
 export function Navbar() {
 	const { t } = useTranslation();
@@ -24,7 +25,16 @@ export function Navbar() {
 	const { user, isGuest, signOut } = useAuth();
 	const { getFavorites } = useFavoritesContext();
 	const favoriteIds = getFavorites();
-	const favoriteProperties = getPropertiesByIds(favoriteIds);
+	const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([]);
+
+	// Load favorite properties
+	useEffect(() => {
+		const loadFavorites = async () => {
+			const properties = await getPropertiesByIds(favoriteIds);
+			setFavoriteProperties(properties);
+		};
+		loadFavorites();
+	}, [favoriteIds]);
 
 	const handleSignOut = async () => {
 		await signOut();

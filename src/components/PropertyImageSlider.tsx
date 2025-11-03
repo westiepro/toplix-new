@@ -24,6 +24,7 @@ export function PropertyImageSlider({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   // Auto-play functionality
   useEffect(() => {
@@ -88,7 +89,11 @@ export function PropertyImageSlider({
   };
 
   return (
-    <div className={`relative overflow-hidden bg-black ${className}`}>
+    <div 
+      className={`relative overflow-hidden bg-black ${className}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
       {/* Image Container */}
       <div className="relative w-full h-full">
         <AnimatePresence initial={false} custom={direction}>
@@ -125,28 +130,28 @@ export function PropertyImageSlider({
         </AnimatePresence>
       </div>
 
-      {/* Navigation Arrows (Desktop) */}
-      {showControls && images.length > 1 && (
+      {/* Navigation Arrows - Only visible on hover */}
+      {showControls && images.length > 1 && isHovered && (
         <>
           <button
             onClick={(e) => {
               e.stopPropagation();
               handlePrevious();
             }}
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-lg hover:bg-white transition-all duration-200"
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-800/60 hover:bg-gray-800/80 text-white shadow-lg transition-all duration-200 hover:scale-110"
             aria-label="Previous image"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-6 w-6" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation();
               handleNext();
             }}
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 hidden md:flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-gray-900 shadow-lg hover:bg-white transition-all duration-200"
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-gray-800/60 hover:bg-gray-800/80 text-white shadow-lg transition-all duration-200 hover:scale-110"
             aria-label="Next image"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-6 w-6" />
           </button>
         </>
       )}
@@ -172,10 +177,10 @@ export function PropertyImageSlider({
         </div>
       )}
 
-      {/* Image Counter (Top Right) */}
-      {images.length > 1 && (
-        <div className="absolute top-3 right-3 z-10 px-2 py-1 rounded-md bg-black/60 text-white text-xs font-medium">
-          {currentIndex + 1} / {images.length}
+      {/* Image Counter (Bottom Left) - Only visible from second image onwards */}
+      {images.length > 1 && currentIndex > 0 && (
+        <div className="absolute bottom-3 left-3 z-10 px-2.5 py-1 rounded bg-gray-900/80 text-white text-sm font-medium">
+          {currentIndex + 1}/{images.length}
         </div>
       )}
     </div>

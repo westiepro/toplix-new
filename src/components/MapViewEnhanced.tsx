@@ -9,6 +9,7 @@ import type { Property } from "@/lib/api";
 import { MapControls } from "@/components/MapControls";
 import { getSliderImage } from "@/lib/cloudinary";
 import { Heart, Share2, X } from "lucide-react";
+import { formatPriceShort } from "@/lib/utils";
 
 type Bounds = { sw_lat: number; sw_lng: number; ne_lat: number; ne_lng: number };
 
@@ -202,7 +203,7 @@ export function MapView({
       
       const inner = document.createElement("div");
       inner.className = "rounded-md bg-[#198754] text-white text-xs font-semibold shadow-lg px-2 py-1 transition-all duration-200";
-      inner.textContent = formatPrice(p.price);
+      inner.textContent = formatPriceShort(p.price);
       inner.style.transformOrigin = "bottom center";
       inner.style.willChange = "transform";
       el.appendChild(inner);
@@ -328,7 +329,7 @@ export function MapView({
           </button>
         </div>
         <div class="p-3">
-          <div class="text-lg font-bold text-gray-900 dark:text-white mb-1">${formatPrice(selectedProperty.price)}</div>
+          <div class="text-lg font-bold text-gray-900 dark:text-white mb-1">${formatPriceShort(selectedProperty.price)}</div>
           <div class="text-sm text-gray-600 dark:text-gray-300 mb-2">${selectedProperty.address}</div>
           <div class="text-sm text-gray-500 dark:text-gray-400 mb-3">
             ${selectedProperty.beds} bd · ${selectedProperty.baths} ba · ${selectedProperty.area} m²
@@ -481,11 +482,5 @@ export function MapView({
       />
     </div>
   );
-}
-
-function formatPrice(price: number): string {
-  if (price >= 1_000_000) return `€${(price / 1_000_000).toFixed(1)}M`;
-  if (price >= 1_000) return `€${Math.round(price / 1_000)}K`;
-  return `€${price}`;
 }
 

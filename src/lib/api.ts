@@ -15,6 +15,7 @@ export interface Property {
   lng: number;
   description?: string;
   imageUrl: string;
+  images?: PropertyImage[]; // Multiple property images
 }
 
 export interface PropertyImage {

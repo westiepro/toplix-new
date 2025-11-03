@@ -12,6 +12,7 @@ import { getSliderImage } from "@/lib/cloudinary";
 import ReactDOM from "react-dom/client";
 import { Heart, Share2 } from "lucide-react";
 import { trackMapInteraction } from "@/lib/analytics-events";
+import { formatPriceShort } from "@/lib/utils";
 
 type Bounds = { minLat: number; maxLat: number; minLng: number; maxLng: number };
 
@@ -116,7 +117,7 @@ export function MapView({
 			// Inner node receives visual styles so we don't clobber map's transform on the root
 			const inner = document.createElement("div");
 			inner.className = "map-price-marker rounded-md bg-[#198754] text-white text-xs font-semibold shadow px-1.5 py-0.5";
-			inner.textContent = formatPrice(p.price);
+			inner.textContent = formatPriceShort(p.price);
 			inner.style.transformOrigin = "bottom center";
 			inner.style.willChange = "transform";
 			el.appendChild(inner);
@@ -281,7 +282,7 @@ export function MapView({
 			<div class="relative rounded-md overflow-hidden shadow-lg bg-white text-black transition-all duration-200">
 				<div class="relative w-full h-[120px]"><img src="${selectedProperty.imageUrl}" alt="${selectedProperty.address}" style="width:100%;height:100%;object-fit:cover;" /></div>
 				<div class="p-2">
-					<div class="text-sm font-semibold">${formatPrice(selectedProperty.price)}</div>
+					<div class="text-sm font-semibold">${formatPriceShort(selectedProperty.price)}</div>
 					<div class="text-xs text-gray-600">${selectedProperty.address}, ${selectedProperty.city}</div>
 					<div class="text-xs">${selectedProperty.beds} bd · ${selectedProperty.baths} ba · ${selectedProperty.area} sqft</div>
 					<a href="/property/${selectedProperty.id}" class="inline-block mt-2 text-xs font-medium text-white bg-[#198754] px-2 py-1 rounded hover:bg-[#157347] transition-colors">View details</a>
@@ -462,11 +463,4 @@ export function MapView({
 		</div>
 	);
 }
-
-function formatPrice(price: number): string {
-	if (price >= 1_000_000) return `$${(price / 1_000_000).toFixed(1)}M`;
-	if (price >= 1_000) return `$${Math.round(price / 1_000)}K`;
-	return `$${price}`;
-}
-
 

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PropertyCard } from "@/components/PropertyCard";
+import { PropertyCard, type Property } from "@/components/PropertyCard";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { getPropertiesByIds } from "@/lib/favorites-helper";
@@ -17,8 +17,20 @@ export default function DashboardPage() {
 	const { user, signOut } = useAuth();
 	const { getFavorites } = useFavoritesContext();
 	const favoriteIds = getFavorites();
-	const favoriteProperties = getPropertiesByIds(favoriteIds);
+	const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([]);
 	const [activeTab, setActiveTab] = useState<TabType>("favourites");
+	const [isLoadingFavorites, setIsLoadingFavorites] = useState(true);
+
+	// Load favorite properties
+	useEffect(() => {
+		const loadFavorites = async () => {
+			setIsLoadingFavorites(true);
+			const properties = await getPropertiesByIds(favoriteIds);
+			setFavoriteProperties(properties);
+			setIsLoadingFavorites(false);
+		};
+		loadFavorites();
+	}, [favoriteIds]);
 
 	const getUserName = (email: string | undefined) => {
 		if (!email) return "User";
@@ -121,7 +133,14 @@ export default function DashboardPage() {
 								<p className="text-gray-600">Properties you love</p>
 							</div>
 
-							{favoriteProperties.length > 0 ? (
+							{isLoadingFavorites ? (
+								<Card>
+									<CardContent className="flex flex-col items-center justify-center py-16">
+										<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+										<p className="text-gray-600">Loading your favorites...</p>
+									</CardContent>
+								</Card>
+							) : favoriteProperties.length > 0 ? (
 								<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 									{favoriteProperties.map((p) => (
 										<PropertyCard key={p.id} property={p} />
