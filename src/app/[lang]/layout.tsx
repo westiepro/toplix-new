@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 export async function generateMetadata({
 	params,
 }: {
-	params: Promise<{ lang: Locale }>;
+	params: Promise<{ lang: string }>;
 }): Promise<Metadata> {
 	return {
 		title: "Real Estate Portal",
@@ -79,14 +79,16 @@ export default async function LocaleLayout({
 	params,
 }: {
 	children: React.ReactNode;
-	params: Promise<{ lang: Locale }>;
+	params: Promise<{ lang: string }>;
 }) {
 	const { lang } = await params;
-	const translations = await getTranslations(lang);
+	// Validate and cast to Locale
+	const validLang = locales.includes(lang as Locale) ? (lang as Locale) : 'en';
+	const translations = await getTranslations(validLang);
 	const languages = await getLanguages();
 
 	return (
-		<html lang={lang} suppressHydrationWarning>
+		<html lang={validLang} suppressHydrationWarning>
 			<head>
 				<PlausibleProvider
 					domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "localhost"}
@@ -101,7 +103,7 @@ export default async function LocaleLayout({
 			>
 				<Providers>
 					<LanguageProvider
-						locale={lang}
+						locale={validLang}
 						translations={translations}
 						languages={languages}
 					>
