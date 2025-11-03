@@ -16,6 +16,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { LocaleLink } from "@/components/LocaleLink";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Property } from "@/components/PropertyCard";
+import { toast } from "sonner";
 
 export function Navbar() {
 	const { t } = useTranslation();
@@ -45,6 +46,11 @@ export function Navbar() {
 	const handleSignOut = async () => {
 		// Clear favorites before signing out
 		clearAllFavorites();
+		
+		// Show feedback
+		toast.success("Signed out successfully");
+		
+		// Sign out (will redirect to home page)
 		await signOut();
 	};
 

@@ -164,6 +164,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		localStorage.removeItem("favorites");
 		
 		setIsGuest(false);
+		
+		// Redirect to home page after sign out
+		window.location.href = '/';
 	};
 
 	const setPassword = async (password: string) => {
