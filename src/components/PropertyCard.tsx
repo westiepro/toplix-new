@@ -65,13 +65,13 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const [isImageHovered, setIsImageHovered] = useState(false);
 	
-	// Get all available images
+	// Get all available images with fallback
 	const allImages = property.images && property.images.length > 0 
-		? property.images.map(img => img.image_url)
-		: [property.imageUrl];
+		? property.images.map(img => img.image_url).filter(url => url) // Filter out undefined/empty URLs
+		: property.imageUrl ? [property.imageUrl] : ['https://via.placeholder.com/800x600?text=No+Image'];
 	
 	const totalImages = allImages.length;
-	const currentImage = allImages[currentImageIndex];
+	const currentImage = allImages[currentImageIndex] || 'https://via.placeholder.com/800x600?text=No+Image';
 
 	// Share functionality
 	const {
