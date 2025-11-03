@@ -10,7 +10,7 @@ export interface Property {
   beds: number;
   baths: number;
   area: number;
-  property_type: string;
+  property_type?: string;
   lat: number;
   lng: number;
   description?: string;
