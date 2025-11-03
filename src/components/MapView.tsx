@@ -11,6 +11,7 @@ import { usePropertyImages } from "@/lib/api";
 import { getSliderImage } from "@/lib/cloudinary";
 import ReactDOM from "react-dom/client";
 import { Heart, Share2 } from "lucide-react";
+import { trackMapInteraction } from "@/lib/analytics-events";
 
 type Bounds = { minLat: number; maxLat: number; minLng: number; maxLng: number };
 
@@ -40,6 +41,7 @@ export function MapView({
 	const [isSatellite, setIsSatellite] = useState(false);
 	const lastLocationRef = useRef<{ lat: number; lng: number; zoom: number } | null>(null);
 	const selectedPropertyRef = useRef<Property | null>(null);
+	const lastZoomRef = useRef<number | null>(null);
 
 	const isMapbox = Boolean(token);
 
@@ -68,6 +70,12 @@ export function MapView({
 		;(mapRef.current as any).on("moveend", () => {
 			const b = (mapRef.current as any).getBounds();
 			onBoundsChange?.({ minLat: b.getSouth(), maxLat: b.getNorth(), minLng: b.getWest(), maxLng: b.getEast() });
+			trackMapInteraction('pan');
+		});
+		;(mapRef.current as any).on("zoomend", () => {
+			const zoom = (mapRef.current as any).getZoom();
+			trackMapInteraction(zoom > (lastZoomRef.current || 9) ? 'zoom_in' : 'zoom_out', { zoom });
+			lastZoomRef.current = zoom;
 		});
 		;(mapRef.current as any).on("click", (e: any) => {
 			// Close popup only when not clicking on a marker element
@@ -128,6 +136,7 @@ export function MapView({
 			});
 			el.addEventListener("click", (evt) => { 
 				(evt as MouseEvent).stopPropagation(); 
+				trackMapInteraction('marker_click', { property_id: p.id });
 				onMarkerClick?.(p.id); 
 			});
 			const marker = new (isMapbox ? (mapboxgl as any).Marker : (maplibregl as any).Marker)({ element: el, anchor: "bottom" })

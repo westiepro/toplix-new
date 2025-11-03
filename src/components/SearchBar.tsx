@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { searchLocations, type SearchLocation } from "@/lib/geocoding";
 import { useMapStore } from "@/stores/mapStore";
+import { trackSearch } from "@/lib/analytics-events";
 
 type SearchBarProps = {
   onCitySelect?: (location: SearchLocation) => void;
@@ -95,6 +96,9 @@ export function SearchBar({
   function handleSelectLocation(location: SearchLocation) {
     setSearchQuery(location.name);
     setShowSuggestions(false);
+    
+    // Track search
+    trackSearch(location.name);
     
     // Fly to location on map
     flyToLocation({

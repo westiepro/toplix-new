@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,35 +20,53 @@ import {
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit, Eye, Download, FileDown } from "lucide-react";
+import { Plus, Search, Edit, Eye, Download, FileDown, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { PropertyImageManager, type PropertyImage } from "@/components/admin/PropertyImageManager";
 
 const propertySchema = z.object({
 	address: z.string().min(1, "Address is required"),
 	city: z.string().min(1, "City is required"),
+	country: z.string().min(1, "Country is required"),
 	price: z.number().min(0, "Price must be positive"),
 	beds: z.number().min(0),
 	baths: z.number().min(0),
 	area: z.number().min(0),
 	type: z.string().min(1),
-	status: z.enum(["active", "draft"]),
+	lat: z.number().min(-90).max(90, "Invalid latitude"),
+	lng: z.number().min(-180).max(180, "Invalid longitude"),
+	description: z.string().optional(),
+	status: z.enum(["active", "inactive"]),
 });
 
 type PropertyForm = z.infer<typeof propertySchema>;
 
-// Mock properties data
-const mockProperties = [
-	{ id: "1", address: "Rua da Praia 45", city: "Lagos", price: 350000, beds: 2, baths: 2, area: 1100, type: "Apartment", agent: "John Doe", views: 1240, status: "active" },
-	{ id: "2", address: "Avenida da República 120", city: "Faro", price: 485000, beds: 3, baths: 2, area: 1500, type: "Villa", agent: "Jane Smith", views: 980, status: "active" },
-	{ id: "3", address: "Praia da Falésia", city: "Albufeira", price: 620000, beds: 4, baths: 3, area: 2200, type: "Villa", agent: "Mike Johnson", views: 876, status: "active" },
-	{ id: "4", address: "Rua 5 de Outubro 78", city: "Tavira", price: 275000, beds: 2, baths: 1, area: 950, type: "Apartment", agent: "Sarah Williams", views: 754, status: "draft" },
-	{ id: "5", address: "Marina de Vilamoura", city: "Vilamoura", price: 890000, beds: 5, baths: 4, area: 2800, type: "Villa", agent: "John Doe", views: 689, status: "active" },
-];
+interface Property {
+	id: string;
+	address: string;
+	city: string;
+	country?: string;
+	price: number;
+	beds: number;
+	baths: number;
+	area: number;
+	property_type: string;
+	lat: number;
+	lng: number;
+	description?: string;
+	status?: 'active' | 'inactive';
+	imageUrl?: string;
+	images?: Array<{
+		id: string;
+		image_url: string;
+		display_order: number;
+		is_featured: boolean;
+	}>;
+}
 
 export default function PropertiesPage() {
 	const [searchQuery, setSearchQuery] = useState("");
@@ -57,6 +75,29 @@ export default function PropertiesPage() {
 	const [statusFilter, setStatusFilter] = useState<string>("all");
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [editingProperty, setEditingProperty] = useState<string | null>(null);
+	const [propertyImages, setPropertyImages] = useState<PropertyImage[]>([]);
+	const [properties, setProperties] = useState<Property[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+	const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
+	const [isDeleting, setIsDeleting] = useState(false);
+
+	// Fetch properties from API
+	const fetchProperties = async () => {
+		try {
+			const response = await fetch('/api/properties');
+			const data = await response.json();
+			setProperties(data.properties || []);
+		} catch (error) {
+			console.error('Failed to fetch properties:', error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		fetchProperties();
+	}, []);
 
 	const {
 		register,
@@ -68,46 +109,111 @@ export default function PropertiesPage() {
 	} = useForm<PropertyForm>({
 		resolver: zodResolver(propertySchema),
 		defaultValues: {
-			status: "active",
+			address: "Rua da Praia 45",
+			city: "Lagos",
+			country: "Portugal",
+			price: 350000,
+			beds: 2,
+			baths: 2,
+			area: 1100,
 			type: "Apartment",
+			lat: 37.1010,
+			lng: -8.6730,
+			description: "",
+			status: "active",
 		},
 	});
 
 	const filteredProperties = useMemo(() => {
-		return mockProperties.filter((prop) => {
+		return properties.filter((prop) => {
 			const matchesSearch = 
 				prop.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				prop.city.toLowerCase().includes(searchQuery.toLowerCase());
 			const matchesCity = cityFilter === "all" || prop.city === cityFilter;
-			const matchesType = typeFilter === "all" || prop.type === typeFilter;
+			const matchesType = typeFilter === "all" || prop.property_type === typeFilter;
 			const matchesStatus = statusFilter === "all" || prop.status === statusFilter;
 			return matchesSearch && matchesCity && matchesType && matchesStatus;
 		});
-	}, [searchQuery, cityFilter, typeFilter, statusFilter]);
+	}, [properties, searchQuery, cityFilter, typeFilter, statusFilter]);
 
-	const cities = Array.from(new Set(mockProperties.map(p => p.city)));
-	const types = Array.from(new Set(mockProperties.map(p => p.type)));
+	const cities = Array.from(new Set(properties.map(p => p.city)));
+	const types = Array.from(new Set(properties.map(p => p.property_type)));
 
-	const onSubmit = (data: PropertyForm) => {
-		console.log("Save property:", data);
-		// TODO: Implement save to backend
-		setIsDialogOpen(false);
-		reset();
-		setEditingProperty(null);
+	const onSubmit = async (data: PropertyForm) => {
+		try {
+			console.log("Submitting property:", data);
+			console.log("With images:", propertyImages);
+			
+			// Save property to Supabase via API
+			const response = await fetch('/api/properties', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					property: data,
+					images: propertyImages,
+				}),
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				console.error("API Error:", error);
+				throw new Error(error.details || error.error || 'Failed to save property');
+			}
+
+			const result = await response.json();
+			console.log("Property saved successfully:", result);
+			
+			// Show success message
+			alert(`✅ Property saved successfully!\n\nID: ${result.property.id}\nImages: ${propertyImages.length} uploaded`);
+			
+			setIsDialogOpen(false);
+			reset();
+			setEditingProperty(null);
+			setPropertyImages([]);
+			
+			// Refetch properties
+			const refetchResponse = await fetch('/api/properties');
+			const refetchData = await refetchResponse.json();
+			setProperties(refetchData.properties || []);
+		} catch (error) {
+			console.error("Error saving property:", error);
+			const errorMessage = error instanceof Error ? error.message : 'Failed to save property';
+			alert(`❌ Error: ${errorMessage}\n\nCheck the console for more details.`);
+		}
 	};
 
-	const handleEdit = (property: typeof mockProperties[0]) => {
+	const handleEdit = (property: Property) => {
 		setEditingProperty(property.id);
 		reset({
 			address: property.address,
 			city: property.city,
+			country: property.country || 'Portugal',
 			price: property.price,
 			beds: property.beds,
 			baths: property.baths,
 			area: property.area,
-			type: property.type,
-			status: property.status as "active" | "draft",
+			type: property.property_type,
+			lat: property.lat,
+			lng: property.lng,
+			description: property.description || '',
+			status: (property.status as "active" | "inactive") || "active",
 		});
+		
+		// Load existing images from the property
+		const existingImages: PropertyImage[] = (property.images || [])
+			.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+			.map((img, index) => ({
+				id: img.id || `img-${index}`,
+				url: img.image_url,
+				display_order: img.display_order !== undefined ? img.display_order : index,
+				is_featured: img.is_featured !== undefined ? img.is_featured : index === 0,
+			}));
+		
+		console.log('Loading images for property:', property.id, existingImages);
+		setPropertyImages(existingImages);
+		
 		setIsDialogOpen(true);
 	};
 
@@ -115,6 +221,38 @@ export default function PropertiesPage() {
 		// TODO: Implement CSV/PDF export
 		console.log(`Exporting as ${format}`);
 		alert(`Exporting ${filteredProperties.length} properties as ${format.toUpperCase()}`);
+	};
+
+	const handleDeleteClick = (property: Property) => {
+		setPropertyToDelete(property);
+		setDeleteDialogOpen(true);
+	};
+
+	const handleDeleteConfirm = async () => {
+		if (!propertyToDelete) return;
+
+		setIsDeleting(true);
+		try {
+			const response = await fetch(`/api/properties/${propertyToDelete.id}`, {
+				method: 'DELETE',
+			});
+
+			if (!response.ok) {
+				const error = await response.json();
+				throw new Error(error.error || 'Failed to delete property');
+			}
+
+		// Success - refetch properties and close dialog
+		await fetchProperties();
+		setDeleteDialogOpen(false);
+		setPropertyToDelete(null);
+		} catch (error) {
+			console.error('Error deleting property:', error);
+			const errorMessage = error instanceof Error ? error.message : 'Failed to delete property';
+			alert(`❌ Error: ${errorMessage}`);
+		} finally {
+			setIsDeleting(false);
+		}
 	};
 
 	return (
@@ -135,31 +273,52 @@ export default function PropertiesPage() {
 						<FileDown className="h-4 w-4 mr-2" />
 						Export PDF
 					</Button>
+					<Button onClick={() => { 
+						setEditingProperty(null); 
+						reset({
+							address: "Rua da Praia 45",
+							city: "Lagos",
+							country: "Portugal",
+							price: 350000,
+							beds: 2,
+							baths: 2,
+							area: 1100,
+							type: "Apartment",
+							lat: 37.1010,
+							lng: -8.6730,
+							description: "",
+							status: "active",
+						}); 
+						setPropertyImages([]); 
+						setIsDialogOpen(true);
+					}}>
+						<Plus className="h-4 w-4 mr-2" />
+						Add Property
+					</Button>
 					<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-						<DialogTrigger asChild>
-							<Button onClick={() => { setEditingProperty(null); reset(); }}>
-								<Plus className="h-4 w-4 mr-2" />
-								Add Property
-							</Button>
-						</DialogTrigger>
-						<DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+						<DialogContent className="!max-w-[80vw] !w-[80vw] max-h-[90vh] overflow-y-auto">
 							<DialogHeader>
 								<DialogTitle>{editingProperty ? "Edit Property" : "Add New Property"}</DialogTitle>
 								<DialogDescription>
-									{editingProperty ? "Update property information" : "Create a new property listing"}
+									{editingProperty ? "Update property information and images" : "Create a new property listing with images"}
 								</DialogDescription>
 							</DialogHeader>
-							<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+							<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 								<div className="grid grid-cols-2 gap-4">
-									<div className="space-y-2">
+									<div className="space-y-2 col-span-2">
 										<label className="text-sm font-medium">Address</label>
-										<Input {...register("address")} placeholder="123 Main Street" />
+										<Input {...register("address")} placeholder="Rua da Praia 45" />
 										{errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
 									</div>
 									<div className="space-y-2">
 										<label className="text-sm font-medium">City</label>
 										<Input {...register("city")} placeholder="Lagos" />
 										{errors.city && <p className="text-sm text-destructive">{errors.city.message}</p>}
+									</div>
+									<div className="space-y-2">
+										<label className="text-sm font-medium">Country</label>
+										<Input {...register("country")} placeholder="Portugal" />
+										{errors.country && <p className="text-sm text-destructive">{errors.country.message}</p>}
 									</div>
 									<div className="space-y-2">
 										<label className="text-sm font-medium">Price</label>
@@ -211,19 +370,75 @@ export default function PropertiesPage() {
 									</div>
 									<div className="space-y-2">
 										<label className="text-sm font-medium">Status</label>
-										<Select value={watch("status")} onValueChange={(value) => setValue("status", value as "active" | "draft")}>
+										<Select value={watch("status")} onValueChange={(value) => setValue("status", value as "active" | "inactive")}>
 											<SelectTrigger>
 												<SelectValue />
 											</SelectTrigger>
 											<SelectContent>
-												<SelectItem value="active">Active</SelectItem>
-												<SelectItem value="draft">Draft</SelectItem>
+												<SelectItem value="active">
+													<div className="flex items-center gap-2">
+														<div className="w-2 h-2 rounded-full bg-green-500"></div>
+														Active
+													</div>
+												</SelectItem>
+												<SelectItem value="inactive">
+													<div className="flex items-center gap-2">
+														<div className="w-2 h-2 rounded-full bg-gray-400"></div>
+														Inactive
+													</div>
+												</SelectItem>
 											</SelectContent>
 										</Select>
+										<p className="text-xs text-muted-foreground">Active properties are visible to users on the website</p>
+									</div>
+									<div className="space-y-2">
+										<label className="text-sm font-medium">Latitude</label>
+										<Input 
+											type="number" 
+											step="0.000001"
+											{...register("lat", { valueAsNumber: true })} 
+											placeholder="37.1010" 
+										/>
+										{errors.lat && <p className="text-sm text-destructive">{errors.lat.message}</p>}
+										<p className="text-xs text-gray-500">Get from Google Maps (right-click location)</p>
+									</div>
+									<div className="space-y-2">
+										<label className="text-sm font-medium">Longitude</label>
+										<Input 
+											type="number" 
+											step="0.000001"
+											{...register("lng", { valueAsNumber: true })} 
+											placeholder="-8.6730" 
+										/>
+										{errors.lng && <p className="text-sm text-destructive">{errors.lng.message}</p>}
+										<p className="text-xs text-gray-500">Get from Google Maps (right-click location)</p>
+									</div>
+									<div className="space-y-2 col-span-2">
+										<label className="text-sm font-medium">Description (Optional)</label>
+										<textarea 
+											{...register("description")} 
+											placeholder="Beautiful property in the heart of Lagos..."
+											className="w-full min-h-[80px] px-3 py-2 border rounded-md"
+										/>
+										{errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
 									</div>
 								</div>
-								<div className="flex justify-end gap-2">
-									<Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+
+								{/* Image Management Section */}
+								<div className="border-t pt-6">
+									<PropertyImageManager
+										images={propertyImages}
+										onChange={setPropertyImages}
+										maxImages={8}
+									/>
+								</div>
+
+								{/* Form Actions */}
+								<div className="flex justify-end gap-2 border-t pt-4">
+									<Button type="button" variant="outline" onClick={() => {
+										setIsDialogOpen(false);
+										setPropertyImages([]);
+									}}>
 										Cancel
 									</Button>
 									<Button type="submit">Save Property</Button>
@@ -258,27 +473,43 @@ export default function PropertiesPage() {
 								))}
 							</SelectContent>
 						</Select>
-						<Select value={typeFilter} onValueChange={setTypeFilter}>
-							<SelectTrigger className="w-[180px]">
-								<SelectValue placeholder="All Types" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Types</SelectItem>
-								{types.map((type) => (
-									<SelectItem key={type} value={type}>{type}</SelectItem>
-								))}
-							</SelectContent>
-						</Select>
-						<Select value={statusFilter} onValueChange={setStatusFilter}>
-							<SelectTrigger className="w-[180px]">
-								<SelectValue placeholder="All Status" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="all">All Status</SelectItem>
-								<SelectItem value="active">Active</SelectItem>
-								<SelectItem value="draft">Draft</SelectItem>
-							</SelectContent>
-						</Select>
+					<Select value={typeFilter} onValueChange={setTypeFilter}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue placeholder="All Types" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All Types</SelectItem>
+							{types.map((type) => (
+								<SelectItem key={type} value={type}>{type}</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+					<Select value={statusFilter} onValueChange={setStatusFilter}>
+						<SelectTrigger className="w-[180px]">
+							<SelectValue placeholder="All Status" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="all">All Status</SelectItem>
+							<SelectItem value="active">
+								<div className="flex items-center gap-2">
+									<div className="w-2 h-2 rounded-full bg-green-500"></div>
+									Active
+								</div>
+							</SelectItem>
+							<SelectItem value="inactive">
+								<div className="flex items-center gap-2">
+									<div className="w-2 h-2 rounded-full bg-gray-400"></div>
+									Inactive
+								</div>
+							</SelectItem>
+							<SelectItem value="draft">
+								<div className="flex items-center gap-2">
+									<div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+									Draft
+								</div>
+							</SelectItem>
+						</SelectContent>
+					</Select>
 					</div>
 				</CardContent>
 			</Card>
@@ -289,63 +520,120 @@ export default function PropertiesPage() {
 					<CardTitle>All Properties ({filteredProperties.length})</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Address</TableHead>
-								<TableHead>City</TableHead>
-								<TableHead>Price</TableHead>
-								<TableHead>Type</TableHead>
-								<TableHead>Agent</TableHead>
-								<TableHead>Views</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead className="text-right">Actions</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{filteredProperties.length === 0 ? (
+					{isLoading ? (
+						<div className="text-center py-8 text-muted-foreground">Loading properties...</div>
+					) : (
+						<Table>
+							<TableHeader>
 								<TableRow>
-									<TableCell colSpan={8} className="text-center text-muted-foreground">
-										No properties found
-									</TableCell>
+									<TableHead>Address</TableHead>
+									<TableHead>City</TableHead>
+									<TableHead>Price</TableHead>
+									<TableHead>Type</TableHead>
+									<TableHead>Beds</TableHead>
+									<TableHead>Baths</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
-							) : (
-								filteredProperties.map((property) => (
-									<TableRow key={property.id}>
-										<TableCell className="font-medium">{property.address}</TableCell>
-										<TableCell>{property.city}</TableCell>
-										<TableCell>${property.price.toLocaleString()}</TableCell>
-										<TableCell>{property.type}</TableCell>
-										<TableCell>{property.agent}</TableCell>
-										<TableCell>{property.views}</TableCell>
-										<TableCell>
-											<Badge variant={property.status === "active" ? "default" : "secondary"}>
-												{property.status}
-											</Badge>
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="flex justify-end gap-2">
-												<Button variant="ghost" size="icon" asChild>
-													<a href={`/property/${property.id}`} target="_blank">
-														<Eye className="h-4 w-4" />
-													</a>
-												</Button>
-												<Button 
-													variant="ghost" 
-													size="icon"
-													onClick={() => handleEdit(property)}
-												>
-													<Edit className="h-4 w-4" />
-												</Button>
-											</div>
+							</TableHeader>
+							<TableBody>
+								{filteredProperties.length === 0 ? (
+									<TableRow>
+										<TableCell colSpan={8} className="text-center text-muted-foreground">
+											No properties found
 										</TableCell>
 									</TableRow>
-								))
-							)}
-						</TableBody>
-					</Table>
+								) : (
+									filteredProperties.map((property) => (
+										<TableRow key={property.id}>
+											<TableCell className="font-medium">{property.address}</TableCell>
+											<TableCell>{property.city}</TableCell>
+											<TableCell>€{property.price.toLocaleString()}</TableCell>
+											<TableCell>{property.property_type}</TableCell>
+											<TableCell>{property.beds}</TableCell>
+											<TableCell>{property.baths}</TableCell>
+											<TableCell>
+												{property.status === 'active' ? (
+													<Badge className="bg-green-500 hover:bg-green-600 text-white">
+														Active
+													</Badge>
+												) : (
+													<Badge variant="secondary" className="bg-gray-400 hover:bg-gray-500 text-white">
+														Inactive
+													</Badge>
+												)}
+											</TableCell>
+											<TableCell className="text-right">
+												<div className="flex justify-end gap-2">
+													<Button variant="ghost" size="icon" asChild>
+														<a href={`/en/property/${property.id}`} target="_blank">
+															<Eye className="h-4 w-4" />
+														</a>
+													</Button>
+													<Button 
+														variant="ghost" 
+														size="icon"
+														onClick={() => handleEdit(property)}
+													>
+														<Edit className="h-4 w-4" />
+													</Button>
+													<Button 
+														variant="ghost" 
+														size="icon"
+														onClick={() => handleDeleteClick(property)}
+														className="text-destructive hover:text-destructive hover:bg-destructive/10"
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									))
+								)}
+							</TableBody>
+						</Table>
+					)}
 				</CardContent>
 			</Card>
+
+			{/* Delete Confirmation Dialog */}
+			<Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Delete Property</DialogTitle>
+						<DialogDescription>
+							Are you sure you want to delete this property? This action cannot be undone.
+						</DialogDescription>
+					</DialogHeader>
+					{propertyToDelete && (
+						<div className="bg-muted p-4 rounded-lg space-y-2">
+							<div className="font-medium">{propertyToDelete.address}</div>
+							<div className="text-sm text-muted-foreground">
+								{propertyToDelete.city} • €{propertyToDelete.price.toLocaleString()} • {propertyToDelete.property_type}
+							</div>
+						</div>
+					)}
+					<div className="flex justify-end gap-2">
+						<Button 
+							variant="outline" 
+							onClick={() => {
+								setDeleteDialogOpen(false);
+								setPropertyToDelete(null);
+							}}
+							disabled={isDeleting}
+						>
+							Cancel
+						</Button>
+						<Button 
+							variant="destructive" 
+							onClick={handleDeleteConfirm}
+							disabled={isDeleting}
+						>
+							{isDeleting ? "Deleting..." : "Delete Property"}
+						</Button>
+					</div>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

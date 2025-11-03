@@ -4,6 +4,7 @@
  */
 
 const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 
 export interface CloudinaryTransformOptions {
   width?: number;
@@ -12,6 +13,68 @@ export interface CloudinaryTransformOptions {
   quality?: 'auto' | number;
   format?: 'auto' | 'webp' | 'jpg' | 'png';
   gravity?: 'auto' | 'center' | 'face' | 'faces';
+}
+
+/**
+ * Upload image to Cloudinary
+ */
+export async function uploadToCloudinary(
+  file: File,
+  folder: string = 'properties'
+): Promise<{ url: string; publicId: string }> {
+  if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
+    throw new Error('Cloudinary configuration missing. Please set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET in .env.local');
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  formData.append('folder', folder);
+
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Upload failed: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    return {
+      url: data.secure_url,
+      publicId: data.public_id,
+    };
+  } catch (error) {
+    console.error('Cloudinary upload error:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete image from Cloudinary
+ */
+export async function deleteFromCloudinary(publicId: string): Promise<boolean> {
+  try {
+    // This requires server-side API route for security
+    const response = await fetch('/api/cloudinary/delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ publicId }),
+    });
+
+    return response.ok;
+  } catch (error) {
+    console.error('Cloudinary delete error:', error);
+    return false;
+  }
 }
 
 /**

@@ -4,6 +4,99 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { property, images } = body;
+
+    console.log('Received property data:', property);
+    console.log('Received images:', images?.length || 0);
+
+    // Validate Supabase configuration
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Database configuration missing' },
+        { status: 500 }
+      );
+    }
+
+    // Use service role key if available (bypasses RLS), otherwise use anon key
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = createClient(
+      supabaseUrl, 
+      serviceRoleKey || supabaseKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // Insert property
+    const propertyData = {
+      address: property.address,
+      city: property.city,
+      country: property.country || 'Portugal',
+      price: property.price,
+      beds: property.beds,
+      baths: property.baths,
+      area: property.area,
+      property_type: property.type,
+      lat: property.lat,
+      lng: property.lng,
+      description: property.description || '',
+      status: property.status || 'active',
+    };
+
+    console.log('Inserting property:', propertyData);
+
+    const { data: newProperty, error: propertyError } = await supabase
+      .from('properties')
+      .insert(propertyData)
+      .select()
+      .single();
+
+    if (propertyError || !newProperty) {
+      console.error('Error creating property:', propertyError);
+      return NextResponse.json(
+        { error: 'Failed to create property', details: propertyError?.message },
+        { status: 500 }
+      );
+    }
+
+    // Insert images if provided
+    if (images && images.length > 0) {
+      const imageRecords = images.map((img: any, index: number) => ({
+        property_id: newProperty.id,
+        image_url: img.url,
+        display_order: img.display_order ?? index,
+        is_featured: img.is_featured ?? index === 0,
+      }));
+
+      const { error: imagesError } = await supabase
+        .from('property_images')
+        .insert(imageRecords);
+
+      if (imagesError) {
+        console.error('Error creating images:', imagesError);
+        // Don't fail the whole request, just log the error
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      property: newProperty,
+    });
+  } catch (error) {
+    console.error('API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -48,14 +141,15 @@ export async function GET(request: NextRequest) {
         lat,
         lng,
         description,
-        property_images!inner(
+        status,
+        property_images(
           id,
           image_url,
           display_order,
           is_featured
         )
       `)
-      .eq('property_images.is_featured', true); // Only get featured image initially
+      .order('created_at', { ascending: false }); // Order by newest first
 
     // Apply city filter
     if (city) {
@@ -137,8 +231,9 @@ export async function GET(request: NextRequest) {
 
     // Transform data to match Property type format
     const properties = (data || []).map((property: any) => {
-      // Get the featured image
-      const featuredImage = property.property_images?.[0];
+      // Get the featured image (first image with is_featured=true, or just first image)
+      const featuredImage = property.property_images?.find((img: any) => img.is_featured) 
+        || property.property_images?.[0];
       
       // Get translation if available
       const translation = translationsMap.get(property.id);
@@ -156,7 +251,9 @@ export async function GET(request: NextRequest) {
         lat: property.lat,
         lng: property.lng,
         description: translation?.description || property.description,
+        status: property.status || 'active',
         imageUrl: featuredImage?.image_url || 'https://via.placeholder.com/800x600?text=No+Image',
+        images: property.property_images || [], // Include all images for editing
       };
     });
 

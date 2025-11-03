@@ -14,6 +14,11 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { config } from 'dotenv';
+import { resolve } from 'path';
+
+// Load environment variables from .env.local
+config({ path: resolve(process.cwd(), '.env.local') });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -209,15 +214,35 @@ async function populateDatabase() {
 
   console.log('📦 Fetching images from Unsplash...');
   
-  // Fetch diverse property images
-  const houseImages = await fetchUnsplashImages('modern house interior', 30);
-  const villaImages = await fetchUnsplashImages('luxury villa', 20);
-  const apartmentImages = await fetchUnsplashImages('apartment living room', 30);
-  const exteriorImages = await fetchUnsplashImages('house exterior architecture', 20);
+  // Fetch diverse property images - we need at least 5 images per property (60 properties * 5 = 300 images)
+  // Using different queries and pages to ensure variety
+  const queries = [
+    'modern house interior',
+    'luxury villa',
+    'apartment living room',
+    'house exterior architecture',
+    'modern kitchen design',
+    'luxury bedroom',
+    'contemporary bathroom',
+    'beautiful backyard',
+    'luxury real estate',
+    'modern apartment',
+    'villa exterior',
+    'penthouse interior'
+  ];
   
-  const allImages = [...houseImages, ...villaImages, ...apartmentImages, ...exteriorImages];
+  const allImages: string[] = [];
   
-  console.log(`✅ Fetched ${allImages.length} images from Unsplash\n`);
+  for (const query of queries) {
+    // Fetch 30 images per query
+    const images = await fetchUnsplashImages(query, 30);
+    allImages.push(...images);
+    console.log(`   Fetched ${images.length} images for "${query}"`);
+    // Small delay to respect rate limits
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  
+  console.log(`✅ Fetched ${allImages.length} total images from Unsplash\n`);
 
   // Generate 60 properties
   const propertiesToCreate = 60;
@@ -244,29 +269,39 @@ async function populateDatabase() {
 
     propertiesCreated++;
 
-    // Select 3-5 random images for this property
-    const numImages = Math.floor(Math.random() * 3) + 3; // 3-5 images
+    // Select exactly 5 unique images for this property
+    const numImages = 5;
     const propertyImages = [];
+    
+    // Calculate starting index to ensure each property gets different images
+    const startIdx = (i * numImages) % allImages.length;
+    const selectedImages: string[] = [];
+    
+    // Select 5 consecutive images (with wraparound if needed)
+    for (let j = 0; j < numImages; j++) {
+      const imageIdx = (startIdx + j) % allImages.length;
+      selectedImages.push(allImages[imageIdx]);
+    }
 
     for (let j = 0; j < numImages; j++) {
-      const randomImage = allImages[Math.floor(Math.random() * allImages.length)];
+      const imageUrl = selectedImages[j];
       
       // Use Cloudinary if configured, otherwise use direct URL
-      let imageUrl = randomImage;
+      let finalImageUrl = imageUrl;
       
       if (cloudinaryCloudName && cloudinaryApiKey && cloudinaryApiSecret) {
         const cloudinaryUrl = await uploadToCloudinary(
-          randomImage,
+          imageUrl,
           `properties/${property.id}_${j}`
         );
         if (cloudinaryUrl) {
-          imageUrl = cloudinaryUrl;
+          finalImageUrl = cloudinaryUrl;
         }
       }
 
       propertyImages.push({
         property_id: property.id,
-        image_url: imageUrl,
+        image_url: finalImageUrl,
         display_order: j,
         is_featured: j === 0, // First image is featured
       });

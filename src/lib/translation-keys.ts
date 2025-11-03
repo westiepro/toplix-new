@@ -141,6 +141,34 @@ export const TRANSLATION_KEYS = {
 		featured: "listings.featured",
 	},
 
+	// Share modal
+	share: {
+		title: "share.title",
+		inCity: "share.inCity",
+		copyLink: "share.copyLink",
+		copyLinkDescription: "share.copyLinkDescription",
+		shareViaEmail: "share.shareViaEmail",
+		shareViaEmailDescription: "share.shareViaEmailDescription",
+		shareOnSocialMedia: "share.shareOnSocialMedia",
+		facebook: "share.facebook",
+		twitter: "share.twitter",
+		linkedin: "share.linkedin",
+		whatsapp: "share.whatsapp",
+		close: "share.close",
+		linkCopied: "share.linkCopied",
+		linkCopiedDescription: "share.linkCopiedDescription",
+		sharedSuccessfully: "share.sharedSuccessfully",
+		failedToCopyLink: "share.failedToCopyLink",
+		openingEmailClient: "share.openingEmailClient",
+		openingFacebook: "share.openingFacebook",
+		openingTwitter: "share.openingTwitter",
+		openingLinkedIn: "share.openingLinkedIn",
+		openingWhatsApp: "share.openingWhatsApp",
+		checkOutProperty: "share.checkOutProperty",
+		viewProperty: "share.viewProperty",
+		discoverMore: "share.discoverMore",
+	},
+
 	// Admin dashboard
 	admin: {
 		dashboard: {
@@ -354,6 +382,32 @@ export const ENGLISH_TRANSLATIONS: Record<string, string> = {
 	"listings.newest": "Newest",
 	"listings.oldest": "Oldest",
 	"listings.featured": "Featured",
+
+	// Share Modal
+	"share.title": "Share Property",
+	"share.inCity": "in",
+	"share.copyLink": "Copy Link",
+	"share.copyLinkDescription": "Copy property URL to clipboard",
+	"share.shareViaEmail": "Share via Email",
+	"share.shareViaEmailDescription": "Send property link by email",
+	"share.shareOnSocialMedia": "Share on Social Media",
+	"share.facebook": "Facebook",
+	"share.twitter": "Twitter",
+	"share.linkedin": "LinkedIn",
+	"share.whatsapp": "WhatsApp",
+	"share.close": "Close",
+	"share.linkCopied": "Link copied to clipboard!",
+	"share.linkCopiedDescription": "Property link has been copied to clipboard",
+	"share.sharedSuccessfully": "Shared successfully!",
+	"share.failedToCopyLink": "Failed to copy link",
+	"share.openingEmailClient": "Opening email client...",
+	"share.openingFacebook": "Opening Facebook...",
+	"share.openingTwitter": "Opening Twitter...",
+	"share.openingLinkedIn": "Opening LinkedIn...",
+	"share.openingWhatsApp": "Opening WhatsApp...",
+	"share.checkOutProperty": "Check out this property",
+	"share.viewProperty": "View property",
+	"share.discoverMore": "Discover more properties on Toplix!",
 
 	// Admin Dashboard
 	"admin.dashboard.title": "Dashboard",
