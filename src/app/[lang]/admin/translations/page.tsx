@@ -194,6 +194,37 @@ export default function AdminTranslationsPage() {
 		}
 	};
 
+	// Sync English translations from code to database
+	const syncEnglishTranslations = async () => {
+		try {
+			toast.info("Syncing English translation keys...");
+			
+			const response = await fetch("/api/translations/sync-english", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+			});
+
+			if (!response.ok) {
+				const errorText = await response.text();
+				console.error("Sync error:", errorText);
+				toast.error("Failed to sync English translations");
+				return;
+			}
+
+			const result = await response.json();
+			
+			if (result.success) {
+				toast.success(`Synced ${result.synced} English translation keys!`);
+				loadTranslations();
+			} else {
+				toast.error("Sync failed");
+			}
+		} catch (error) {
+			console.error("Error syncing English translations:", error);
+			toast.error("Failed to sync translations");
+		}
+	};
+
 	// Auto-translate all missing for a language
 	const autoTranslateLanguage = async (languageCode: string) => {
 		setTranslating(languageCode);
@@ -281,9 +312,15 @@ export default function AdminTranslationsPage() {
 		<div className="space-y-6">
 			<Breadcrumbs items={[{ label: "Translations" }]} />
 
-			<div>
-				<h1 className="text-3xl font-bold">Translation Management</h1>
-				<p className="text-muted-foreground">Manage translations for all languages</p>
+			<div className="flex items-start justify-between">
+				<div>
+					<h1 className="text-3xl font-bold">Translation Management</h1>
+					<p className="text-muted-foreground">Manage translations for all languages</p>
+				</div>
+				<Button onClick={syncEnglishTranslations} variant="outline" className="gap-2">
+					<Download className="h-4 w-4" />
+					Sync English Keys
+				</Button>
 			</div>
 
 			{/* Setup Instructions Banner */}
