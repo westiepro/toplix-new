@@ -181,19 +181,19 @@ function HomesPageContent() {
 		<main className="min-h-screen">
 			<Navbar />
 			<div className="grid h-[calc(100vh-56px)] grid-cols-1 md:grid-cols-[55%_45%]">
-				<div className="flex min-h-0 flex-col border-r">
+				<div className="flex min-h-0 flex-col border-r h-auto md:h-full overflow-auto md:overflow-hidden">
 					<Filters value={filters} onChange={handleFiltersChange} onClearBounds={() => setBounds(null)} />
-					<div className="min-h-0 flex-1 overflow-auto p-4">
+					<div className="min-h-[400px] md:min-h-0 flex-1 md:overflow-auto p-4">
 						{isLoading ? (
 							<div className="flex items-center justify-center h-full">
 								<p className="text-muted-foreground">Loading properties...</p>
 							</div>
 						) : filtered.length === 0 ? (
-							<div className="flex items-center justify-center h-full">
+							<div className="flex items-center justify-center min-h-[200px]">
 								<p className="text-muted-foreground">No properties found</p>
 							</div>
 						) : (
-							<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+							<div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-4">
 								{filtered.map((p, index) => (
 									<div key={p.id} onMouseEnter={() => setHoverId(p.id)} onMouseLeave={() => setHoverId(null)}>
 										<PropertyCard property={p} highlighted={hoverId === p.id} position={index} source="search_results" />
@@ -203,7 +203,7 @@ function HomesPageContent() {
 						)}
 					</div>
 				</div>
-				<div className="min-h-0 h-full">
+				<div className="min-h-[300px] md:min-h-0 h-[400px] md:h-full">
 					<MapView
 						properties={filtered}
 						onBoundsChange={setBounds}
