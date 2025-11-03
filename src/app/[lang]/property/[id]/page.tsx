@@ -173,7 +173,7 @@ export default function PropertyPage() {
 
 	// Use images from API or fallback to imageUrl
 	const propertyImages = property.images && property.images.length > 0 
-		? property.images 
+		? property.images.map(img => typeof img === 'string' ? img : img.image_url)
 		: [property.imageUrl];
 	
 	return (
