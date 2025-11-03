@@ -42,8 +42,8 @@ interface MapState {
   drawnPolygon: any | null;
   
   // Actions
-  setCenter: (center: MapCenter) => void;
-  setBounds: (bounds: MapBounds) => void;
+  setCenter: (center: MapCenter | null) => void;
+  setBounds: (bounds: MapBounds | null) => void;
   setCity: (city: string | null) => void;
   setFilters: (filters: PropertyFilters) => void;
   setLoading: (loading: boolean) => void;
