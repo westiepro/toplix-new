@@ -16,12 +16,19 @@ export async function POST(request: NextRequest) {
 		const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 		const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-		if (!supabaseUrl || !supabaseServiceKey) {
-			console.error("Supabase environment variables not configured");
+		if (!supabaseUrl) {
+			console.error("Supabase URL not configured");
 			return NextResponse.json(
 				{ error: "Server configuration error" },
 				{ status: 500 }
 			);
+		}
+
+		// If service key is not configured, default to "user doesn't exist"
+		// This will trigger instant signup flow, which is the default behavior
+		if (!supabaseServiceKey) {
+			console.warn("SUPABASE_SERVICE_ROLE_KEY not set - defaulting to instant signup flow for all users");
+			return NextResponse.json({ exists: false });
 		}
 
 		// Create admin client with service role key
