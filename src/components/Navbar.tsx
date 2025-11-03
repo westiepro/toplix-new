@@ -76,7 +76,7 @@ export function Navbar() {
 								<DropdownMenuTrigger asChild>
 									<Button variant="ghost" size="sm" className="gap-2">
 										<User className="h-4 w-4" />
-										<span className="hidden md:inline">{t("navbar.myAccount")}</span>
+										<span className="hidden md:inline truncate max-w-[150px]">{user.email}</span>
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align="end" className="w-48">
