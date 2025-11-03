@@ -14,6 +14,8 @@ interface AuthContextType {
 	signInWithOAuth: (provider: "google" | "apple") => Promise<{ error: AuthError | null }>;
 	signOut: () => Promise<void>;
 	setPassword: (password: string) => Promise<{ error: AuthError | null }>;
+	sendMagicLink: (email: string) => Promise<{ error: AuthError | null }>;
+	requestPasswordReset: (email: string) => Promise<{ error: AuthError | null }>;
 	continueAsGuest: () => void;
 	exitGuestMode: () => void;
 }
@@ -84,6 +86,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			return { error: new Error("Supabase not configured") as AuthError };
 		}
 
+		// Get current locale from URL or cookie
+		const pathSegments = window.location.pathname.split('/');
+		const locale = pathSegments[1] || 'en'; // Default to 'en' if not found
+
 		// Create user with a temporary random password
 		// They'll be logged in immediately without email verification
 		const tempPassword = Math.random().toString(36).slice(-12) + "Aa1!";
@@ -94,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			email,
 			password: tempPassword,
 			options: {
-				emailRedirectTo: `${window.location.origin}/dashboard`,
+				emailRedirectTo: `${window.location.origin}/${locale}/dashboard`,
 				data: {
 					instant_signup: true,
 				},
@@ -133,10 +139,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			return { error: new Error("Supabase not configured") as AuthError };
 		}
 
+		// Get current locale from URL or cookie
+		const pathSegments = window.location.pathname.split('/');
+		const locale = pathSegments[1] || 'en'; // Default to 'en' if not found
+
 		const { error } = await supabase.auth.signInWithOAuth({
 			provider,
 			options: {
-				redirectTo: `${window.location.origin}/dashboard`,
+				redirectTo: `${window.location.origin}/${locale}/dashboard`,
 			},
 		});
 
@@ -165,6 +175,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		return { error };
 	};
 
+	const sendMagicLink = async (email: string) => {
+		const supabase = getSupabaseClient();
+		if (!supabase) {
+			return { error: new Error("Supabase not configured") as AuthError };
+		}
+
+		// Get current locale from URL or cookie
+		const pathSegments = window.location.pathname.split('/');
+		const locale = pathSegments[1] || 'en'; // Default to 'en' if not found
+
+		const { error } = await supabase.auth.signInWithOtp({
+			email,
+			options: {
+				emailRedirectTo: `${window.location.origin}/${locale}/dashboard`,
+				shouldCreateUser: false,
+			},
+		});
+
+		return { error };
+	};
+
+	const requestPasswordReset = async (email: string) => {
+		const supabase = getSupabaseClient();
+		if (!supabase) {
+			return { error: new Error("Supabase not configured") as AuthError };
+		}
+
+		// Get current locale from URL or cookie
+		const pathSegments = window.location.pathname.split('/');
+		const locale = pathSegments[1] || 'en'; // Default to 'en' if not found
+
+		const { error } = await supabase.auth.resetPasswordForEmail(email, {
+			redirectTo: `${window.location.origin}/${locale}/reset-password`,
+		});
+
+		return { error };
+	};
+
 	const continueAsGuest = () => {
 		localStorage.setItem("guest_mode", "true");
 		setIsGuest(true);
@@ -185,6 +233,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		signInWithOAuth,
 		signOut,
 		setPassword,
+		sendMagicLink,
+		requestPasswordReset,
 		continueAsGuest,
 		exitGuestMode,
 	};

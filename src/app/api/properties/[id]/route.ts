@@ -22,44 +22,34 @@ export async function GET(
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch property with all images
+    // Fetch property (without requiring images)
     const { data: property, error } = await supabase
       .from('properties')
-      .select(`
-        id,
-        price,
-        address,
-        city,
-        country,
-        beds,
-        baths,
-        area,
-        property_type,
-        lat,
-        lng,
-        description,
-        status,
-        property_images(
-          id,
-          image_url,
-          display_order,
-          is_featured
-        )
-      `)
+      .select('*')
       .eq('id', id)
       .single();
 
     if (error || !property) {
-      console.error('Error fetching property:', error);
+      console.error('Error fetching property:', error?.message || 'Property not found');
       return NextResponse.json(
-        { error: 'Property not found' },
+        { 
+          error: 'Property not found',
+          details: error?.message || 'No property with this ID',
+          id: id
+        },
         { status: 404 }
       );
     }
 
+    // Fetch images separately (so it doesn't fail if no images exist)
+    const { data: propertyImages } = await supabase
+      .from('property_images')
+      .select('*')
+      .eq('property_id', id)
+      .order('display_order', { ascending: true });
+
     // Sort images by display_order
-    const images = (property.property_images || [])
-      .sort((a: any, b: any) => a.display_order - b.display_order)
+    const images = (propertyImages || [])
       .map((img: any) => img.image_url);
 
     // Transform to match Property type
@@ -77,8 +67,14 @@ export async function GET(
       lng: property.lng,
       description: property.description,
       status: property.status || 'active',
-      imageUrl: images[0] || 'https://via.placeholder.com/800x600?text=No+Image',
-      images: images.length > 0 ? images : ['https://via.placeholder.com/800x600?text=No+Image'],
+      imageUrl: images[0] || 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80',
+      images: images.length > 0 ? images : [
+        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&q=80',
+        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&q=80',
+        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&q=80',
+        'https://images.unsplash.com/photo-1600210492493-0946911123ea?w=1200&q=80',
+        'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&q=80',
+      ],
     };
 
     return NextResponse.json({

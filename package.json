@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "check-setup": "npx tsx scripts/check-setup.ts",
+    "test-property": "npx tsx scripts/test-property-api.ts",
     "populate-properties": "npx tsx scripts/populate-properties.ts",
     "add-images": "npx tsx scripts/add-property-images-simple.ts"
   },

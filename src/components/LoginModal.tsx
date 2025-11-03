@@ -22,7 +22,8 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 	const [password, setPassword] = useState("");
 	const [modalState, setModalState] = useState<ModalState>("initial");
 	const [isLoading, setIsLoading] = useState(false);
-	const { signIn, signUp, signInWithOAuth, continueAsGuest } = useAuth();
+	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+	const { signIn, signUp, signInWithOAuth, continueAsGuest, sendMagicLink, requestPasswordReset } = useAuth();
 
 	// Reset state when modal closes
 	useEffect(() => {
@@ -42,35 +43,49 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 			return;
 		}
 
-		setIsLoading(true);
+		setIsCheckingEmail(true);
 
-		console.log("Continue with email clicked for:", email);
+		try {
+			// Check if email exists in database
+			const response = await fetch("/api/auth/check-email", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ email }),
+			});
 
-		// Try to sign up - this will create user and log them in instantly
-		const { error: signUpError, data } = await signUp(email);
-		
-		console.log("Sign up response:", { error: signUpError, data });
-		
-		if (signUpError) {
-			// If error is "already registered", show password field for existing users
-			if (signUpError.message?.includes("already registered") || signUpError.message?.includes("User already registered")) {
-				setModalState("existing_user");
-				setIsLoading(false);
+			const data = await response.json();
+
+			if (!response.ok) {
+				toast.error(data.error || "Failed to check email");
+				setIsCheckingEmail(false);
 				return;
 			}
-			
-			// Show detailed error message
-			toast.error(signUpError.message, {
-				duration: 10000,
-			});
-			setIsLoading(false);
-		} else {
-			// Success! User is created and logged in instantly
-			console.log("User created successfully!");
-			toast.success(t("login.welcomeLoggedIn"));
-			setIsLoading(false);
-			onOpenChange(false);
-			// The AuthContext will handle the session automatically
+
+			if (data.exists) {
+				// Email exists - show password field for existing users
+				setModalState("existing_user");
+				setIsCheckingEmail(false);
+			} else {
+				// Email doesn't exist - create new user with instant login
+				setIsLoading(true);
+				setIsCheckingEmail(false);
+
+				const { error: signUpError } = await signUp(email);
+
+				if (signUpError) {
+					toast.error(signUpError.message, { duration: 10000 });
+					setIsLoading(false);
+				} else {
+					// Success! User is created and logged in instantly
+					toast.success(t("login.welcomeLoggedIn"));
+					setIsLoading(false);
+					onOpenChange(false);
+				}
+			}
+		} catch (error) {
+			console.error("Error checking email:", error);
+			toast.error("Failed to check email. Please try again.");
+			setIsCheckingEmail(false);
 		}
 	};
 
@@ -101,6 +116,34 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 			setIsLoading(false);
 		}
 		// OAuth will redirect, so we don't need to close the modal
+	};
+
+	const handleSendMagicLink = async () => {
+		setIsLoading(true);
+		const { error } = await sendMagicLink(email);
+
+		if (error) {
+			toast.error(error.message);
+			setIsLoading(false);
+		} else {
+			toast.success("Magic link sent! Check your email to sign in.");
+			setIsLoading(false);
+			onOpenChange(false);
+		}
+	};
+
+	const handleForgotPassword = async () => {
+		setIsLoading(true);
+		const { error } = await requestPasswordReset(email);
+
+		if (error) {
+			toast.error(error.message);
+			setIsLoading(false);
+		} else {
+			toast.success("Password reset email sent! Check your inbox.");
+			setIsLoading(false);
+			onOpenChange(false);
+		}
 	};
 
 	const handleGuestMode = () => {
@@ -202,46 +245,77 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 									className="h-11"
 								/>
 
-								{/* Password field for existing users */}
-								{modalState === "existing_user" && (
-									<Input
-										type="password"
-										placeholder={t("login.passwordPlaceholder")}
-										value={password}
-										onChange={(e) => setPassword(e.target.value)}
-										onKeyPress={handleKeyPress}
-										disabled={isLoading}
-										className="h-11"
-									/>
-								)}
+							{/* Password field for existing users */}
+							{modalState === "existing_user" && (
+								<Input
+									type="password"
+									placeholder={t("login.passwordPlaceholder")}
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									onKeyPress={handleKeyPress}
+									disabled={isLoading}
+									className="h-11"
+								/>
+							)}
 
-								{modalState === "existing_user" ? (
-									<div className="space-y-2">
-										<Button
-											onClick={handleSignIn}
+							{modalState === "existing_user" ? (
+								<div className="space-y-3">
+									<Button
+										onClick={handleSignIn}
+										disabled={isLoading}
+										className="w-full h-11"
+									>
+										{isLoading ? t("login.signingIn") : t("login.signIn")}
+									</Button>
+									
+									<div className="relative">
+										<div className="absolute inset-0 flex items-center">
+											<span className="w-full border-t" />
+										</div>
+										<div className="relative flex justify-center text-xs">
+											<span className="bg-background px-2 text-muted-foreground">
+												or
+											</span>
+										</div>
+									</div>
+
+									<Button
+										variant="outline"
+										onClick={handleSendMagicLink}
+										disabled={isLoading}
+										className="w-full h-11"
+									>
+										<Mail className="mr-2 h-4 w-4" />
+										Send Magic Link
+									</Button>
+
+									<div className="flex items-center justify-between">
+										<button
+											onClick={handleForgotPassword}
 											disabled={isLoading}
-											className="w-full h-11"
+											className="text-sm text-primary hover:underline underline-offset-4"
 										>
-											{isLoading ? t("login.signingIn") : t("login.signIn")}
-										</Button>
+											Forgot password?
+										</button>
 										<Button
 											variant="ghost"
 											onClick={() => setModalState("initial")}
 											disabled={isLoading}
-											className="w-full"
+											size="sm"
 										>
 											{t("login.back")}
 										</Button>
 									</div>
-								) : (
-									<Button
-										onClick={handleContinueWithEmail}
-										disabled={isLoading}
-										className="w-full h-11"
-									>
-										{isLoading ? t("login.pleaseWait") : t("login.continueWithEmail")}
-									</Button>
-								)}
+								</div>
+							) : (
+								<Button
+									onClick={handleContinueWithEmail}
+									disabled={isLoading || isCheckingEmail}
+									className="w-full h-11"
+								>
+									{isLoading || isCheckingEmail ? t("login.pleaseWait") : t("login.continueWithEmail")}
+								</Button>
+							)}
 							</div>
 
 					{/* Guest Mode Link */}
