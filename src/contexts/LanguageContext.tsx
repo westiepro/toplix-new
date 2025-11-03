@@ -4,6 +4,8 @@ import React, { createContext, useContext, ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n-config";
 import { locales } from "@/lib/i18n-config";
+import { isPropertyUrl, parsePropertyUrl } from "@/lib/generate-property-url";
+import { getTransactionSlug, getCategorySlug, normalizeSlug } from "@/lib/url-translations";
 
 export type LanguageCode = Locale;
 
@@ -49,7 +51,29 @@ export function LanguageProvider({
 	const setLanguage = (newLocale: LanguageCode) => {
 		if (!locales.includes(newLocale)) return;
 
-		// Get current path without locale prefix
+		// Check if we're on a property page with localized URL
+		if (isPropertyUrl(pathname)) {
+			const parsed = parsePropertyUrl(pathname);
+			if (parsed && parsed.transactionType && parsed.category) {
+				// Rebuild URL with new locale and translated segments
+				const transactionSlug = getTransactionSlug(
+					parsed.transactionType as any,
+					newLocale
+				);
+				const categorySlug = getCategorySlug(parsed.category, newLocale);
+				const districtSlug = normalizeSlug(parsed.district);
+				const citySlug = normalizeSlug(parsed.city);
+				
+				const newPath = `/${newLocale}/${transactionSlug}/${districtSlug}/${citySlug}/${categorySlug}/${parsed.id}`;
+				
+				// Set cookie and navigate
+				document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;
+				router.push(newPath);
+				return;
+			}
+		}
+
+		// Default behavior for other pages
 		const segments = pathname.split('/');
 		segments[1] = newLocale; // Replace locale segment
 		const newPath = segments.join('/');

@@ -83,16 +83,15 @@ function HomesPageContent() {
 						p.status === 'active' || !p.status // Show if active or if status is not set
 					);
 					setProperties(activeProperties);
-					setTotalCount(activeProperties.length);
+					console.log('📍 Total active properties loaded:', activeProperties.length);
+					console.log('📍 Properties with coordinates:', activeProperties.filter((p: any) => p.lat && p.lng).length);
 				} else {
 					console.error('Failed to fetch properties');
 					setProperties([]);
-					setTotalCount(0);
 				}
 			} catch (error) {
 				console.error('Error fetching properties:', error);
 				setProperties([]);
-				setTotalCount(0);
 			} finally {
 				setIsLoading(false);
 			}
@@ -149,7 +148,10 @@ function HomesPageContent() {
 	};
 
 	const filtered = useMemo(() => {
-		return properties.filter((p) => {
+		const result = properties.filter((p) => {
+			// Skip properties without coordinates
+			if (!p.lat || !p.lng) return false;
+			
 			if (filters.q) {
 				const q = filters.q.toLowerCase();
 				if (!(`${p.address} ${p.city}`).toLowerCase().includes(q)) return false;
@@ -164,6 +166,14 @@ function HomesPageContent() {
 			}
 			return true;
 		});
+		
+		console.log('🗺️ Filtered properties for map:', result.length);
+		console.log('🗺️ Bounds active:', !!bounds);
+		if (bounds) {
+			console.log('🗺️ Current bounds:', bounds);
+		}
+		
+		return result;
 	}, [properties, filters, bounds]);
 
 	const selected = useMemo(() => filtered.find((p) => p.id === openId) ?? null, [filtered, openId]);

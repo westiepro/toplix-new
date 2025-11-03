@@ -179,15 +179,15 @@ async function getSimilarProperties(city: string, excludeId: string): Promise<Pr
 	}
 }
 
-// Server Component - data fetched before render
+// Server Component - redirects to new localized URL format
 export default async function PropertyPage({
 	params,
 }: {
 	params: Promise<{ id: string; lang: string }>;
 }) {
-	const { id } = await params;
+	const { id, lang } = await params;
 	
-	// Fetch property first
+	// Fetch property to build correct URL
 	const property = await getProperty(id);
 
 	// Show 404 if property not found
@@ -195,8 +195,11 @@ export default async function PropertyPage({
 		notFound();
 	}
 
-	// Fetch similar properties
-	const similarProperties = await getSimilarProperties(property.city, id);
+	// Redirect to new SEO-friendly URL format
+	const { generatePropertyUrl } = await import('@/lib/generate-property-url');
+	const newUrl = generatePropertyUrl(property, lang as any);
+	
+	redirect(newUrl);
 
 	// Use images from API or fallback to imageUrl
 	const propertyImages = property.images && property.images.length > 0 

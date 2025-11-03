@@ -1,6 +1,6 @@
 "use client";
 
-import { LocaleLink } from "@/components/LocaleLink";
+import Link from "next/link";
 import Image from "next/image";
 import { Heart, Share2, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { formatPriceFull, formatPriceShort } from "@/lib/utils";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { generateFallbackPropertyUrl } from "@/lib/generate-property-url";
 
 export type AIStyle = {
 	style_name: string;
@@ -147,9 +148,12 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 		setCurrentImageIndex((prev) => (prev + 1) % totalImages);
 	};
 
+	// Generate the localized property URL
+	const propertyUrl = generateFallbackPropertyUrl(property, currentLanguage);
+
 	return (
 		<>
-			<LocaleLink href={`/property/${property.id}`} prefetch={true} onClick={handleCardClick}>
+			<Link href={propertyUrl} prefetch={true} onClick={handleCardClick}>
 				<Card className={`overflow-hidden transition hover:shadow-lg ${highlighted ? "ring-2 ring-green-600" : ""} p-0 gap-0`}>
 					<div 
 						className="relative h-72 w-full group"
@@ -227,7 +231,7 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 						<div className="text-sm text-muted-foreground">{property.city}</div>
 					</CardContent>
 				</Card>
-			</LocaleLink>
+			</Link>
 
 			{/* Share Modal */}
 			<ShareModal

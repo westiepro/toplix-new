@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import Image from "next/image";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -169,24 +170,31 @@ export default function PropertiesPage() {
 				throw new Error(error.details || error.error || 'Failed to save property');
 			}
 
-			const result = await response.json();
-			console.log("Property saved successfully:", result);
-			
-			// Show success message
-			const action = isEditing ? 'updated' : 'created';
-			alert(`✅ Property ${action} successfully!\n\nID: ${result.property.id}\nImages: ${propertyImages.length} ${isEditing ? 'updated' : 'uploaded'}`);
-			
-			setIsDialogOpen(false);
-			reset();
-			setEditingProperty(null);
-			setPropertyImages([]);
-			
-			// Refetch properties
-			await fetchProperties();
-		} catch (error) {
-			console.error("Error saving property:", error);
-			const errorMessage = error instanceof Error ? error.message : 'Failed to save property';
-			alert(`❌ Error: ${errorMessage}\n\nCheck the console for more details.`);
+		const result = await response.json();
+		console.log("Property saved successfully:", result);
+		
+		// Close dialog and reset form
+		setIsDialogOpen(false);
+		reset();
+		setEditingProperty(null);
+		setPropertyImages([]);
+		
+		// Refetch properties
+		await fetchProperties();
+		
+		// Show success toast
+		const action = isEditing ? 'updated' : 'created';
+		toast.success(`Property ${action} successfully`, {
+			description: `${data.address} • ${propertyImages.length} image${propertyImages.length !== 1 ? 's' : ''}`,
+		});
+	} catch (error) {
+		console.error("Error saving property:", error);
+		const errorMessage = error instanceof Error ? error.message : 'Failed to save property';
+		
+		// Show error toast
+		toast.error('Failed to save property', {
+			description: errorMessage,
+		});
 		}
 	};
 
@@ -543,6 +551,7 @@ export default function PropertiesPage() {
 						<Table>
 							<TableHeader>
 								<TableRow>
+									<TableHead className="w-[100px]">Image</TableHead>
 									<TableHead>Address</TableHead>
 									<TableHead>City</TableHead>
 									<TableHead>Price</TableHead>
@@ -556,13 +565,30 @@ export default function PropertiesPage() {
 							<TableBody>
 								{filteredProperties.length === 0 ? (
 									<TableRow>
-										<TableCell colSpan={8} className="text-center text-muted-foreground">
+										<TableCell colSpan={9} className="text-center text-muted-foreground">
 											No properties found
 										</TableCell>
 									</TableRow>
 								) : (
 									filteredProperties.map((property) => (
 										<TableRow key={property.id}>
+											<TableCell>
+												<div className="relative w-20 h-14 rounded overflow-hidden bg-gray-100">
+													{property.imageUrl ? (
+														<Image
+															src={property.imageUrl}
+															alt={property.address}
+															fill
+															className="object-cover"
+															sizes="80px"
+														/>
+													) : (
+														<div className="flex items-center justify-center h-full text-xs text-gray-400">
+															No image
+														</div>
+													)}
+												</div>
+											</TableCell>
 											<TableCell className="font-medium">{property.address}</TableCell>
 											<TableCell>{property.city}</TableCell>
 											<TableCell>€{property.price.toLocaleString()}</TableCell>

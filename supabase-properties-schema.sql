@@ -8,13 +8,16 @@ CREATE TABLE IF NOT EXISTS properties (
     address TEXT NOT NULL,
     city TEXT NOT NULL,
     country TEXT NOT NULL DEFAULT 'Portugal',
+    district TEXT, -- District/region for URL structure
     beds INTEGER NOT NULL,
     baths INTEGER NOT NULL,
     area INTEGER NOT NULL, -- in square feet
     property_type TEXT NOT NULL DEFAULT 'Apartment',
+    transaction_type TEXT NOT NULL DEFAULT 'buy' CHECK (transaction_type IN ('buy', 'rent')),
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
     description TEXT,
+    url_slug_id TEXT UNIQUE, -- 8-9 digit unique identifier for SEO URLs
     status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -44,10 +47,13 @@ CREATE TABLE IF NOT EXISTS saved_searches (
 -- 4. Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_properties_lat_lng ON properties(lat, lng);
 CREATE INDEX IF NOT EXISTS idx_properties_city ON properties(city);
+CREATE INDEX IF NOT EXISTS idx_properties_district ON properties(district);
 CREATE INDEX IF NOT EXISTS idx_properties_price ON properties(price);
 CREATE INDEX IF NOT EXISTS idx_properties_beds ON properties(beds);
 CREATE INDEX IF NOT EXISTS idx_properties_baths ON properties(baths);
 CREATE INDEX IF NOT EXISTS idx_properties_property_type ON properties(property_type);
+CREATE INDEX IF NOT EXISTS idx_properties_transaction_type ON properties(transaction_type);
+CREATE INDEX IF NOT EXISTS idx_properties_url_slug_id ON properties(url_slug_id);
 CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
 CREATE INDEX IF NOT EXISTS idx_property_images_property_id ON property_images(property_id);
 CREATE INDEX IF NOT EXISTS idx_property_images_featured ON property_images(is_featured);

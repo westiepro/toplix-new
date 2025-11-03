@@ -1,11 +1,13 @@
 "use client";
 
-import { LocaleLink } from "@/components/LocaleLink";
+import Link from "next/link";
 import Image from "next/image";
 import { formatPrice, type Property } from "@/components/PropertyCard";
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { generateFallbackPropertyUrl } from "@/lib/generate-property-url";
 
 type FavoritesDropdownProps = {
 	favorites: Property[];
@@ -13,6 +15,7 @@ type FavoritesDropdownProps = {
 
 export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 	const { t } = useTranslation();
+	const { currentLanguage } = useLanguage();
 
 	if (favorites.length === 0) {
 		return (
@@ -35,12 +38,14 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 	return (
 		<div className="w-96">
 			<div className="max-h-96 overflow-y-auto">
-				{displayFavorites.map((property) => (
-					<LocaleLink
-						key={property.id}
-						href={`/property/${property.id}`}
-						className="flex gap-3 p-3 hover:bg-accent transition-colors border-b last:border-b-0"
-					>
+				{displayFavorites.map((property) => {
+					const propertyUrl = generateFallbackPropertyUrl(property, currentLanguage);
+					return (
+						<Link
+							key={property.id}
+							href={propertyUrl}
+							className="flex gap-3 p-3 hover:bg-accent transition-colors border-b last:border-b-0"
+						>
 						<div className="relative w-20 h-16 flex-shrink-0 rounded-md overflow-hidden">
 							<Image
 								src={property.imageUrl}
@@ -59,8 +64,9 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 								{property.beds} {t("favorites.bd")} · {property.baths} {t("favorites.ba")}
 							</p>
 						</div>
-					</LocaleLink>
-				))}
+					</Link>
+					);
+				})}
 			</div>
 			{favorites.length > 5 && (
 				<div className="p-3 border-t bg-muted/50">
