@@ -23,7 +23,7 @@ export function Navbar() {
 	const router = useRouter();
 	const [showLoginModal, setShowLoginModal] = useState(false);
 	const { user, isGuest, signOut } = useAuth();
-	const { getFavorites } = useFavoritesContext();
+	const { getFavorites, cleanupStaleFavorites } = useFavoritesContext();
 	const favoriteIds = getFavorites();
 	const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([]);
 
@@ -32,9 +32,15 @@ export function Navbar() {
 		const loadFavorites = async () => {
 			const properties = await getPropertiesByIds(favoriteIds);
 			setFavoriteProperties(properties);
+			
+			// Clean up stale favorites (IDs that don't exist in database)
+			if (properties.length < favoriteIds.length) {
+				const validIds = properties.map(p => p.id);
+				cleanupStaleFavorites(validIds);
+			}
 		};
 		loadFavorites();
-	}, [favoriteIds]);
+	}, [favoriteIds, cleanupStaleFavorites]);
 
 	const handleSignOut = async () => {
 		await signOut();
@@ -101,14 +107,14 @@ export function Navbar() {
 
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="sm" className="gap-2 relative">
-									<Heart className="h-4 w-4" />
-									<span className="hidden md:inline">{t("navbar.favorites")}</span>
-									{favoriteIds.length > 0 && (
-										<Badge variant="secondary" className="ml-1 px-1.5 py-0 h-5 text-xs">
-											{favoriteIds.length}
-										</Badge>
-									)}
+							<Button variant="ghost" size="sm" className="gap-2 relative">
+								<Heart className="h-4 w-4" />
+								<span className="hidden md:inline">{t("navbar.favorites")}</span>
+								{favoriteProperties.length > 0 && (
+									<Badge variant="secondary" className="ml-1 px-1.5 py-0 h-5 text-xs">
+										{favoriteProperties.length}
+									</Badge>
+								)}
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="p-0">

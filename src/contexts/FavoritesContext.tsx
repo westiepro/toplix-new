@@ -8,6 +8,7 @@ type FavoritesContextType = {
 	removeFavorite: (propertyId: string) => void;
 	isFavorite: (propertyId: string) => boolean;
 	getFavorites: () => string[];
+	cleanupStaleFavorites: (validPropertyIds: string[]) => void;
 };
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -57,6 +58,17 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 		return favorites;
 	};
 
+	const cleanupStaleFavorites = (validPropertyIds: string[]) => {
+		setFavorites((prev) => {
+			const cleaned = prev.filter((id) => validPropertyIds.includes(id));
+			// Only update if there were stale favorites
+			if (cleaned.length !== prev.length) {
+				console.log(`Cleaned ${prev.length - cleaned.length} stale favorites`);
+			}
+			return cleaned;
+		});
+	};
+
 	return (
 		<FavoritesContext.Provider
 			value={{
@@ -65,6 +77,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 				removeFavorite,
 				isFavorite,
 				getFavorites,
+				cleanupStaleFavorites,
 			}}
 		>
 			{children}
