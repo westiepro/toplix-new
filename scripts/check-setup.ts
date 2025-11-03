@@ -103,7 +103,7 @@ async function checkSetup() {
     console.log(`   ✅ Found ${imageCount} images\n`);
     
     // Calculate average images per property
-    if (propertyCount && propertyCount > 0) {
+    if (propertyCount && propertyCount > 0 && imageCount !== null) {
       const avgImages = (imageCount / propertyCount).toFixed(1);
       console.log(`   📊 Average images per property: ${avgImages}`);
       
