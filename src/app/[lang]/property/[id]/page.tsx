@@ -29,12 +29,20 @@ const propertyFeatures = [
 // Fetch property data on the server
 async function getProperty(id: string): Promise<Property | null> {
 	try {
-		const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
+		// Use absolute URL for production, relative for local
+		const baseUrl = process.env.VERCEL_URL 
+			? `https://${process.env.VERCEL_URL}` 
+			: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+		
 		const response = await fetch(`${baseUrl}/api/properties/${id}`, {
 			cache: 'no-store', // Always get fresh data
+			headers: {
+				'Content-Type': 'application/json',
+			},
 		});
 		
 		if (!response.ok) {
+			console.error(`Failed to fetch property ${id}: ${response.status} ${response.statusText}`);
 			return null;
 		}
 		
@@ -49,12 +57,20 @@ async function getProperty(id: string): Promise<Property | null> {
 // Fetch similar properties on the server
 async function getSimilarProperties(city: string, excludeId: string): Promise<Property[]> {
 	try {
-		const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
+		// Use absolute URL for production, relative for local
+		const baseUrl = process.env.VERCEL_URL 
+			? `https://${process.env.VERCEL_URL}` 
+			: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+		
 		const response = await fetch(`${baseUrl}/api/properties?city=${encodeURIComponent(city)}`, {
 			cache: 'no-store',
+			headers: {
+				'Content-Type': 'application/json',
+			},
 		});
 		
 		if (!response.ok) {
+			console.error(`Failed to fetch similar properties: ${response.status}`);
 			return [];
 		}
 		
