@@ -222,6 +222,20 @@ export const TRANSLATION_KEYS = {
 		},
 	},
 
+	// Contact Agent Form
+	contact: {
+		title: "contact.title",
+		namePlaceholder: "contact.namePlaceholder",
+		emailPlaceholder: "contact.emailPlaceholder",
+		phonePlaceholder: "contact.phonePlaceholder",
+		messagePlaceholder: "contact.messagePlaceholder",
+		defaultMessage: "contact.defaultMessage",
+		sendButton: "contact.sendButton",
+		sending: "contact.sending",
+		successTitle: "contact.successTitle",
+		successDescription: "contact.successDescription",
+	},
+
 	// Favorites
 	favorites: {
 		noFavoritesYet: "favorites.noFavoritesYet",
@@ -457,6 +471,18 @@ export const ENGLISH_TRANSLATIONS: Record<string, string> = {
 	"admin.translations.translating": "Translating...",
 	"admin.translations.translationProgress": "Translation Progress",
 	"admin.translations.missingTranslations": "missing translations",
+
+	// Contact Agent Form
+	"contact.title": "Contact Agent",
+	"contact.namePlaceholder": "Name",
+	"contact.emailPlaceholder": "Email",
+	"contact.phonePlaceholder": "Phone",
+	"contact.messagePlaceholder": "Message",
+	"contact.defaultMessage": "I'm interested in {{address}}. Please send me more information.",
+	"contact.sendButton": "Send Message",
+	"contact.sending": "Sending...",
+	"contact.successTitle": "Message sent successfully!",
+	"contact.successDescription": "An agent will contact you soon.",
 
 	// Favorites
 	"favorites.noFavoritesYet": "No favorites yet",

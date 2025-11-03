@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ContactAgentFormProps {
   propertyId: string;
@@ -11,11 +12,16 @@ interface ContactAgentFormProps {
 }
 
 export function ContactAgentForm({ propertyId, propertyAddress }: ContactAgentFormProps) {
+  const { t } = useTranslation();
+  
+  // Initialize message with translated default
+  const defaultMessage = t("contact.defaultMessage", { address: propertyAddress });
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    message: `I'm interested in ${propertyAddress}. Please send me more information.`,
+    message: defaultMessage,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -26,8 +32,8 @@ export function ContactAgentForm({ propertyId, propertyAddress }: ContactAgentFo
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    toast.success("Message sent successfully!", {
-      description: "An agent will contact you soon.",
+    toast.success(t("contact.successTitle"), {
+      description: t("contact.successDescription"),
     });
 
     setIsSubmitting(false);
@@ -35,12 +41,12 @@ export function ContactAgentForm({ propertyId, propertyAddress }: ContactAgentFo
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-4">
-      <h2 className="text-xl font-bold mb-4">Contact Agent</h2>
+      <h2 className="text-xl font-bold mb-4">{t("contact.title")}</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <Input
             type="text"
-            placeholder="Name"
+            placeholder={t("contact.namePlaceholder")}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
@@ -50,7 +56,7 @@ export function ContactAgentForm({ propertyId, propertyAddress }: ContactAgentFo
         <div>
           <Input
             type="email"
-            placeholder="Email"
+            placeholder={t("contact.emailPlaceholder")}
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             required
@@ -60,7 +66,7 @@ export function ContactAgentForm({ propertyId, propertyAddress }: ContactAgentFo
         <div>
           <Input
             type="tel"
-            placeholder="Phone"
+            placeholder={t("contact.phonePlaceholder")}
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             className="w-full"
@@ -68,7 +74,7 @@ export function ContactAgentForm({ propertyId, propertyAddress }: ContactAgentFo
         </div>
         <div>
           <textarea
-            placeholder="Message"
+            placeholder={t("contact.messagePlaceholder")}
             value={formData.message}
             onChange={(e) => setFormData({ ...formData, message: e.target.value })}
             required
@@ -81,7 +87,7 @@ export function ContactAgentForm({ propertyId, propertyAddress }: ContactAgentFo
           disabled={isSubmitting}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white"
         >
-          {isSubmitting ? "Sending..." : "Send Message"}
+          {isSubmitting ? t("contact.sending") : t("contact.sendButton")}
         </Button>
       </form>
     </div>
