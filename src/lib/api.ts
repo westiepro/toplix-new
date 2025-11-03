@@ -19,11 +19,11 @@ export interface Property {
 }
 
 export interface PropertyImage {
-  id: string;
-  property_id: string;
+  id?: string;
+  property_id?: string;
   image_url: string;
-  display_order: number;
-  is_featured: boolean;
+  display_order?: number;
+  is_featured?: boolean;
 }
 
 interface PropertiesResponse {
