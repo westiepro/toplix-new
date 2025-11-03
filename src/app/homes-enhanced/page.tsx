@@ -121,7 +121,9 @@ function HomesPageContent() {
                 {properties.map((property) => (
                   <div
                     key={property.id}
-                    ref={el => propertyRefs.current[property.id] = el}
+                    ref={(el) => {
+                      propertyRefs.current[property.id] = el;
+                    }}
                     onMouseEnter={() => setHoveredProperty(property.id)}
                     onMouseLeave={() => setHoveredProperty(null)}
                     className="transition-all duration-200"
