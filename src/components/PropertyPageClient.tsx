@@ -6,11 +6,13 @@ import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { toast } from "sonner";
 import { useShare } from "@/hooks/useShare";
 import { ShareModal } from "@/components/ShareModal";
+import { LoginModal } from "@/components/LoginModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { trackPropertyView, trackPropertyShare } from "@/lib/analytics-events";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { Property } from "@/components/PropertyCard";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface PropertyPageClientProps {
 	property: Property;
@@ -20,6 +22,8 @@ export function PropertyPageClient({ property }: PropertyPageClientProps) {
 	const { t } = useTranslation();
 	const { currentLanguage } = useLanguage();
 	const { isFavorite, addFavorite, removeFavorite } = useFavoritesContext();
+	const { user, isGuest } = useAuth();
+	const [showLoginModal, setShowLoginModal] = useState(false);
 
 	// Track property view on mount
 	useEffect(() => {
@@ -55,6 +59,12 @@ export function PropertyPageClient({ property }: PropertyPageClientProps) {
 	);
 
 	const handleFavoriteClick = () => {
+		// Check if user is logged in (not guest and has user object)
+		if (!user || isGuest) {
+			setShowLoginModal(true);
+			return;
+		}
+		
 		if (isFavorite(property.id)) {
 			removeFavorite(property.id);
 			toast.success("Removed from favorites");
@@ -107,6 +117,12 @@ export function PropertyPageClient({ property }: PropertyPageClientProps) {
 				onShareTwitter={shareOnTwitter}
 				onShareLinkedIn={shareOnLinkedIn}
 				onShareWhatsApp={shareOnWhatsApp}
+			/>
+
+			{/* Login Modal */}
+			<LoginModal
+				open={showLoginModal}
+				onOpenChange={setShowLoginModal}
 			/>
 		</>
 	);

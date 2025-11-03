@@ -10,10 +10,12 @@ import { toast } from "sonner";
 import { trackPropertyCardClick, trackPropertyFavorite } from "@/lib/analytics-events";
 import { useShare } from "@/hooks/useShare";
 import { ShareModal } from "@/components/ShareModal";
+import { LoginModal } from "@/components/LoginModal";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "@/hooks/useTranslation";
 import { formatPriceFull, formatPriceShort } from "@/lib/utils";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export type AIStyle = {
 	style_name: string;
@@ -59,11 +61,13 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 	const { isFavorite, addFavorite, removeFavorite } = useFavoritesContext();
 	const { currentLanguage } = useLanguage();
 	const { t } = useTranslation();
+	const { user, isGuest } = useAuth();
 	const favorited = isFavorite(property.id);
 	
 	// Image navigation state
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const [isImageHovered, setIsImageHovered] = useState(false);
+	const [showLoginModal, setShowLoginModal] = useState(false);
 	
 	// Get all available images with fallback
 	const allImages = property.images && property.images.length > 0 
@@ -103,6 +107,12 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 	const handleFavoriteClick = (e: React.MouseEvent) => {
 		e.preventDefault();
 		e.stopPropagation();
+		
+		// Check if user is logged in (not guest and has user object)
+		if (!user || isGuest) {
+			setShowLoginModal(true);
+			return;
+		}
 		
 		if (favorited) {
 			removeFavorite(property.id);
@@ -231,6 +241,12 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 				onShareTwitter={shareOnTwitter}
 				onShareLinkedIn={shareOnLinkedIn}
 				onShareWhatsApp={shareOnWhatsApp}
+			/>
+
+			{/* Login Modal */}
+			<LoginModal
+				open={showLoginModal}
+				onOpenChange={setShowLoginModal}
 			/>
 		</>
 	);
