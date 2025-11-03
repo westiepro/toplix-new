@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			email,
 			password: tempPassword,
 			options: {
-				emailRedirectTo: `${window.location.origin}/${locale}/dashboard`,
+				emailRedirectTo: `${window.location.origin}/${locale}/auth/callback`,
 				data: {
 					instant_signup: true,
 				},
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		const { error } = await supabase.auth.signInWithOAuth({
 			provider,
 			options: {
-				redirectTo: `${window.location.origin}/${locale}/dashboard`,
+				redirectTo: `${window.location.origin}/${locale}/auth/callback`,
 			},
 		});
 
@@ -195,7 +195,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		const { error } = await supabase.auth.signInWithOtp({
 			email,
 			options: {
-				emailRedirectTo: `${window.location.origin}/${locale}/dashboard`,
+				emailRedirectTo: `${window.location.origin}/${locale}/auth/callback`,
 				shouldCreateUser: false,
 			},
 		});
