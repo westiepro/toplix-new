@@ -163,7 +163,7 @@ export const trackLanguageSwitch = (
 export const trackPropertyCardClick = (
   propertyId: string,
   position: number,
-  source: 'search_results' | 'map_popup' | 'favorites' | 'homepage'
+  source: 'search_results' | 'map_popup' | 'favorites' | 'homepage' | 'similar_properties'
 ) => {
   if (typeof window !== 'undefined' && window.plausible) {
     window.plausible('Property Card Click', {
