@@ -97,6 +97,114 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { id, property, images } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Property ID is required' },
+        { status: 400 }
+      );
+    }
+
+    console.log('Updating property:', id, property);
+    console.log('Updating images:', images?.length || 0);
+
+    // Validate Supabase configuration
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { error: 'Database configuration missing' },
+        { status: 500 }
+      );
+    }
+
+    // Use service role key if available (bypasses RLS), otherwise use anon key
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = createClient(
+      supabaseUrl, 
+      serviceRoleKey || supabaseKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
+
+    // Update property
+    const propertyData = {
+      address: property.address,
+      city: property.city,
+      country: property.country || 'Portugal',
+      price: property.price,
+      beds: property.beds,
+      baths: property.baths,
+      area: property.area,
+      property_type: property.type,
+      lat: property.lat,
+      lng: property.lng,
+      description: property.description || '',
+      status: property.status || 'active',
+    };
+
+    console.log('Updating property data:', propertyData);
+
+    const { data: updatedProperty, error: propertyError } = await supabase
+      .from('properties')
+      .update(propertyData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (propertyError || !updatedProperty) {
+      console.error('Error updating property:', propertyError);
+      return NextResponse.json(
+        { error: 'Failed to update property', details: propertyError?.message },
+        { status: 500 }
+      );
+    }
+
+    // Update images if provided
+    if (images && images.length > 0) {
+      // Delete existing images
+      await supabase
+        .from('property_images')
+        .delete()
+        .eq('property_id', id);
+
+      // Insert new images
+      const imageRecords = images.map((img: any, index: number) => ({
+        property_id: id,
+        image_url: img.url,
+        display_order: img.display_order ?? index,
+        is_featured: img.is_featured ?? index === 0,
+      }));
+
+      const { error: imagesError } = await supabase
+        .from('property_images')
+        .insert(imageRecords);
+
+      if (imagesError) {
+        console.error('Error updating images:', imagesError);
+        // Don't fail the whole request, just log the error
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      property: updatedProperty,
+    });
+  } catch (error) {
+    console.error('API error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;

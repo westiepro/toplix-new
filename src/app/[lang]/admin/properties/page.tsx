@@ -144,14 +144,20 @@ export default function PropertiesPage() {
 		try {
 			console.log("Submitting property:", data);
 			console.log("With images:", propertyImages);
+			console.log("Editing property ID:", editingProperty);
+			
+			// Determine if we're creating or updating
+			const isEditing = !!editingProperty;
+			const method = isEditing ? 'PUT' : 'POST';
 			
 			// Save property to Supabase via API
 			const response = await fetch('/api/properties', {
-				method: 'POST',
+				method: method,
 				headers: {
 					'Content-Type': 'application/json',
 				},
 				body: JSON.stringify({
+					id: editingProperty, // Only used for PUT
 					property: data,
 					images: propertyImages,
 				}),
@@ -167,7 +173,8 @@ export default function PropertiesPage() {
 			console.log("Property saved successfully:", result);
 			
 			// Show success message
-			alert(`✅ Property saved successfully!\n\nID: ${result.property.id}\nImages: ${propertyImages.length} uploaded`);
+			const action = isEditing ? 'updated' : 'created';
+			alert(`✅ Property ${action} successfully!\n\nID: ${result.property.id}\nImages: ${propertyImages.length} ${isEditing ? 'updated' : 'uploaded'}`);
 			
 			setIsDialogOpen(false);
 			reset();
@@ -175,9 +182,7 @@ export default function PropertiesPage() {
 			setPropertyImages([]);
 			
 			// Refetch properties
-			const refetchResponse = await fetch('/api/properties');
-			const refetchData = await refetchResponse.json();
-			setProperties(refetchData.properties || []);
+			await fetchProperties();
 		} catch (error) {
 			console.error("Error saving property:", error);
 			const errorMessage = error instanceof Error ? error.message : 'Failed to save property';
