@@ -14,7 +14,7 @@ type SavedSearchListProps = {
 };
 
 export function SavedSearchList({ onSearchLoad }: SavedSearchListProps) {
-  const { searches, isLoading, mutate } = useSavedSearches();
+  const { savedSearches, isLoading, mutate } = useSavedSearches();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
   const { setBounds, setFilters, flyToLocation, setSelectedCity } = useMapStore();
@@ -73,7 +73,7 @@ export function SavedSearchList({ onSearchLoad }: SavedSearchListProps) {
     );
   }
 
-  if (searches.length === 0) {
+  if (savedSearches.length === 0) {
     return (
       <div className="text-center py-12">
         <MapPin className="h-12 w-12 text-gray-300 mx-auto mb-3" />
@@ -89,7 +89,7 @@ export function SavedSearchList({ onSearchLoad }: SavedSearchListProps) {
 
   return (
     <div className="space-y-3">
-      {searches.map((search) => (
+      {savedSearches.map((search) => (
         <Card key={search.id} className="hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-start justify-between gap-4">
