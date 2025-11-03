@@ -8,42 +8,42 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Real estate photos from Pixabay (free to use, no attribution required)
+// Real estate photos from Unsplash (free to use, designed for web)
 const propertyPhotos = {
   property1: [
-    'https://cdn.pixabay.com/photo/2016/11/18/17/46/house-1836070_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/04/10/22/28/residence-2219972_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/06/24/10/47/house-1477041_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/03/22/17/39/kitchen-2165756_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/11/30/08/48/bedroom-1872196_1280.jpg',
+    'https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=800&fit=crop',
   ],
   property2: [
-    'https://cdn.pixabay.com/photo/2014/07/10/17/18/large-home-389271_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/11/29/03/53/house-1867187_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/09/09/18/25/living-room-2732939_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/09/22/11/55/kitchen-1687121_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/03/28/12/11/chairs-2181947_1280.jpg',
+    'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600607687644-c7171b42498b?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=1200&h=800&fit=crop',
   ],
   property3: [
-    'https://cdn.pixabay.com/photo/2016/11/29/13/14/apartment-1869355_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/03/19/01/43/living-room-2155376_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/08/02/01/01/living-room-2569325_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/08/27/10/16/interior-2685521_1280.jpg',
-    'https://cdn.pixabay.com/photo/2014/12/27/14/37/living-room-581073_1280.jpg',
+    'https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600563438938-a9a27216b4f5?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600121848594-d8644e57abab?w=1200&h=800&fit=crop',
   ],
   property4: [
-    'https://cdn.pixabay.com/photo/2016/06/30/00/31/architecture-1488479_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/01/07/17/48/interior-1961070_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/12/26/17/28/stools-1932887_1280.jpg',
-    'https://cdn.pixabay.com/photo/2018/01/26/08/15/dining-room-3107803_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/09/09/18/25/living-room-2732934_1280.jpg',
+    'https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600566753229-f372d5584d9e?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600566752734-0a8c91c3d469?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1200&h=800&fit=crop',
   ],
   property5: [
-    'https://cdn.pixabay.com/photo/2013/10/09/02/27/lake-192990_1280.jpg',
-    'https://cdn.pixabay.com/photo/2014/11/21/17/27/architecture-540089_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/11/18/14/05/brick-wall-1834784_1280.jpg',
-    'https://cdn.pixabay.com/photo/2017/03/25/23/32/kitchen-2174593_1280.jpg',
-    'https://cdn.pixabay.com/photo/2016/04/18/08/50/kitchen-1336160_1280.jpg',
+    'https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600563438938-a9a27216b4f5?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1200&h=800&fit=crop',
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=800&fit=crop',
   ],
 };
 
