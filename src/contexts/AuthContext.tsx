@@ -158,7 +158,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		if (!supabase) return;
 
 		await supabase.auth.signOut();
+		
+		// Clear all user-specific data from localStorage
 		localStorage.removeItem("guest_mode");
+		localStorage.removeItem("favorites");
+		
 		setIsGuest(false);
 	};
 

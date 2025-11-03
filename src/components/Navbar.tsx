@@ -23,7 +23,7 @@ export function Navbar() {
 	const router = useRouter();
 	const [showLoginModal, setShowLoginModal] = useState(false);
 	const { user, isGuest, signOut } = useAuth();
-	const { getFavorites, cleanupStaleFavorites } = useFavoritesContext();
+	const { getFavorites, cleanupStaleFavorites, clearAllFavorites } = useFavoritesContext();
 	const favoriteIds = getFavorites();
 	const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([]);
 
@@ -43,6 +43,8 @@ export function Navbar() {
 	}, [favoriteIds, cleanupStaleFavorites]);
 
 	const handleSignOut = async () => {
+		// Clear favorites before signing out
+		clearAllFavorites();
 		await signOut();
 	};
 

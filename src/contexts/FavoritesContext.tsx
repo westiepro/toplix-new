@@ -9,6 +9,7 @@ type FavoritesContextType = {
 	isFavorite: (propertyId: string) => boolean;
 	getFavorites: () => string[];
 	cleanupStaleFavorites: (validPropertyIds: string[]) => void;
+	clearAllFavorites: () => void;
 };
 
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
@@ -69,6 +70,11 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 		});
 	};
 
+	const clearAllFavorites = () => {
+		setFavorites([]);
+		localStorage.removeItem("favorites");
+	};
+
 	return (
 		<FavoritesContext.Provider
 			value={{
@@ -78,6 +84,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 				isFavorite,
 				getFavorites,
 				cleanupStaleFavorites,
+				clearAllFavorites,
 			}}
 		>
 			{children}
