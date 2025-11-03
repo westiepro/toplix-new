@@ -17,7 +17,7 @@ export function SavedSearchList({ onSearchLoad }: SavedSearchListProps) {
   const { savedSearches, isLoading, mutate } = useSavedSearches();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
-  const { setBounds, setFilters, flyToLocation, setSelectedCity } = useMapStore();
+  const { setBounds, setFilters, setCenter, setSelectedCity } = useMapStore();
 
   const handleLoadSearch = (search: any) => {
     // Set filters
@@ -36,11 +36,11 @@ export function SavedSearchList({ onSearchLoad }: SavedSearchListProps) {
       // Fly to center of bounds
       const centerLat = (search.bounds.sw_lat + search.bounds.ne_lat) / 2;
       const centerLng = (search.bounds.sw_lng + search.bounds.ne_lng) / 2;
-      flyToLocation({
+      setCenter({
         lat: centerLat,
         lng: centerLng,
         zoom: 12,
-      }, search.city);
+      });
     }
 
     toast.success(`Loaded search: ${search.name}`);
