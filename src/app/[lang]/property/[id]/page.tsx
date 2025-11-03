@@ -1,12 +1,16 @@
 import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
-import type { Property } from "@/components/PropertyCard";
+import type { Property, PropertyImage } from "@/components/PropertyCard";
 import { Bed, Bath, Maximize, MapPin, Check } from "lucide-react";
 import { PropertyImageGallery } from "@/components/PropertyImageGallery";
 import { ContactAgentForm } from "@/components/ContactAgentForm";
 import { PropertyCard } from "@/components/PropertyCard";
 import { PropertyPageClient } from "@/components/PropertyPageClient";
 import { notFound } from "next/navigation";
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 // Property features list
 const propertyFeatures = [
@@ -26,58 +30,149 @@ const propertyFeatures = [
 	"Fiber Internet",
 ];
 
-// Fetch property data on the server
+// Fetch property data directly from Supabase
 async function getProperty(id: string): Promise<Property | null> {
 	try {
-		// Use absolute URL for production, relative for local
-		const baseUrl = process.env.VERCEL_URL 
-			? `https://${process.env.VERCEL_URL}` 
-			: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-		
-		const response = await fetch(`${baseUrl}/api/properties/${id}`, {
-			cache: 'no-store', // Always get fresh data
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-		
-		if (!response.ok) {
-			console.error(`Failed to fetch property ${id}: ${response.status} ${response.statusText}`);
+		if (!supabaseUrl || !supabaseKey) {
+			console.error('Supabase not configured');
 			return null;
 		}
-		
-		const data = await response.json();
-		return data.property;
+
+		const supabase = createClient(supabaseUrl, supabaseKey);
+
+		// Fetch property with all images
+		const { data: property, error } = await supabase
+			.from('properties')
+			.select(`
+				id,
+				price,
+				address,
+				city,
+				country,
+				beds,
+				baths,
+				area,
+				property_type,
+				lat,
+				lng,
+				description,
+				status,
+				property_images(
+					id,
+					image_url,
+					display_order,
+					is_featured
+				)
+			`)
+			.eq('id', id)
+			.single();
+
+		if (error || !property) {
+			console.error('Error fetching property:', error);
+			return null;
+		}
+
+		// Sort images by display_order
+		const images = (property.property_images || [])
+			.sort((a: any, b: any) => a.display_order - b.display_order)
+			.map((img: any) => ({
+				id: img.id,
+				image_url: img.image_url,
+				display_order: img.display_order,
+				is_featured: img.is_featured,
+			}));
+
+		// Transform to match Property type
+		return {
+			id: property.id,
+			price: property.price,
+			address: property.address,
+			city: property.city,
+			country: property.country,
+			beds: property.beds,
+			baths: property.baths,
+			area: property.area,
+			property_type: property.property_type,
+			lat: property.lat,
+			lng: property.lng,
+			description: property.description,
+			imageUrl: images[0]?.image_url || 'https://via.placeholder.com/800x600?text=No+Image',
+			images: images,
+		};
 	} catch (error) {
 		console.error('Failed to fetch property:', error);
 		return null;
 	}
 }
 
-// Fetch similar properties on the server
+// Fetch similar properties directly from Supabase
 async function getSimilarProperties(city: string, excludeId: string): Promise<Property[]> {
 	try {
-		// Use absolute URL for production, relative for local
-		const baseUrl = process.env.VERCEL_URL 
-			? `https://${process.env.VERCEL_URL}` 
-			: process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-		
-		const response = await fetch(`${baseUrl}/api/properties?city=${encodeURIComponent(city)}`, {
-			cache: 'no-store',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-		
-		if (!response.ok) {
-			console.error(`Failed to fetch similar properties: ${response.status}`);
+		if (!supabaseUrl || !supabaseKey) {
 			return [];
 		}
-		
-		const data = await response.json();
-		return (data.properties || [])
-			.filter((p: Property) => p.id !== excludeId)
-			.slice(0, 3);
+
+		const supabase = createClient(supabaseUrl, supabaseKey);
+
+		const { data, error } = await supabase
+			.from('properties')
+			.select(`
+				id,
+				price,
+				address,
+				city,
+				country,
+				beds,
+				baths,
+				area,
+				property_type,
+				lat,
+				lng,
+				description,
+				status,
+				property_images(
+					id,
+					image_url,
+					display_order,
+					is_featured
+				)
+			`)
+			.eq('city', city)
+			.neq('id', excludeId)
+			.eq('status', 'active')
+			.limit(3);
+
+		if (error || !data) {
+			return [];
+		}
+
+		return data.map((property: any) => {
+			const images = (property.property_images || [])
+				.sort((a: any, b: any) => a.display_order - b.display_order)
+				.map((img: any) => ({
+					id: img.id,
+					image_url: img.image_url,
+					display_order: img.display_order,
+					is_featured: img.is_featured,
+				}));
+
+			return {
+				id: property.id,
+				price: property.price,
+				address: property.address,
+				city: property.city,
+				country: property.country,
+				beds: property.beds,
+				baths: property.baths,
+				area: property.area,
+				property_type: property.property_type,
+				lat: property.lat,
+				lng: property.lng,
+				description: property.description,
+				imageUrl: images[0]?.image_url || 'https://via.placeholder.com/800x600?text=No+Image',
+				images: images,
+			};
+		});
 	} catch (error) {
 		console.error('Failed to fetch similar properties:', error);
 		return [];
@@ -92,18 +187,16 @@ export default async function PropertyPage({
 }) {
 	const { id } = await params;
 	
-	// Fetch property and similar properties in parallel for maximum speed
-	const [property, similarProperties] = await Promise.all([
-		getProperty(id),
-		getProperty(id).then(prop => 
-			prop ? getSimilarProperties(prop.city, id) : []
-		),
-	]);
+	// Fetch property first
+	const property = await getProperty(id);
 
 	// Show 404 if property not found
 	if (!property) {
 		notFound();
 	}
+
+	// Fetch similar properties
+	const similarProperties = await getSimilarProperties(property.city, id);
 
 	// Use images from API or fallback to imageUrl
 	const propertyImages = property.images && property.images.length > 0 
