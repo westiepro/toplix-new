@@ -54,7 +54,7 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 	property: Property; 
 	highlighted?: boolean;
 	position?: number;
-	source?: 'search_results' | 'map_popup' | 'favorites' | 'homepage';
+	source?: 'search_results' | 'map_popup' | 'favorites' | 'homepage' | 'similar_properties';
 }) {
 	const { isFavorite, addFavorite, removeFavorite } = useFavoritesContext();
 	const { currentLanguage } = useLanguage();
