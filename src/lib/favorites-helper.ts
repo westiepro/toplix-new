@@ -22,9 +22,10 @@ export async function getAllProperties(): Promise<Property[]> {
 			return [];
 		}
 		const data = await response.json();
-		propertiesCache = data.properties || [];
+		const properties = data.properties || [];
+		propertiesCache = properties;
 		cacheTimestamp = now;
-		return propertiesCache;
+		return properties;
 	} catch (error) {
 		console.error('Error fetching properties:', error);
 		return [];

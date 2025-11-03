@@ -29,7 +29,7 @@ export function SearchBar({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
-  const { selectedCity, flyToLocation } = useMapStore();
+  const { selectedCity, setCenter, setCity } = useMapStore();
 
   // Sync with store's selected city
   useEffect(() => {
@@ -100,12 +100,13 @@ export function SearchBar({
     // Track search
     trackSearch(location.name);
     
-    // Fly to location on map
-    flyToLocation({
+    // Set location on map
+    setCenter({
       lat: location.lat,
       lng: location.lng,
       zoom: 12,
-    }, location.name);
+    });
+    setCity(location.name);
     
     // Call callback
     onCitySelect?.(location);

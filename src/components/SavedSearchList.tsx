@@ -17,7 +17,7 @@ export function SavedSearchList({ onSearchLoad }: SavedSearchListProps) {
   const { savedSearches, isLoading, mutate } = useSavedSearches();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   
-  const { setBounds, setFilters, setCenter, setSelectedCity } = useMapStore();
+  const { setBounds, setFilters, setCenter, setCity } = useMapStore();
 
   const handleLoadSearch = (search: any) => {
     // Set filters
@@ -27,7 +27,7 @@ export function SavedSearchList({ onSearchLoad }: SavedSearchListProps) {
 
     // Set city
     if (search.city) {
-      setSelectedCity(search.city);
+      setCity(search.city);
     }
 
     // Set bounds or fly to city
