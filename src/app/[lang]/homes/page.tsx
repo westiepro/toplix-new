@@ -66,6 +66,7 @@ function HomesPageContent() {
 	const [openId, setOpenId] = useState<string | null>(null);
 	const [properties, setProperties] = useState<Property[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
+	const [totalCount, setTotalCount] = useState<number>(0);
 
 	const [bounds, setBounds] = useState<{ minLat: number; maxLat: number; minLng: number; maxLng: number } | null>(null);
 
@@ -82,13 +83,16 @@ function HomesPageContent() {
 						p.status === 'active' || !p.status // Show if active or if status is not set
 					);
 					setProperties(activeProperties);
+					setTotalCount(activeProperties.length);
 				} else {
 					console.error('Failed to fetch properties');
 					setProperties([]);
+					setTotalCount(0);
 				}
 			} catch (error) {
 				console.error('Error fetching properties:', error);
 				setProperties([]);
+				setTotalCount(0);
 			} finally {
 				setIsLoading(false);
 			}
@@ -183,6 +187,16 @@ function HomesPageContent() {
 			<div className="grid h-[calc(100vh-56px)] grid-cols-1 md:grid-cols-[55%_45%]">
 				<div className="flex min-h-0 flex-col border-r h-auto md:h-full overflow-auto md:overflow-hidden">
 					<Filters value={filters} onChange={handleFiltersChange} onClearBounds={() => setBounds(null)} />
+					
+					{/* Property Counter Header */}
+					{!isLoading && totalCount > 0 && (
+						<div className="px-4 py-3 border-b bg-white">
+							<h2 className="text-lg font-semibold text-gray-900">
+								{totalCount} {totalCount === 1 ? 'Home' : 'Homes'}
+							</h2>
+						</div>
+					)}
+					
 					<div className="min-h-[400px] md:min-h-0 flex-1 md:overflow-auto p-4">
 						{isLoading ? (
 							<div className="flex items-center justify-center h-full">

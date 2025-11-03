@@ -27,6 +27,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { PropertyImageManager, type PropertyImage } from "@/components/admin/PropertyImageManager";
+import { toast } from "sonner";
 
 const propertySchema = z.object({
 	address: z.string().min(1, "Address is required"),
@@ -232,6 +233,8 @@ export default function PropertiesPage() {
 		if (!propertyToDelete) return;
 
 		setIsDeleting(true);
+		const propertyAddress = propertyToDelete.address;
+		
 		try {
 			const response = await fetch(`/api/properties/${propertyToDelete.id}`, {
 				method: 'DELETE',
@@ -242,14 +245,23 @@ export default function PropertiesPage() {
 				throw new Error(error.error || 'Failed to delete property');
 			}
 
-		// Success - refetch properties and close dialog
-		await fetchProperties();
-		setDeleteDialogOpen(false);
-		setPropertyToDelete(null);
+			// Success - refetch properties and close dialog
+			await fetchProperties();
+			setDeleteDialogOpen(false);
+			setPropertyToDelete(null);
+			
+			// Show success toast
+			toast.success('Property deleted', {
+				description: `"${propertyAddress}" has been removed from the database`,
+			});
 		} catch (error) {
 			console.error('Error deleting property:', error);
 			const errorMessage = error instanceof Error ? error.message : 'Failed to delete property';
-			alert(`❌ Error: ${errorMessage}`);
+			
+			// Show error toast
+			toast.error('Failed to delete property', {
+				description: errorMessage,
+			});
 		} finally {
 			setIsDeleting(false);
 		}

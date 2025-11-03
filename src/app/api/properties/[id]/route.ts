@@ -105,7 +105,18 @@ export async function DELETE(
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use service role key for admin operations (bypasses RLS)
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabase = createClient(
+      supabaseUrl,
+      serviceRoleKey || supabaseKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    );
 
     // First, delete all associated images (due to foreign key constraints)
     const { error: imagesError } = await supabase
