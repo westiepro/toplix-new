@@ -1,22 +1,12 @@
-"use client";
-
-import { useMemo, useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
 import type { Property } from "@/components/PropertyCard";
-import { Button } from "@/components/ui/button";
-import { Heart, Share2, Bed, Bath, Maximize, MapPin, Check } from "lucide-react";
-import { useParams } from "next/navigation";
-import { useTranslation } from "@/hooks/useTranslation";
-import { trackPropertyView, trackPropertyShare } from "@/lib/analytics-events";
+import { Bed, Bath, Maximize, MapPin, Check } from "lucide-react";
 import { PropertyImageGallery } from "@/components/PropertyImageGallery";
 import { ContactAgentForm } from "@/components/ContactAgentForm";
 import { PropertyCard } from "@/components/PropertyCard";
-import { useFavoritesContext } from "@/contexts/FavoritesContext";
-import { toast } from "sonner";
-import { useShare } from "@/hooks/useShare";
-import { ShareModal } from "@/components/ShareModal";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { PropertyPageClient } from "@/components/PropertyPageClient";
+import { notFound } from "next/navigation";
 
 // Property features list
 const propertyFeatures = [
@@ -36,139 +26,67 @@ const propertyFeatures = [
 	"Fiber Internet",
 ];
 
-export default function PropertyPage() {
-	const { t } = useTranslation();
-	const { currentLanguage } = useLanguage();
-	const params = useParams<{ id: string }>();
-	const [property, setProperty] = useState<Property | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
-	const { isFavorite, addFavorite, removeFavorite } = useFavoritesContext();
-	const [similarProperties, setSimilarProperties] = useState<Property[]>([]);
-	
-	// Fetch property from API
-	useEffect(() => {
-		const fetchProperty = async () => {
-			try {
-				const response = await fetch(`/api/properties/${params.id}`);
-				if (response.ok) {
-					const data = await response.json();
-					setProperty(data.property);
-				} else {
-					setProperty(null);
-				}
-			} catch (error) {
-				console.error('Failed to fetch property:', error);
-				setProperty(null);
-			} finally {
-				setIsLoading(false);
-			}
-		};
+// Fetch property data on the server
+async function getProperty(id: string): Promise<Property | null> {
+	try {
+		const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
+		const response = await fetch(`${baseUrl}/api/properties/${id}`, {
+			cache: 'no-store', // Always get fresh data
+		});
 		
-		fetchProperty();
-	}, [params.id]);
-
-	// Fetch similar properties from API
-	useEffect(() => {
-		const fetchSimilar = async () => {
-			if (!property) return;
-			
-			try {
-				const response = await fetch(`/api/properties?city=${property.city}`);
-				if (response.ok) {
-					const data = await response.json();
-					const filtered = (data.properties || [])
-						.filter((p: Property) => p.id !== property.id)
-						.slice(0, 3);
-					setSimilarProperties(filtered);
-				}
-			} catch (error) {
-				console.error('Failed to fetch similar properties:', error);
-			}
-		};
+		if (!response.ok) {
+			return null;
+		}
 		
-		fetchSimilar();
-	}, [property]);
-	
-	// Track property view
-	useEffect(() => {
-		if (property) {
-			trackPropertyView(
-				property.id,
-				property.address,
-				property.price,
-				property.city
-			);
-		}
-	}, [property]);
-
-	// Share functionality
-	const {
-		handleShare,
-		isShareModalOpen,
-		setIsShareModalOpen,
-		copyLink,
-		shareViaEmail,
-		shareOnFacebook,
-		shareOnTwitter,
-		shareOnLinkedIn,
-		shareOnWhatsApp,
-	} = useShare(
-		property
-			? {
-					id: property.id,
-					address: property.address,
-					city: property.city,
-					price: property.price,
-					country: property.country,
-			  }
-			: { id: "", address: "", city: "", price: 0 },
-		currentLanguage,
-		t
-	);
-
-	const handleFavoriteClick = () => {
-		if (!property) return;
-		
-		if (isFavorite(property.id)) {
-			removeFavorite(property.id);
-			toast.success("Removed from favorites");
-		} else {
-			addFavorite(property.id);
-			toast.success("Added to favorites");
-		}
-	};
-
-	const handleShareClick = () => {
-		if (property) {
-			trackPropertyShare(property.id, 'link');
-			handleShare();
-		}
-	};
-	
-	if (isLoading) {
-		return (
-		<main className="min-h-screen bg-gray-50">
-			<Navbar />
-			<section className="mx-auto max-w-[1440px] p-4">
-				<div className="flex items-center justify-center h-96">
-					<p className="text-xl text-muted-foreground">Loading...</p>
-				</div>
-			</section>
-		</main>
-		);
+		const data = await response.json();
+		return data.property;
+	} catch (error) {
+		console.error('Failed to fetch property:', error);
+		return null;
 	}
+}
 
+// Fetch similar properties on the server
+async function getSimilarProperties(city: string, excludeId: string): Promise<Property[]> {
+	try {
+		const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001';
+		const response = await fetch(`${baseUrl}/api/properties?city=${encodeURIComponent(city)}`, {
+			cache: 'no-store',
+		});
+		
+		if (!response.ok) {
+			return [];
+		}
+		
+		const data = await response.json();
+		return (data.properties || [])
+			.filter((p: Property) => p.id !== excludeId)
+			.slice(0, 3);
+	} catch (error) {
+		console.error('Failed to fetch similar properties:', error);
+		return [];
+	}
+}
+
+// Server Component - data fetched before render
+export default async function PropertyPage({
+	params,
+}: {
+	params: Promise<{ id: string; lang: string }>;
+}) {
+	const { id } = await params;
+	
+	// Fetch property and similar properties in parallel for maximum speed
+	const [property, similarProperties] = await Promise.all([
+		getProperty(id),
+		getProperty(id).then(prop => 
+			prop ? getSimilarProperties(prop.city, id) : []
+		),
+	]);
+
+	// Show 404 if property not found
 	if (!property) {
-		return (
-		<main className="min-h-screen bg-gray-50">
-			<Navbar />
-			<section className="mx-auto max-w-[1440px] p-4">
-				<div className="flex items-center justify-center h-96">
-					<p className="text-xl text-muted-foreground">Property not found</p>
-				</div>
-			</section>
-		</main>
-		);
+		notFound();
 	}
 
 	// Use images from API or fallback to imageUrl
@@ -203,29 +121,9 @@ export default function PropertyPage() {
 										{property.city}, {property.country || "Portugal"}
 									</p>
 								</div>
-							<div className="flex gap-3">
-								<Button
-									variant="outline"
-									size="icon"
-									onClick={handleFavoriteClick}
-									className={isFavorite(property.id) ? "text-red-500" : ""}
-								>
-									<Heart
-										className={`h-8 w-8 ${
-											isFavorite(property.id) ? "fill-current" : ""
-										}`}
-									/>
-								</Button>
-								<Button 
-									variant="outline" 
-									size="icon" 
-									onClick={handleShareClick}
-									className="transition-all duration-200 hover:scale-105 active:scale-95"
-									aria-label="Share this property"
-								>
-									<Share2 className="h-8 w-8" />
-								</Button>
-							</div>
+								
+								{/* Client-side interactive buttons */}
+								<PropertyPageClient property={property} />
 							</div>
 
 						{/* Key Stats */}
@@ -330,18 +228,20 @@ export default function PropertyPage() {
 				</div>
 
 				{/* Similar Properties Section */}
-				<div className="mt-12">
-					<h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Properties in the Area</h2>
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-						{similarProperties.map((similarProperty) => (
-							<PropertyCard
-								key={similarProperty.id}
-								property={similarProperty}
-								source="similar_properties"
-							/>
-						))}
+				{similarProperties.length > 0 && (
+					<div className="mt-12">
+						<h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Properties in the Area</h2>
+						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+							{similarProperties.map((similarProperty) => (
+								<PropertyCard
+									key={similarProperty.id}
+									property={similarProperty}
+									source="similar_properties"
+								/>
+							))}
+						</div>
 					</div>
-				</div>
+				)}
 			</div>
 
 		{/* Footer */}
@@ -350,24 +250,6 @@ export default function PropertyPage() {
 				© 2024 Toplix. All rights reserved.
 			</div>
 		</footer>
-
-		{/* Share Modal */}
-		{property && (
-			<ShareModal
-				isOpen={isShareModalOpen}
-				onClose={() => setIsShareModalOpen(false)}
-				propertyAddress={property.address}
-				propertyCity={property.city}
-				onCopyLink={copyLink}
-				onShareEmail={shareViaEmail}
-				onShareFacebook={shareOnFacebook}
-				onShareTwitter={shareOnTwitter}
-				onShareLinkedIn={shareOnLinkedIn}
-				onShareWhatsApp={shareOnWhatsApp}
-			/>
-		)}
 		</main>
 	);
 }
-
-

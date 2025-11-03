@@ -225,3 +225,4 @@ For more details, see:
 - `supabase-properties-schema.sql` - Complete database schema
 - Supabase documentation for SQL Editor usage
 
+

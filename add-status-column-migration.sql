@@ -19,3 +19,4 @@ UPDATE properties SET status = 'active' WHERE status IS NULL;
 -- Optional: View all properties with their status
 -- SELECT id, address, city, status FROM properties ORDER BY created_at DESC;
 
+

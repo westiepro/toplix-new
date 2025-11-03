@@ -293,3 +293,4 @@ You now have a professional image management system with Cloudinary optimization
 
 **Need help?** Check `CLOUDINARY_IMAGE_MANAGER_SETUP.md` for detailed setup instructions.
 
+

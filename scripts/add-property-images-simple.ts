@@ -214,3 +214,4 @@ async function addImagesToProperties() {
 // Run the script
 addImagesToProperties().catch(console.error);
 
+

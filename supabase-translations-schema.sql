@@ -128,3 +128,4 @@ CREATE POLICY "Allow authenticated users to update languages"
     TO authenticated
     USING (true);
 
+

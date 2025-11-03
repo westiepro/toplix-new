@@ -139,7 +139,7 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 
 	return (
 		<>
-			<LocaleLink href={`/property/${property.id}`} onClick={handleCardClick}>
+			<LocaleLink href={`/property/${property.id}`} prefetch={true} onClick={handleCardClick}>
 				<Card className={`overflow-hidden transition hover:shadow-lg ${highlighted ? "ring-2 ring-green-600" : ""} p-0 gap-0`}>
 					<div 
 						className="relative h-72 w-full group"

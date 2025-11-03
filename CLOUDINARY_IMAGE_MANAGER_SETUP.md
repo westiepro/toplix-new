@@ -225,3 +225,4 @@ const propertyImages = images.map(img => img.image_url);
 
 Your admin panel now has a professional image management system with Cloudinary integration.
 
+

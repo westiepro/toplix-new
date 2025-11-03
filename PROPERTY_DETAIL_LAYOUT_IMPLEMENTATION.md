@@ -337,3 +337,4 @@ All features should work smoothly!
 
 The property detail page now matches your reference layout perfectly with all sections, styling, and interactive features implemented.
 
+

@@ -232,3 +232,4 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_key
 
 Your site now has 5 beautiful real estate images for every property. Enjoy! 🏡✨
 
+

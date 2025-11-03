@@ -1,0 +1,114 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { Heart, Share2 } from "lucide-react";
+import { useFavoritesContext } from "@/contexts/FavoritesContext";
+import { toast } from "sonner";
+import { useShare } from "@/hooks/useShare";
+import { ShareModal } from "@/components/ShareModal";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "@/hooks/useTranslation";
+import { trackPropertyView, trackPropertyShare } from "@/lib/analytics-events";
+import { useEffect } from "react";
+import type { Property } from "@/components/PropertyCard";
+
+interface PropertyPageClientProps {
+	property: Property;
+}
+
+export function PropertyPageClient({ property }: PropertyPageClientProps) {
+	const { t } = useTranslation();
+	const { currentLanguage } = useLanguage();
+	const { isFavorite, addFavorite, removeFavorite } = useFavoritesContext();
+
+	// Track property view on mount
+	useEffect(() => {
+		trackPropertyView(
+			property.id,
+			property.address,
+			property.price,
+			property.city
+		);
+	}, [property.id, property.address, property.price, property.city]);
+
+	// Share functionality
+	const {
+		handleShare,
+		isShareModalOpen,
+		setIsShareModalOpen,
+		copyLink,
+		shareViaEmail,
+		shareOnFacebook,
+		shareOnTwitter,
+		shareOnLinkedIn,
+		shareOnWhatsApp,
+	} = useShare(
+		{
+			id: property.id,
+			address: property.address,
+			city: property.city,
+			price: property.price,
+			country: property.country,
+		},
+		currentLanguage,
+		t
+	);
+
+	const handleFavoriteClick = () => {
+		if (isFavorite(property.id)) {
+			removeFavorite(property.id);
+			toast.success("Removed from favorites");
+		} else {
+			addFavorite(property.id);
+			toast.success("Added to favorites");
+		}
+	};
+
+	const handleShareClick = () => {
+		trackPropertyShare(property.id, 'link');
+		handleShare();
+	};
+
+	return (
+		<>
+			<div className="flex gap-3">
+				<Button
+					variant="outline"
+					size="icon"
+					onClick={handleFavoriteClick}
+					className={isFavorite(property.id) ? "text-red-500" : ""}
+				>
+					<Heart
+						className={`h-8 w-8 ${
+							isFavorite(property.id) ? "fill-current" : ""
+						}`}
+					/>
+				</Button>
+				<Button 
+					variant="outline" 
+					size="icon" 
+					onClick={handleShareClick}
+					className="transition-all duration-200 hover:scale-105 active:scale-95"
+					aria-label="Share this property"
+				>
+					<Share2 className="h-8 w-8" />
+				</Button>
+			</div>
+
+			{/* Share Modal */}
+			<ShareModal
+				isOpen={isShareModalOpen}
+				onClose={() => setIsShareModalOpen(false)}
+				propertyAddress={property.address}
+				propertyCity={property.city}
+				onCopyLink={copyLink}
+				onShareEmail={shareViaEmail}
+				onShareFacebook={shareOnFacebook}
+				onShareTwitter={shareOnTwitter}
+				onShareLinkedIn={shareOnLinkedIn}
+				onShareWhatsApp={shareOnWhatsApp}
+			/>
+		</>
+	);
+}
+
