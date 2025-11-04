@@ -7,10 +7,13 @@ export interface Property {
   address: string;
   city: string;
   country?: string;
+  district?: string;
   beds: number;
   baths: number;
   area: number;
   property_type?: string;
+  transaction_type?: string;
+  url_slug_id?: string;
   lat: number;
   lng: number;
   description?: string;

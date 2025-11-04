@@ -155,8 +155,8 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 		setCurrentImageIndex((prev) => (prev + 1) % totalImages);
 	};
 
-	// Generate the localized property URL - using simple route for now
-	const propertyUrl = `/${currentLanguage}/property/${property.id}`;
+	// Generate the localized property URL with new slug format
+	const propertyUrl = generateFallbackPropertyUrl(property, currentLanguage);
 
 	return (
 		<>
