@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { Button } from "@/components/ui/button";
@@ -143,9 +144,11 @@ export default function CompanyDetailPage() {
             </div>
           </div>
         </div>
-        <Button variant="outline">
-          <Edit className="h-4 w-4 mr-2" />
-          Edit Company
+        <Button variant="outline" asChild>
+          <Link href={`/en/admin/companies/${company.id}/edit`}>
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Company
+          </Link>
         </Button>
       </div>
 
