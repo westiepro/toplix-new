@@ -60,6 +60,35 @@ export type Property = {
 export const formatPrice = formatPriceFull; // Default to full format for cards
 export { formatPriceShort };
 
+/**
+ * Format address for display - remove block/unit numbers, show only street and city
+ */
+function formatAddressDisplay(address: string, city: string): string {
+	// Remove common block/unit patterns
+	let cleanAddress = address
+		// Remove "Bloco X.Y, " or "Bloco X, "
+		.replace(/Bloco\s+[\d.]+,?\s*/gi, '')
+		// Remove "Block X, "
+		.replace(/Block\s+[\d.]+,?\s*/gi, '')
+		// Remove "Residence X" or "Residencia X"
+		.replace(/Residen[ct]e?\s+[\d]+/gi, '')
+		// Remove "Unit X"
+		.replace(/Unit\s+[\d]+/gi, '')
+		// Remove "Apt X" or "Apartment X"
+		.replace(/Apt\.?\s+[\d]+/gi, '')
+		.replace(/Apartment\s+[\d]+/gi, '')
+		// Clean up multiple commas and spaces
+		.replace(/,\s*,/g, ',')
+		.replace(/\s+,/g, ',')
+		.replace(/,\s+/g, ', ')
+		.trim();
+
+	// Remove trailing comma if any
+	cleanAddress = cleanAddress.replace(/,\s*$/, '');
+
+	return `${cleanAddress}, ${city}`;
+}
+
 export function PropertyCard({ property, highlighted, position = 0, source = 'search_results' }: { 
 	property: Property; 
 	highlighted?: boolean;
@@ -231,11 +260,12 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 								</Button>
 							</div>
 						</div>
-						<div className="text-sm text-muted-foreground">
-							{property.beds} beds · {property.baths} baths · {property.area} sq ft
-						</div>
-						<div className="text-sm font-medium">{property.address}</div>
-						<div className="text-sm text-muted-foreground">{property.city}</div>
+					<div className="text-sm text-muted-foreground">
+						{property.beds} beds · {property.baths} baths · {property.area} sq ft
+					</div>
+					<div className="text-sm font-medium">
+						{formatAddressDisplay(property.address, property.city)}
+					</div>
 					</CardContent>
 				</Card>
 			</Link>
