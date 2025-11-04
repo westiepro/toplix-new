@@ -49,10 +49,13 @@ async function getProperty(id: string): Promise<Property | null> {
 				address,
 				city,
 				country,
+				district,
 				beds,
 				baths,
 				area,
 				property_type,
+				transaction_type,
+				url_slug_id,
 				lat,
 				lng,
 				description,
@@ -67,7 +70,8 @@ async function getProperty(id: string): Promise<Property | null> {
 					image_category
 				)
 			`)
-			.eq('id', id)
+			.or(`id.eq.${id},url_slug_id.eq.${id}`)
+			.eq('status', 'active')
 			.single();
 
 		if (error || !property) {
