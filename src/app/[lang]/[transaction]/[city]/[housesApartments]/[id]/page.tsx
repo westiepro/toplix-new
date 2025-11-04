@@ -24,16 +24,25 @@ async function getProperty(id: string): Promise<Property | null> {
 
 	const supabase = createClient(supabaseUrl, supabaseKey);
 
-	const { data: property, error } = await supabase
+	// Try to find by url_slug_id first (numeric), then by UUID id
+	let query = supabase
 		.from('properties')
 		.select(`
 			id, price, address, city, country, district, beds, baths, area,
 			property_type, transaction_type, url_slug_id, lat, lng, description, status,
 			property_images(id, image_url, display_order, is_featured)
 		`)
-		.or(`id.eq.${id},url_slug_id.eq.${id}`)
-		.eq('status', 'active')
-		.single();
+		.eq('status', 'active');
+
+	// If id is numeric (url_slug_id), query by that field
+	// Otherwise, query by UUID id field
+	if (/^\d+$/.test(id)) {
+		query = query.eq('url_slug_id', id);
+	} else {
+		query = query.eq('id', id);
+	}
+
+	const { data: property, error } = await query.single();
 
 	if (error || !property) return null;
 
