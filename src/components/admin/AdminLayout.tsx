@@ -14,7 +14,8 @@ import {
 	Moon,
 	Sun,
 	LogOut,
-	Languages
+	Languages,
+	Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -27,6 +28,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const navigation = [
 	{ name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
 	{ name: "Properties", href: "/admin/properties", icon: Home },
+	{ name: "Companies", href: "/admin/companies", icon: Building2 },
 	{ name: "Agents", href: "/admin/agents", icon: Users },
 	{ name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
 	{ name: "Translations", href: "/admin/translations", icon: Languages },
