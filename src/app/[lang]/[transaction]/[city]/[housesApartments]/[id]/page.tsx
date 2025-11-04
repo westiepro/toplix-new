@@ -142,8 +142,8 @@ export async function generateMetadata({
 		alternateLanguages[locale] = `${baseUrl}${generatePropertyUrl(property, locale)}`;
 	});
 
-	const title = `${property.property_type} in ${property.city} - ${property.transaction_type === 'rent' ? 'For Rent' : 'For Sale'}`;
-	const description = property.description || `${property.beds} bedroom, ${property.baths} bathroom ${property.property_type.toLowerCase()} in ${property.city}. ${property.area} sqft. Price: €${property.price.toLocaleString()}`;
+	const title = `${property.property_type || 'Property'} in ${property.city} - ${property.transaction_type === 'rent' ? 'For Rent' : 'For Sale'}`;
+	const description = property.description || `${property.beds} bedroom, ${property.baths} bathroom ${property.property_type?.toLowerCase() || 'property'} in ${property.city}. ${property.area} sqft. Price: €${property.price.toLocaleString()}`;
 
 	return {
 		title,
