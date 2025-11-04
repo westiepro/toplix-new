@@ -30,3 +30,5 @@ SELECT id, property_id, style_name, is_original, image_category, is_featured
 FROM property_images
 LIMIT 5;
 
+
+

@@ -86,6 +86,16 @@ export default function NewCompanyPage() {
 
       if (!response.ok) {
         const error = await response.json();
+        console.error('API Error Response:', error);
+        
+        // Show helpful error message
+        if (error.details?.includes('relation "companies" does not exist')) {
+          toast.error('Database not set up', {
+            description: 'Please run the SQL schema in Supabase first. See COMPANIES_ADMIN_SETUP.md',
+          });
+        } else {
+          toast.error(error.details || error.error || 'Failed to create company');
+        }
         throw new Error(error.error || 'Failed to create company');
       }
 
@@ -96,7 +106,10 @@ export default function NewCompanyPage() {
       router.push(`/en/admin/companies/${data.company.id}`);
     } catch (error) {
       console.error('Error creating company:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to create company');
+      // Don't show toast again if we already showed it above
+      if (error instanceof Error && !error.message.includes('Database not set up')) {
+        toast.error(error.message);
+      }
     } finally {
       setIsSubmitting(false);
     }
