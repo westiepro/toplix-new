@@ -74,6 +74,35 @@ interface Property {
 type SortColumn = 'address' | 'city' | 'price' | 'type' | 'beds' | 'baths' | 'status';
 type SortDirection = 'asc' | 'desc' | null;
 
+/**
+ * Format address for display - remove block/unit numbers, show only street and city
+ */
+function formatAddressDisplay(address: string, city: string): string {
+	// Remove common block/unit patterns
+	let cleanAddress = address
+		// Remove "Bloco X.Y, " or "Bloco X, "
+		.replace(/Bloco\s+[\d.]+,?\s*/gi, '')
+		// Remove "Block X, "
+		.replace(/Block\s+[\d.]+,?\s*/gi, '')
+		// Remove "Residence X" or "Residencia X"
+		.replace(/Residen[ct]e?\s+[\d]+/gi, '')
+		// Remove "Unit X"
+		.replace(/Unit\s+[\d]+/gi, '')
+		// Remove "Apt X" or "Apartment X"
+		.replace(/Apt\.?\s+[\d]+/gi, '')
+		.replace(/Apartment\s+[\d]+/gi, '')
+		// Clean up multiple commas and spaces
+		.replace(/,\s*,/g, ',')
+		.replace(/\s+,/g, ',')
+		.replace(/,\s+/g, ', ')
+		.trim();
+
+	// Remove trailing comma if any
+	cleanAddress = cleanAddress.replace(/,\s*$/, '');
+
+	return `${cleanAddress}, ${city}`;
+}
+
 export default function PropertiesPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [cityFilter, setCityFilter] = useState<string>("all");
@@ -753,7 +782,9 @@ export default function PropertiesPage() {
 													)}
 												</div>
 											</TableCell>
-											<TableCell className="font-medium">{property.address}</TableCell>
+											<TableCell className="font-medium">
+												{formatAddressDisplay(property.address, property.city)}
+											</TableCell>
 											<TableCell>{property.city}</TableCell>
 											<TableCell>€{property.price.toLocaleString()}</TableCell>
 											<TableCell>{property.property_type}</TableCell>
