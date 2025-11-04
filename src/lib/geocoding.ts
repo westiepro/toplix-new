@@ -139,9 +139,9 @@ async function searchInCountry(query: string, country: string): Promise<SearchLo
 	url.searchParams.set("countrycodes", country === "Portugal" ? "pt" : "es");
 	url.searchParams.set("format", "json");
 	url.searchParams.set("addressdetails", "1");
-	url.searchParams.set("limit", "3"); // Reduced from 5 to 3 for faster response
-	// Prioritize cities, towns, and villages
-	url.searchParams.set("featuretype", "settlement");
+	url.searchParams.set("limit", "5"); // Increased to show more results including streets
+	// Remove featuretype to allow all types including streets
+	// url.searchParams.set("featuretype", "settlement");
 
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
@@ -150,6 +150,7 @@ async function searchInCountry(query: string, country: string): Promise<SearchLo
 		const response = await fetch(url.toString(), {
 			headers: {
 				"User-Agent": "NextEstate Real Estate App",
+				"Accept": "application/json",
 			},
 			signal: controller.signal,
 		});
@@ -160,23 +161,53 @@ async function searchInCountry(query: string, country: string): Promise<SearchLo
 			throw new Error(`Geocoding failed: ${response.statusText}`);
 		}
 
-		const results: GeocodingResult[] = await response.json();
+		const text = await response.text();
+		let results: GeocodingResult[];
+		
+		try {
+			results = JSON.parse(text);
+		} catch (e) {
+			console.error("Invalid JSON from geocoding API:", text.substring(0, 200));
+			return [];
+		}
 
 		return results.map((result) => {
+			const addr = result.address;
+			const road = addr.road || "";
+			const houseNumber = addr.house_number || "";
 			const cityName = 
-				result.address.city || 
-				result.address.town || 
-				result.address.village || 
-				result.address.municipality ||
+				addr.city || 
+				addr.town || 
+				addr.village || 
+				addr.municipality ||
 				"";
+			
+			// Build street address if available
+			const streetAddress = road 
+				? `${road}${houseNumber ? ' ' + houseNumber : ''}`
+				: "";
 
-			const displayName = cityName 
-				? `${cityName}, ${country}`
-				: result.display_name;
+			// Create display name with street and city
+			let displayName = "";
+			let name = "";
+			
+			if (streetAddress && cityName) {
+				displayName = `${streetAddress}, ${cityName}, ${country}`;
+				name = streetAddress;
+			} else if (streetAddress) {
+				displayName = `${streetAddress}, ${country}`;
+				name = streetAddress;
+			} else if (cityName) {
+				displayName = `${cityName}, ${country}`;
+				name = cityName;
+			} else {
+				displayName = result.display_name;
+				name = result.display_name.split(",")[0];
+			}
 
 			return {
 				id: result.place_id,
-				name: cityName || result.display_name.split(",")[0],
+				name,
 				displayName,
 				lat: parseFloat(result.lat),
 				lng: parseFloat(result.lon),
@@ -204,5 +235,57 @@ export function debounce<T extends (...args: any[]) => any>(
 		clearTimeout(timeout);
 		timeout = setTimeout(() => func(...args), wait);
 	};
+}
+
+/**
+ * Reverse geocode coordinates to get address details
+ */
+export async function reverseGeocode(lat: number, lng: number): Promise<{
+	address: string;
+	city: string;
+	country: string;
+} | null> {
+	try {
+		const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`;
+		const response = await fetch(url, {
+			headers: { 
+				"User-Agent": "NextEstate Real Estate App",
+				"Accept": "application/json",
+			},
+		});
+		
+		if (!response.ok) {
+			console.error(`Geocoding failed: ${response.status}`);
+			return null;
+		}
+
+		const text = await response.text();
+		
+		// Validate JSON response
+		let data;
+		try {
+			data = JSON.parse(text);
+		} catch (e) {
+			console.error("Invalid JSON response from geocoding API:", text);
+			return null;
+		}
+		
+		const addr = data.address || {};
+		
+		const formattedAddress = [
+			addr.road,
+			addr.house_number,
+			addr.postcode,
+		].filter(Boolean).join(" ");
+		
+		return {
+			address: formattedAddress || data.display_name?.split(",")[0] || "",
+			city: addr.city || addr.town || addr.village || addr.municipality || "",
+			country: addr.country || "",
+		};
+	} catch (error) {
+		console.error("Reverse geocoding error:", error);
+		return null;
+	}
 }
 

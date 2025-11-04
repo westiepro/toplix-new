@@ -23,11 +23,12 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit, Eye, Download, FileDown, Trash2 } from "lucide-react";
+import { Plus, Search, Edit, Eye, Download, FileDown, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { PropertyImageManager, type PropertyImage } from "@/components/admin/PropertyImageManager";
+import { LocationMapPicker } from "@/components/admin/LocationMapPicker";
 import { toast } from "sonner";
 
 const propertySchema = z.object({
@@ -70,6 +71,9 @@ interface Property {
 	}>;
 }
 
+type SortColumn = 'address' | 'city' | 'price' | 'type' | 'beds' | 'baths' | 'status';
+type SortDirection = 'asc' | 'desc' | null;
+
 export default function PropertiesPage() {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [cityFilter, setCityFilter] = useState<string>("all");
@@ -83,6 +87,8 @@ export default function PropertiesPage() {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [propertyToDelete, setPropertyToDelete] = useState<Property | null>(null);
 	const [isDeleting, setIsDeleting] = useState(false);
+	const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
+	const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
 	// Fetch properties from API
 	const fetchProperties = async () => {
@@ -127,7 +133,7 @@ export default function PropertiesPage() {
 	});
 
 	const filteredProperties = useMemo(() => {
-		return properties.filter((prop) => {
+		let filtered = properties.filter((prop) => {
 			const matchesSearch = 
 				prop.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
 				prop.city.toLowerCase().includes(searchQuery.toLowerCase());
@@ -136,7 +142,54 @@ export default function PropertiesPage() {
 			const matchesStatus = statusFilter === "all" || prop.status === statusFilter;
 			return matchesSearch && matchesCity && matchesType && matchesStatus;
 		});
-	}, [properties, searchQuery, cityFilter, typeFilter, statusFilter]);
+
+		// Apply sorting
+		if (sortColumn && sortDirection) {
+			filtered = [...filtered].sort((a, b) => {
+				let aValue: any;
+				let bValue: any;
+
+				switch (sortColumn) {
+					case 'address':
+						aValue = a.address.toLowerCase();
+						bValue = b.address.toLowerCase();
+						break;
+					case 'city':
+						aValue = a.city.toLowerCase();
+						bValue = b.city.toLowerCase();
+						break;
+					case 'price':
+						aValue = a.price;
+						bValue = b.price;
+						break;
+					case 'type':
+						aValue = a.property_type.toLowerCase();
+						bValue = b.property_type.toLowerCase();
+						break;
+					case 'beds':
+						aValue = a.beds;
+						bValue = b.beds;
+						break;
+					case 'baths':
+						aValue = a.baths;
+						bValue = b.baths;
+						break;
+					case 'status':
+						aValue = a.status || '';
+						bValue = b.status || '';
+						break;
+					default:
+						return 0;
+				}
+
+				if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+				if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+				return 0;
+			});
+		}
+
+		return filtered;
+	}, [properties, searchQuery, cityFilter, typeFilter, statusFilter, sortColumn, sortDirection]);
 
 	const cities = Array.from(new Set(properties.map(p => p.city)));
 	const types = Array.from(new Set(properties.map(p => p.property_type)));
@@ -146,6 +199,15 @@ export default function PropertiesPage() {
 			console.log("Submitting property:", data);
 			console.log("With images:", propertyImages);
 			console.log("Editing property ID:", editingProperty);
+			
+			// Ensure coordinates are numbers
+			const propertyData = {
+				...data,
+				lat: typeof data.lat === 'number' ? data.lat : parseFloat(data.lat as any) || 0,
+				lng: typeof data.lng === 'number' ? data.lng : parseFloat(data.lng as any) || 0,
+			};
+			
+			console.log("Processed property data:", propertyData);
 			
 			// Determine if we're creating or updating
 			const isEditing = !!editingProperty;
@@ -159,14 +221,24 @@ export default function PropertiesPage() {
 				},
 				body: JSON.stringify({
 					id: editingProperty, // Only used for PUT
-					property: data,
+					property: propertyData,
 					images: propertyImages,
 				}),
 			});
 
 			if (!response.ok) {
-				const error = await response.json();
-				console.error("API Error:", error);
+				const errorText = await response.text();
+				console.error("API Error Response:", errorText);
+				console.error("Response status:", response.status);
+				
+				let error;
+				try {
+					error = JSON.parse(errorText);
+				} catch (e) {
+					error = { error: errorText || 'Failed to save property' };
+				}
+				
+				console.error("Parsed API Error:", error);
 				throw new Error(error.details || error.error || 'Failed to save property');
 			}
 
@@ -232,6 +304,31 @@ export default function PropertiesPage() {
 	setPropertyImages(existingImages);
 		
 		setIsDialogOpen(true);
+	};
+
+	const handleSort = (column: SortColumn) => {
+		if (sortColumn === column) {
+			// Cycle through: asc -> desc -> null
+			if (sortDirection === 'asc') {
+				setSortDirection('desc');
+			} else if (sortDirection === 'desc') {
+				setSortColumn(null);
+				setSortDirection(null);
+			}
+		} else {
+			setSortColumn(column);
+			setSortDirection('asc');
+		}
+	};
+
+	const getSortIcon = (column: SortColumn) => {
+		if (sortColumn !== column) {
+			return <ArrowUpDown className="h-4 w-4 text-gray-400" />;
+		}
+		if (sortDirection === 'asc') {
+			return <ArrowUp className="h-4 w-4 text-blue-600" />;
+		}
+		return <ArrowDown className="h-4 w-4 text-blue-600" />;
 	};
 
 	const handleExport = (format: "csv" | "pdf") => {
@@ -333,21 +430,27 @@ export default function PropertiesPage() {
 							</DialogHeader>
 							<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 								<div className="grid grid-cols-2 gap-4">
-									<div className="space-y-2 col-span-2">
-										<label className="text-sm font-medium">Address</label>
-										<Input {...register("address")} placeholder="Rua da Praia 45" />
-										{errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
+									{/* Location Map Picker - replaces address, city, country, lat, lng fields */}
+									<div className="col-span-2">
+										<LocationMapPicker
+											initialLat={watch("lat")}
+											initialLng={watch("lng")}
+											onLocationSelect={(location) => {
+												setValue("address", location.address);
+												setValue("city", location.city);
+												setValue("country", location.country);
+												setValue("lat", location.lat);
+												setValue("lng", location.lng);
+											}}
+										/>
 									</div>
-									<div className="space-y-2">
-										<label className="text-sm font-medium">City</label>
-										<Input {...register("city")} placeholder="Lagos" />
-										{errors.city && <p className="text-sm text-destructive">{errors.city.message}</p>}
-									</div>
-									<div className="space-y-2">
-										<label className="text-sm font-medium">Country</label>
-										<Input {...register("country")} placeholder="Portugal" />
-										{errors.country && <p className="text-sm text-destructive">{errors.country.message}</p>}
-									</div>
+
+									{/* Hidden fields to store the values */}
+									<input type="hidden" {...register("address")} />
+									<input type="hidden" {...register("city")} />
+									<input type="hidden" {...register("country")} />
+									<input type="hidden" {...register("lat", { valueAsNumber: true })} />
+									<input type="hidden" {...register("lng", { valueAsNumber: true })} />
 									<div className="space-y-2">
 										<label className="text-sm font-medium">Price</label>
 										<Input 
@@ -419,28 +522,30 @@ export default function PropertiesPage() {
 										</Select>
 										<p className="text-xs text-muted-foreground">Active properties are visible to users on the website</p>
 									</div>
-									<div className="space-y-2">
-										<label className="text-sm font-medium">Latitude</label>
-										<Input 
-											type="number" 
-											step="0.000001"
-											{...register("lat", { valueAsNumber: true })} 
-											placeholder="37.1010" 
-										/>
-										{errors.lat && <p className="text-sm text-destructive">{errors.lat.message}</p>}
-										<p className="text-xs text-gray-500">Get from Google Maps (right-click location)</p>
-									</div>
-									<div className="space-y-2">
-										<label className="text-sm font-medium">Longitude</label>
-										<Input 
-											type="number" 
-											step="0.000001"
-											{...register("lng", { valueAsNumber: true })} 
-											placeholder="-8.6730" 
-										/>
-										{errors.lng && <p className="text-sm text-destructive">{errors.lng.message}</p>}
-										<p className="text-xs text-gray-500">Get from Google Maps (right-click location)</p>
-									</div>
+								<div className="space-y-2">
+									<label className="text-sm font-medium">Latitude</label>
+									<Input 
+										type="text"
+										value={watch("lat")?.toFixed(6) || ""}
+										readOnly
+										placeholder="37.1010"
+										className="bg-gray-50 cursor-not-allowed"
+									/>
+									{errors.lat && <p className="text-sm text-destructive">{errors.lat.message}</p>}
+									<p className="text-xs text-gray-500">Auto-filled from map selection</p>
+								</div>
+								<div className="space-y-2">
+									<label className="text-sm font-medium">Longitude</label>
+									<Input 
+										type="text"
+										value={watch("lng")?.toFixed(6) || ""}
+										readOnly
+										placeholder="-8.6730"
+										className="bg-gray-50 cursor-not-allowed"
+									/>
+									{errors.lng && <p className="text-sm text-destructive">{errors.lng.message}</p>}
+									<p className="text-xs text-gray-500">Auto-filled from map selection</p>
+								</div>
 									<div className="space-y-2 col-span-2">
 										<label className="text-sm font-medium">Description (Optional)</label>
 										<textarea 
@@ -555,13 +660,69 @@ export default function PropertiesPage() {
 							<TableHeader>
 								<TableRow>
 									<TableHead className="w-[100px]">Image</TableHead>
-									<TableHead>Address</TableHead>
-									<TableHead>City</TableHead>
-									<TableHead>Price</TableHead>
-									<TableHead>Type</TableHead>
-									<TableHead>Beds</TableHead>
-									<TableHead>Baths</TableHead>
-									<TableHead>Status</TableHead>
+									<TableHead>
+										<button
+											onClick={() => handleSort('address')}
+											className="flex items-center gap-2 hover:text-foreground transition-colors"
+										>
+											Address
+											{getSortIcon('address')}
+										</button>
+									</TableHead>
+									<TableHead>
+										<button
+											onClick={() => handleSort('city')}
+											className="flex items-center gap-2 hover:text-foreground transition-colors"
+										>
+											City
+											{getSortIcon('city')}
+										</button>
+									</TableHead>
+									<TableHead>
+										<button
+											onClick={() => handleSort('price')}
+											className="flex items-center gap-2 hover:text-foreground transition-colors"
+										>
+											Price
+											{getSortIcon('price')}
+										</button>
+									</TableHead>
+									<TableHead>
+										<button
+											onClick={() => handleSort('type')}
+											className="flex items-center gap-2 hover:text-foreground transition-colors"
+										>
+											Type
+											{getSortIcon('type')}
+										</button>
+									</TableHead>
+									<TableHead>
+										<button
+											onClick={() => handleSort('beds')}
+											className="flex items-center gap-2 hover:text-foreground transition-colors"
+										>
+											Beds
+											{getSortIcon('beds')}
+										</button>
+									</TableHead>
+									<TableHead>
+										<button
+											onClick={() => handleSort('baths')}
+											className="flex items-center gap-2 hover:text-foreground transition-colors"
+										>
+											Baths
+											{getSortIcon('baths')}
+										</button>
+									</TableHead>
+									<TableHead>
+										<button
+											onClick={() => handleSort('status')}
+											className="flex items-center gap-2 hover:text-foreground transition-colors"
+										>
+											Status
+											{getSortIcon('status')}
+										</button>
+									</TableHead>
 									<TableHead className="text-right">Actions</TableHead>
 								</TableRow>
 							</TableHeader>

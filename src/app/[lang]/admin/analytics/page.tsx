@@ -158,15 +158,15 @@ export default function AnalyticsPage() {
 				</div>
 				<div className="flex items-center gap-2">
 					<Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-						<SelectTrigger className="w-[180px]">
-							<SelectValue placeholder="Date range" />
-						</SelectTrigger>
-						<SelectContent>
+					<SelectTrigger className="w-[180px]">
+						<SelectValue placeholder="Date range" />
+					</SelectTrigger>
+					<SelectContent>
 							<SelectItem value="7d">Last 7 days</SelectItem>
 							<SelectItem value="30d">Last 30 days</SelectItem>
 							<SelectItem value="90d">Last 90 days</SelectItem>
-						</SelectContent>
-					</Select>
+					</SelectContent>
+				</Select>
 					<Button variant="outline" size="sm">
 						<Download className="h-4 w-4 mr-2" />
 						Export
@@ -317,42 +317,42 @@ export default function AnalyticsPage() {
 								<CardDescription>Where visitors come from</CardDescription>
 							</CardHeader>
 							<CardContent className="pt-6">
-								<ResponsiveContainer width="100%" height={300}>
-									<PieChart>
-										<Pie
+						<ResponsiveContainer width="100%" height={300}>
+							<PieChart>
+								<Pie
 											data={plausibleData?.sources || []}
-											cx="50%"
-											cy="50%"
-											labelLine={false}
+									cx="50%"
+									cy="50%"
+									labelLine={false}
 											label={(entry: any) => `${entry.source}: ${entry.visitors}`}
 											outerRadius={90}
-											fill="#8884d8"
+									fill="#8884d8"
 											dataKey="visitors"
 											nameKey="source"
-										>
+								>
 											{(plausibleData?.sources || []).map((_: any, index: number) => (
 												<Cell key={`cell-${index}`} fill={['#198754', '#0d5c37', '#2d8659', '#4a9d6e', '#6ab487'][index % 5]} />
-											))}
-										</Pie>
-										<Tooltip />
-									</PieChart>
-								</ResponsiveContainer>
-							</CardContent>
-						</Card>
-					</div>
+									))}
+								</Pie>
+								<Tooltip />
+							</PieChart>
+						</ResponsiveContainer>
+					</CardContent>
+				</Card>
+			</div>
 
 					<Card className="border-t-4 border-t-purple-500 shadow-lg">
 						<CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
 							<CardTitle className="text-purple-700 dark:text-purple-400">Top Pages</CardTitle>
 							<CardDescription>Most visited pages</CardDescription>
-						</CardHeader>
+					</CardHeader>
 						<CardContent className="pt-6">
-							<ResponsiveContainer width="100%" height={300}>
+						<ResponsiveContainer width="100%" height={300}>
 								<BarChart data={(plausibleData?.pages || []).slice(0, 10)} layout="vertical">
-									<CartesianGrid strokeDasharray="3 3" />
-									<XAxis type="number" />
-									<YAxis dataKey="page" type="category" width={150} />
-									<Tooltip />
+								<CartesianGrid strokeDasharray="3 3" />
+								<XAxis type="number" />
+								<YAxis dataKey="page" type="category" width={150} />
+								<Tooltip />
 									<Bar dataKey="visitors" fill="#a855f7" />
 								</BarChart>
 							</ResponsiveContainer>
@@ -422,10 +422,10 @@ export default function AnalyticsPage() {
 									<YAxis />
 									<Tooltip />
 									<Bar dataKey="count" fill="#f97316" radius={[8, 8, 0, 0]} />
-								</BarChart>
-							</ResponsiveContainer>
-						</CardContent>
-					</Card>
+							</BarChart>
+						</ResponsiveContainer>
+					</CardContent>
+				</Card>
 				</TabsContent>
 
 				{/* Behavior Tab */}
@@ -522,15 +522,15 @@ export default function AnalyticsPage() {
 								<Globe className="h-5 w-5" />
 								Geographic Distribution
 							</CardTitle>
-							<CardDescription>Traffic by country</CardDescription>
-						</CardHeader>
+						<CardDescription>Traffic by country</CardDescription>
+					</CardHeader>
 						<CardContent className="pt-6">
 							<ResponsiveContainer width="100%" height={400}>
 								<BarChart data={plausibleData?.countries || []}>
-									<CartesianGrid strokeDasharray="3 3" />
-									<XAxis dataKey="country" />
-									<YAxis />
-									<Tooltip />
+								<CartesianGrid strokeDasharray="3 3" />
+								<XAxis dataKey="country" />
+								<YAxis />
+								<Tooltip />
 									<Bar dataKey="visitors" fill="#6366f1" radius={[8, 8, 0, 0]} />
 								</BarChart>
 							</ResponsiveContainer>
@@ -629,29 +629,29 @@ export default function AnalyticsPage() {
 										<YAxis />
 										<Tooltip />
 										<Bar dataKey="visitors" fill="#10b981" radius={[8, 8, 0, 0]} />
-									</BarChart>
-								</ResponsiveContainer>
-							</CardContent>
-						</Card>
-					</div>
+							</BarChart>
+						</ResponsiveContainer>
+					</CardContent>
+				</Card>
+			</div>
 
 					<Card className="border-t-4 border-t-purple-500 shadow-lg">
 						<CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
 							<CardTitle className="text-purple-700 dark:text-purple-400">Operating Systems</CardTitle>
 							<CardDescription>Visitor OS breakdown</CardDescription>
-						</CardHeader>
+				</CardHeader>
 						<CardContent className="pt-6">
 							<ResponsiveContainer width="100%" height={300}>
 								<BarChart data={plausibleData?.os || []} layout="vertical">
 									<CartesianGrid strokeDasharray="3 3" />
 									<XAxis type="number" />
 									<YAxis dataKey="os" type="category" width={100} />
-									<Tooltip />
+							<Tooltip />
 									<Bar dataKey="visitors" fill="#a855f7" radius={[0, 8, 8, 0]} />
 								</BarChart>
-							</ResponsiveContainer>
-						</CardContent>
-					</Card>
+					</ResponsiveContainer>
+				</CardContent>
+			</Card>
 				</TabsContent>
 			</Tabs>
 

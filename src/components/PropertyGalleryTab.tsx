@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -30,6 +30,22 @@ export function PropertyGalleryTab({ images }: PropertyGalleryTabProps) {
 	const goToImage = (index: number) => {
 		setCurrentIndex(index);
 	};
+
+	// Keyboard navigation
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === "ArrowLeft") {
+				e.preventDefault();
+				goToPrevious();
+			} else if (e.key === "ArrowRight") {
+				e.preventDefault();
+				goToNext();
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, []);
 
 	return (
 		<div className="flex flex-col h-full">

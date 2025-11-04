@@ -83,11 +83,13 @@ function HomesPageContent() {
 						p.status === 'active' || !p.status // Show if active or if status is not set
 					);
 					setProperties(activeProperties);
+					setTotalCount(activeProperties.length);
 					console.log('📍 Total active properties loaded:', activeProperties.length);
 					console.log('📍 Properties with coordinates:', activeProperties.filter((p: any) => p.lat && p.lng).length);
 				} else {
 					console.error('Failed to fetch properties');
 					setProperties([]);
+					setTotalCount(0);
 				}
 			} catch (error) {
 				console.error('Error fetching properties:', error);
@@ -147,6 +149,7 @@ function HomesPageContent() {
 		}
 	};
 
+	// Update total count when filtered results change
 	const filtered = useMemo(() => {
 		const result = properties.filter((p) => {
 			// Skip properties without coordinates
@@ -175,6 +178,11 @@ function HomesPageContent() {
 		
 		return result;
 	}, [properties, filters, bounds]);
+
+	// Update total count when filtered results change
+	useEffect(() => {
+		setTotalCount(filtered.length);
+	}, [filtered]);
 
 	const selected = useMemo(() => filtered.find((p) => p.id === openId) ?? null, [filtered, openId]);
 	// If selected falls out of filtered set (bounds/filters), clear it
@@ -219,11 +227,11 @@ function HomesPageContent() {
 						) : (
 							<div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pb-4">
 								{filtered.map((p, index) => (
-									<div key={p.id} onMouseEnter={() => setHoverId(p.id)} onMouseLeave={() => setHoverId(null)}>
+								<div key={p.id} onMouseEnter={() => setHoverId(p.id)} onMouseLeave={() => setHoverId(null)}>
 										<PropertyCard property={p} highlighted={hoverId === p.id} position={index} source="search_results" />
-									</div>
-								))}
-							</div>
+								</div>
+							))}
+						</div>
 						)}
 					</div>
 				</div>
