@@ -211,9 +211,7 @@ export default async function PropertyPage({
 
 	return (
 		<PropertyPageClient 
-			property={property} 
-			similarProperties={similarProperties}
-			propertyFeatures={propertyFeatures}
+			property={property}
 		/>
 	);
 }
