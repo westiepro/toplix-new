@@ -6,7 +6,7 @@ import { PropertyImageGallery } from "@/components/PropertyImageGallery";
 import { ContactAgentForm } from "@/components/ContactAgentForm";
 import { PropertyCard } from "@/components/PropertyCard";
 import { PropertyPageClient } from "@/components/PropertyPageClient";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -61,7 +61,10 @@ async function getProperty(id: string): Promise<Property | null> {
 					id,
 					image_url,
 					display_order,
-					is_featured
+					is_featured,
+					style_name,
+					is_original,
+					image_category
 				)
 			`)
 			.eq('id', id)
@@ -72,14 +75,29 @@ async function getProperty(id: string): Promise<Property | null> {
 			return null;
 		}
 
-		// Sort images by display_order
-		const images = (property.property_images || [])
-			.sort((a: any, b: any) => a.display_order - b.display_order)
+		// Sort and organize images
+		const allImages = (property.property_images || [])
+			.sort((a: any, b: any) => a.display_order - b.display_order);
+		
+		const galleryImages = allImages
+			.filter((img: any) => img.image_category === 'gallery' || !img.image_category)
 			.map((img: any) => ({
 				id: img.id,
 				image_url: img.image_url,
 				display_order: img.display_order,
 				is_featured: img.is_featured,
+				style_name: img.style_name,
+				is_original: img.is_original,
+				image_category: img.image_category,
+			}));
+		
+		const originalImage = allImages.find((img: any) => img.is_original || img.image_category === 'original');
+		
+		const aiStyledImages = allImages
+			.filter((img: any) => img.image_category === 'ai_styled' && img.style_name)
+			.map((img: any) => ({
+				style_name: img.style_name,
+				image_url: img.image_url,
 			}));
 
 		// Transform to match Property type
@@ -96,8 +114,10 @@ async function getProperty(id: string): Promise<Property | null> {
 			lat: property.lat,
 			lng: property.lng,
 			description: property.description,
-			imageUrl: images[0]?.image_url || 'https://via.placeholder.com/800x600?text=No+Image',
-			images: images,
+			imageUrl: galleryImages[0]?.image_url || allImages[0]?.image_url || 'https://via.placeholder.com/800x600?text=No+Image',
+			images: galleryImages,
+			originalImage: originalImage?.image_url,
+			aiStyledImages: aiStyledImages,
 		};
 	} catch (error) {
 		console.error('Failed to fetch property:', error);
@@ -179,7 +199,7 @@ async function getSimilarProperties(city: string, excludeId: string): Promise<Pr
 	}
 }
 
-// Server Component - redirects to new localized URL format
+// Server Component
 export default async function PropertyPage({
 	params,
 }: {
@@ -187,7 +207,7 @@ export default async function PropertyPage({
 }) {
 	const { id, lang } = await params;
 	
-	// Fetch property to build correct URL
+	// Fetch property and similar properties in parallel
 	const property = await getProperty(id);
 
 	// Show 404 if property not found
@@ -195,11 +215,8 @@ export default async function PropertyPage({
 		notFound();
 	}
 
-	// Redirect to new SEO-friendly URL format
-	const { generatePropertyUrl } = await import('@/lib/generate-property-url');
-	const newUrl = generatePropertyUrl(property, lang as any);
-	
-	redirect(newUrl);
+	// Fetch similar properties
+	const similarProperties = await getSimilarProperties(property.city, id);
 
 	// Use images from API or fallback to imageUrl
 	const propertyImages = property.images && property.images.length > 0 
@@ -215,8 +232,14 @@ export default async function PropertyPage({
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 					{/* Left Column - Main Content */}
 					<div className="lg:col-span-2 space-y-8">
-						{/* Image Gallery */}
-						<PropertyImageGallery images={propertyImages} />
+						{/* Image Gallery with AI Decoration */}
+						<PropertyImageGallery 
+							images={propertyImages}
+							propertyId={property.id}
+							propertyAddress={property.address}
+							originalImage={property.originalImage}
+							aiStyledImages={property.aiStyledImages}
+						/>
 
 						{/* Property Overview */}
 						<div className="bg-white rounded-lg p-6 shadow-sm">

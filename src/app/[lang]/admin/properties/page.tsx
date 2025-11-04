@@ -215,18 +215,21 @@ export default function PropertiesPage() {
 			status: (property.status as "active" | "inactive") || "active",
 		});
 		
-		// Load existing images from the property
-		const existingImages: PropertyImage[] = (property.images || [])
-			.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
-			.map((img, index) => ({
-				id: img.id || `img-${index}`,
-				url: img.image_url,
-				display_order: img.display_order !== undefined ? img.display_order : index,
-				is_featured: img.is_featured !== undefined ? img.is_featured : index === 0,
-			}));
-		
-		console.log('Loading images for property:', property.id, existingImages);
-		setPropertyImages(existingImages);
+	// Load existing images from the property
+	const existingImages: PropertyImage[] = (property.images || [])
+		.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+		.map((img, index) => ({
+			id: img.id || `img-${index}`,
+			url: img.image_url,
+			display_order: img.display_order !== undefined ? img.display_order : index,
+			is_featured: img.is_featured !== undefined ? img.is_featured : index === 0,
+			style_name: img.style_name || undefined,
+			is_original: img.is_original || false,
+			image_category: img.image_category || 'gallery',
+		}));
+	
+	console.log('Loading images for property:', property.id, existingImages);
+	setPropertyImages(existingImages);
 		
 		setIsDialogOpen(true);
 	};

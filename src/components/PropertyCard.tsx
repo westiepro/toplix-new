@@ -28,6 +28,9 @@ export type PropertyImage = {
 	image_url: string;
 	display_order?: number;
 	is_featured?: boolean;
+	style_name?: string;
+	is_original?: boolean;
+	image_category?: 'gallery' | 'ai_styled' | 'original';
 };
 
 export type Property = {
@@ -36,17 +39,21 @@ export type Property = {
 	address: string;
 	city: string;
 	country?: string;
+	district?: string;
 	beds: number;
 	baths: number;
 	area: number; // sqft or m²
 	property_type?: string;
+	transaction_type?: string;
 	lat: number;
 	lng: number;
 	description?: string;
 	imageUrl: string;
-	original_image?: string; // Original property photo
-	ai_styles?: AIStyle[]; // AI-generated style variations
+	original_image?: string; // Original property photo (legacy)
+	ai_styles?: AIStyle[]; // AI-generated style variations (legacy)
 	images?: PropertyImage[]; // Multiple property images
+	originalImage?: string; // Original image for AI comparison
+	aiStyledImages?: Array<{ style_name: string; image_url: string }>; // AI-styled variations
 };
 
 // Export both formats for backward compatibility
@@ -148,8 +155,8 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 		setCurrentImageIndex((prev) => (prev + 1) % totalImages);
 	};
 
-	// Generate the localized property URL
-	const propertyUrl = generateFallbackPropertyUrl(property, currentLanguage);
+	// Generate the localized property URL - using simple route for now
+	const propertyUrl = `/${currentLanguage}/property/${property.id}`;
 
 	return (
 		<>

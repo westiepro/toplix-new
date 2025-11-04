@@ -67,11 +67,15 @@ export async function POST(request: NextRequest) {
 
     // Insert images if provided
     if (images && images.length > 0) {
+      // Try with new columns first (style_name, is_original, image_category)
       const imageRecords = images.map((img: any, index: number) => ({
         property_id: newProperty.id,
         image_url: img.url,
         display_order: img.display_order ?? index,
         is_featured: img.is_featured ?? index === 0,
+        style_name: img.style_name || null,
+        is_original: img.is_original || false,
+        image_category: img.image_category || 'gallery',
       }));
 
       const { error: imagesError } = await supabase
@@ -79,8 +83,23 @@ export async function POST(request: NextRequest) {
         .insert(imageRecords);
 
       if (imagesError) {
-        console.error('Error creating images:', imagesError);
-        // Don't fail the whole request, just log the error
+        console.error('Error creating images with style columns:', imagesError);
+        
+        // Fallback: Try without style columns if they don't exist
+        const basicImageRecords = images.map((img: any, index: number) => ({
+          property_id: newProperty.id,
+          image_url: img.url,
+          display_order: img.display_order ?? index,
+          is_featured: img.is_featured ?? index === 0,
+        }));
+
+        const { error: fallbackError } = await supabase
+          .from('property_images')
+          .insert(basicImageRecords);
+          
+        if (fallbackError) {
+          console.error('Error creating images (fallback):', fallbackError);
+        }
       }
     }
 
@@ -180,6 +199,9 @@ export async function PUT(request: NextRequest) {
         image_url: img.url,
         display_order: img.display_order ?? index,
         is_featured: img.is_featured ?? index === 0,
+        style_name: img.style_name || null,
+        is_original: img.is_original || false,
+        image_category: img.image_category || 'gallery',
       }));
 
       const { error: imagesError } = await supabase
@@ -187,8 +209,23 @@ export async function PUT(request: NextRequest) {
         .insert(imageRecords);
 
       if (imagesError) {
-        console.error('Error updating images:', imagesError);
-        // Don't fail the whole request, just log the error
+        console.error('Error updating images with style columns:', imagesError);
+        
+        // Fallback: Try without style columns if they don't exist
+        const basicImageRecords = images.map((img: any, index: number) => ({
+          property_id: id,
+          image_url: img.url,
+          display_order: img.display_order ?? index,
+          is_featured: img.is_featured ?? index === 0,
+        }));
+
+        const { error: fallbackError } = await supabase
+          .from('property_images')
+          .insert(basicImageRecords);
+          
+        if (fallbackError) {
+          console.error('Error updating images (fallback):', fallbackError);
+        }
       }
     }
 
@@ -257,7 +294,10 @@ export async function GET(request: NextRequest) {
           id,
           image_url,
           display_order,
-          is_featured
+          is_featured,
+          style_name,
+          is_original,
+          image_category
         )
       `)
       .order('created_at', { ascending: false }); // Order by newest first

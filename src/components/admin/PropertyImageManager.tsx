@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { X, Upload, GripVertical, Star, Loader2 } from "lucide-react";
+import { X, Upload, GripVertical, Star, Loader2, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Image from "next/image";
 import { uploadToCloudinary, getThumbnail } from "@/lib/cloudinary";
 import {
@@ -31,6 +32,9 @@ export interface PropertyImage {
   publicId?: string; // Cloudinary public ID for deletion
   display_order: number;
   is_featured: boolean;
+  style_name?: string; // AI decoration style
+  is_original?: boolean; // Marks the original/before image
+  image_category?: 'gallery' | 'ai_styled' | 'original';
 }
 
 interface PropertyImageManagerProps {
@@ -39,15 +43,33 @@ interface PropertyImageManagerProps {
   maxImages?: number;
 }
 
+const AI_STYLE_OPTIONS = [
+	"Modern",
+	"Scandinavian",
+	"Minimalist",
+	"Boho",
+	"Industrial",
+	"Contemporary",
+	"Mediterranean",
+	"Rustic",
+	"Luxury",
+	"French Country",
+	"Algarve Style",
+	"Portuguese Traditional",
+	"Lisbon Modern",
+];
+
 function SortableImageItem({
   image,
   index,
   onDelete,
+  onUpdate,
   isFeatured,
 }: {
   image: PropertyImage;
   index: number;
   onDelete: () => void;
+  onUpdate: (updates: Partial<PropertyImage>) => void;
   isFeatured: boolean;
 }) {
   const {
@@ -97,7 +119,7 @@ function SortableImageItem({
       </div>
 
       {/* Info */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 space-y-2">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium">Image {index + 1}</p>
           {isFeatured && (
@@ -106,15 +128,61 @@ function SortableImageItem({
               Featured
             </div>
           )}
+          {image.image_category === 'ai_styled' && (
+            <div className="flex items-center gap-1 text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full">
+              <Palette className="h-3 w-3" />
+              AI Styled
+            </div>
+          )}
+          {image.is_original && (
+            <div className="flex items-center gap-1 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+              Original
+            </div>
+          )}
         </div>
+        
+        {/* Category selector */}
+        <div className="flex gap-2 items-center">
+          <Select
+            value={image.image_category || 'gallery'}
+            onValueChange={(value) => onUpdate({ 
+              image_category: value as 'gallery' | 'ai_styled' | 'original',
+              is_original: value === 'original',
+            })}
+          >
+            <SelectTrigger className="h-7 text-xs w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gallery">Gallery</SelectItem>
+              <SelectItem value="original">Original</SelectItem>
+              <SelectItem value="ai_styled">AI Styled</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {/* Style name selector - only show for AI styled images */}
+          {image.image_category === 'ai_styled' && (
+            <Select
+              value={image.style_name || ''}
+              onValueChange={(value) => onUpdate({ style_name: value })}
+            >
+              <SelectTrigger className="h-7 text-xs w-40">
+                <SelectValue placeholder="Select style..." />
+              </SelectTrigger>
+              <SelectContent>
+                {AI_STYLE_OPTIONS.map((style) => (
+                  <SelectItem key={style} value={style}>
+                    {style}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
+        
         <p className="text-xs text-gray-500 truncate">
           {image.url}
         </p>
-        {image.publicId && (
-          <p className="text-xs text-gray-400 truncate">
-            📁 {image.publicId}
-          </p>
-        )}
       </div>
 
       {/* Delete Button */}
@@ -372,6 +440,12 @@ export function PropertyImageManager({
                   image={image}
                   index={index}
                   onDelete={() => handleDeleteImage(image.id)}
+                  onUpdate={(updates) => {
+                    const updatedImages = images.map((img) =>
+                      img.id === image.id ? { ...img, ...updates } : img
+                    );
+                    onChange(updatedImages);
+                  }}
                   isFeatured={image.is_featured}
                 />
               ))}

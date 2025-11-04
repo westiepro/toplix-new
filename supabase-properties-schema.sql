@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS property_images (
     image_url TEXT NOT NULL, -- Cloudinary URL
     display_order INTEGER NOT NULL DEFAULT 0,
     is_featured BOOLEAN DEFAULT false,
+    style_name TEXT, -- AI decoration style (Modern, Scandinavian, etc.)
+    is_original BOOLEAN DEFAULT false, -- Marks the original/before image
+    image_category TEXT DEFAULT 'gallery' CHECK (image_category IN ('gallery', 'ai_styled', 'original')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -57,6 +60,9 @@ CREATE INDEX IF NOT EXISTS idx_properties_url_slug_id ON properties(url_slug_id)
 CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
 CREATE INDEX IF NOT EXISTS idx_property_images_property_id ON property_images(property_id);
 CREATE INDEX IF NOT EXISTS idx_property_images_featured ON property_images(is_featured);
+CREATE INDEX IF NOT EXISTS idx_property_images_style ON property_images(style_name);
+CREATE INDEX IF NOT EXISTS idx_property_images_category ON property_images(image_category);
+CREATE INDEX IF NOT EXISTS idx_property_images_original ON property_images(is_original);
 CREATE INDEX IF NOT EXISTS idx_saved_searches_user_id ON saved_searches(user_id);
 
 -- 5. Create function to update updated_at timestamp

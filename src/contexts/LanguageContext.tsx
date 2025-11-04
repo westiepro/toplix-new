@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n-config";
 import { locales } from "@/lib/i18n-config";
 import { isPropertyUrl, parsePropertyUrl } from "@/lib/generate-property-url";
-import { getTransactionSlug, getCategorySlug, normalizeSlug } from "@/lib/url-translations";
+import { getTransactionSlug, getHousesApartmentsSlug, normalizeSlug } from "@/lib/url-translations";
 
 export type LanguageCode = Locale;
 
@@ -54,17 +54,16 @@ export function LanguageProvider({
 		// Check if we're on a property page with localized URL
 		if (isPropertyUrl(pathname)) {
 			const parsed = parsePropertyUrl(pathname);
-			if (parsed && parsed.transactionType && parsed.category) {
+			if (parsed && parsed.transactionType) {
 				// Rebuild URL with new locale and translated segments
 				const transactionSlug = getTransactionSlug(
 					parsed.transactionType as any,
 					newLocale
 				);
-				const categorySlug = getCategorySlug(parsed.category, newLocale);
-				const districtSlug = normalizeSlug(parsed.district);
+				const housesApartmentsSlug = getHousesApartmentsSlug(newLocale);
 				const citySlug = normalizeSlug(parsed.city);
 				
-				const newPath = `/${newLocale}/${transactionSlug}/${districtSlug}/${citySlug}/${categorySlug}/${parsed.id}`;
+				const newPath = `/${newLocale}/${transactionSlug}/${citySlug}/${housesApartmentsSlug}/${parsed.id}`;
 				
 				// Set cookie and navigate
 				document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000`;

@@ -3,14 +3,26 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Images } from "lucide-react";
+import { PropertyImageModal } from "./PropertyImageModal";
+import type { AIStyledImage } from "./AIDecorationTab";
 
 interface PropertyImageGalleryProps {
   images: string[];
+  propertyId?: string;
+  propertyAddress?: string;
+  originalImage?: string;
+  aiStyledImages?: AIStyledImage[];
 }
 
-export function PropertyImageGallery({ images }: PropertyImageGalleryProps) {
+export function PropertyImageGallery({ 
+  images, 
+  propertyId = '', 
+  propertyAddress = '',
+  originalImage,
+  aiStyledImages = [] 
+}: PropertyImageGalleryProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [showLightbox, setShowLightbox] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   if (!images || images.length === 0) {
     return (
@@ -35,7 +47,7 @@ export function PropertyImageGallery({ images }: PropertyImageGalleryProps) {
         {/* Large Image */}
         <div 
           className="relative w-full h-[600px] rounded-lg overflow-hidden cursor-pointer"
-          onClick={() => setShowLightbox(true)}
+          onClick={() => setShowModal(true)}
         >
           <Image
             src={images[selectedIndex]}
@@ -79,52 +91,16 @@ export function PropertyImageGallery({ images }: PropertyImageGalleryProps) {
         )}
       </div>
 
-      {/* Lightbox Modal */}
-      {showLightbox && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center">
-          {/* Close Button */}
-          <button
-            onClick={() => setShowLightbox(false)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
-          >
-            <X className="h-8 w-8" />
-          </button>
-
-          {/* Navigation */}
-          {images.length > 1 && (
-            <>
-              <button
-                onClick={handlePrevious}
-                className="absolute left-4 text-white hover:text-gray-300 z-10"
-              >
-                <ChevronLeft className="h-12 w-12" />
-              </button>
-              <button
-                onClick={handleNext}
-                className="absolute right-4 text-white hover:text-gray-300 z-10"
-              >
-                <ChevronRight className="h-12 w-12" />
-              </button>
-            </>
-          )}
-
-          {/* Image */}
-          <div className="relative w-full h-full max-w-6xl max-h-[90vh] mx-4">
-            <Image
-              src={images[selectedIndex]}
-              alt={`Property image ${selectedIndex + 1}`}
-              fill
-              className="object-contain"
-              sizes="(max-width: 1536px) 90vw, 1536px"
-            />
-          </div>
-
-          {/* Counter */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white text-sm font-medium">
-            {selectedIndex + 1} / {images.length}
-          </div>
-        </div>
-      )}
+      {/* New Full-Screen Modal */}
+      <PropertyImageModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        propertyId={propertyId}
+        propertyAddress={propertyAddress}
+        galleryImages={images}
+        originalImage={originalImage}
+        aiStyledImages={aiStyledImages}
+      />
     </>
   );
 }

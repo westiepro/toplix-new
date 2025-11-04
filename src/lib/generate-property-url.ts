@@ -2,9 +2,8 @@ import type { Locale } from './i18n-config';
 import {
 	normalizeSlug,
 	getTransactionSlug,
-	getCategorySlug,
+	getHousesApartmentsSlug,
 	getTransactionTypeFromSlug,
-	getCategoryFromSlug,
 	type TransactionType,
 } from './url-translations';
 
@@ -12,14 +11,12 @@ export interface PropertyUrlData {
 	id: string;
 	url_slug_id?: string;
 	transaction_type?: string;
-	district?: string;
 	city: string;
-	property_type: string;
 }
 
 /**
  * Generate a localized SEO-friendly URL for a property
- * Example: /pt/comprar/lisboa/alfama/apartamentos/145734848
+ * Example: /pt/comprar/lisboa/casas-apartamentos/145734848
  */
 export function generatePropertyUrl(
 	property: PropertyUrlData,
@@ -28,9 +25,7 @@ export function generatePropertyUrl(
 	const {
 		url_slug_id,
 		transaction_type = 'buy',
-		district,
 		city,
-		property_type,
 	} = property;
 
 	// Use url_slug_id if available, otherwise fall back to id
@@ -42,39 +37,40 @@ export function generatePropertyUrl(
 		locale
 	);
 
-	// Normalize district and city for URL
-	const districtSlug = normalizeSlug(district || city);
+	// Normalize city for URL
 	const citySlug = normalizeSlug(city);
 
-	// Get translated category
-	const categorySlug = getCategorySlug(property_type, locale);
+	// Get translated houses-apartments segment
+	const housesApartmentsSlug = getHousesApartmentsSlug(locale);
 
-	// Build the URL
-	return `/${locale}/${transactionSlug}/${districtSlug}/${citySlug}/${categorySlug}/${urlId}`;
+	// Build the URL: /[lang]/[transaction]/[city]/[houses-apartments]/[id]
+	return `/${locale}/${transactionSlug}/${citySlug}/${housesApartmentsSlug}/${urlId}`;
 }
 
 /**
  * Parse a property URL to extract components
- * Example: /pt/comprar/lisboa/alfama/apartamentos/145734848
- * Returns: { locale: 'pt', transactionType: 'buy', district: 'lisboa', city: 'alfama', category: 'apartment', id: '145734848' }
+ * Example: /pt/comprar/lisboa/casas-apartamentos/145734848
  */
 export function parsePropertyUrl(pathname: string): {
 	locale: Locale;
 	transactionType: string | null;
-	district: string;
 	city: string;
-	category: string | null;
 	id: string;
 } | null {
-	// Remove leading/trailing slashes and split
 	const segments = pathname.replace(/^\/|\/$/g, '').split('/');
 
-	// Expect: [locale, transaction, district, city, category, id]
-	if (segments.length !== 6) {
+	// Expect: [locale, transaction, city, houses-apartments, id]
+	if (segments.length !== 5) {
 		return null;
 	}
 
-	const [locale, transactionSlug, district, city, categorySlug, id] = segments;
+	const [locale, transactionSlug, city, housesApartmentsSlug, id] = segments;
+
+	// Validate houses-apartments segment
+	const expectedSlug = getHousesApartmentsSlug(locale as Locale);
+	if (housesApartmentsSlug !== expectedSlug) {
+		return null;
+	}
 
 	// Get transaction type from slug
 	const transactionType = getTransactionTypeFromSlug(
@@ -82,15 +78,10 @@ export function parsePropertyUrl(pathname: string): {
 		locale as Locale
 	);
 
-	// Get category from slug
-	const category = getCategoryFromSlug(categorySlug, locale as Locale);
-
 	return {
 		locale: locale as Locale,
 		transactionType,
-		district,
 		city,
-		category,
 		id,
 	};
 }
@@ -101,23 +92,22 @@ export function parsePropertyUrl(pathname: string): {
 export function isPropertyUrl(pathname: string): boolean {
 	const segments = pathname.replace(/^\/|\/$/g, '').split('/');
 	
-	// Must have exactly 6 segments: [locale, transaction, district, city, category, id]
-	if (segments.length !== 6) {
+	// Must have exactly 5 segments
+	if (segments.length !== 5) {
 		return false;
 	}
 
-	// Last segment should be a number (url_slug_id or id)
-	const id = segments[5];
+	// Last segment should be a number
+	const id = segments[4];
 	return /^\d{1,15}$/.test(id);
 }
 
 /**
- * Check if a pathname matches the old property URL pattern (/[lang]/property/[id])
+ * Check if a pathname matches the old property URL pattern
  */
 export function isOldPropertyUrl(pathname: string): boolean {
 	const segments = pathname.replace(/^\/|\/$/g, '').split('/');
 	
-	// Must have exactly 3 segments: [locale, "property", id]
 	if (segments.length !== 3) {
 		return false;
 	}
@@ -127,7 +117,6 @@ export function isOldPropertyUrl(pathname: string): boolean {
 
 /**
  * Generate fallback URL for properties without complete data
- * Falls back to simpler URL structure if data is missing
  */
 export function generateFallbackPropertyUrl(
 	property: Partial<PropertyUrlData>,
@@ -137,12 +126,7 @@ export function generateFallbackPropertyUrl(
 		return `/${locale}/property/unknown`;
 	}
 
-	// If we have all required data, use full URL
-	if (
-		property.city &&
-		property.property_type &&
-		(property.url_slug_id || property.id)
-	) {
+	if (property.city && (property.url_slug_id || property.id)) {
 		return generatePropertyUrl(property as PropertyUrlData, locale);
 	}
 
@@ -151,26 +135,19 @@ export function generateFallbackPropertyUrl(
 }
 
 /**
- * Build a search/listing URL with filters
- * Example: /pt/comprar/lisboa or /en/rent/algarve
+ * Build a search/listing URL
+ * Example: /pt/comprar/lisboa
  */
 export function generateListingUrl(
 	locale: Locale,
 	transactionType: TransactionType,
-	district?: string,
 	city?: string
 ): string {
 	const transactionSlug = getTransactionSlug(transactionType, locale);
 	
 	if (city) {
-		const districtSlug = normalizeSlug(district || city);
 		const citySlug = normalizeSlug(city);
-		return `/${locale}/${transactionSlug}/${districtSlug}/${citySlug}`;
-	}
-	
-	if (district) {
-		const districtSlug = normalizeSlug(district);
-		return `/${locale}/${transactionSlug}/${districtSlug}`;
+		return `/${locale}/${transactionSlug}/${citySlug}`;
 	}
 	
 	return `/${locale}/${transactionSlug}`;

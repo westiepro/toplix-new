@@ -3,25 +3,21 @@
 import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { getTransactionSlug, getCategorySlug, normalizeSlug } from "@/lib/url-translations";
-import type { TransactionType } from "@/lib/url-translations";
+import { normalizeSlug, getHousesApartmentsSlug } from "@/lib/url-translations";
 
 interface PropertyBreadcrumbsProps {
 	transaction: string;
-	district: string;
 	city: string;
-	category: string;
 	propertyAddress: string;
 }
 
 export function PropertyBreadcrumbs({
 	transaction,
-	district,
 	city,
-	category,
 	propertyAddress,
 }: PropertyBreadcrumbsProps) {
 	const { currentLanguage } = useLanguage();
+	const housesApartmentsSlug = getHousesApartmentsSlug(currentLanguage);
 
 	const capitalizeFirst = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
 
@@ -47,16 +43,7 @@ export function PropertyBreadcrumbs({
 			<ChevronRight className="h-4 w-4 flex-shrink-0" />
 			
 			<Link
-				href={`/${currentLanguage}/${transaction}/${normalizeSlug(district)}`}
-				className="hover:text-foreground transition-colors whitespace-nowrap"
-			>
-				{capitalizeFirst(district)}
-			</Link>
-			
-			<ChevronRight className="h-4 w-4 flex-shrink-0" />
-			
-			<Link
-				href={`/${currentLanguage}/${transaction}/${normalizeSlug(district)}/${normalizeSlug(city)}`}
+				href={`/${currentLanguage}/${transaction}/${normalizeSlug(city)}`}
 				className="hover:text-foreground transition-colors whitespace-nowrap"
 			>
 				{capitalizeFirst(city)}
@@ -65,10 +52,10 @@ export function PropertyBreadcrumbs({
 			<ChevronRight className="h-4 w-4 flex-shrink-0" />
 			
 			<Link
-				href={`/${currentLanguage}/${transaction}/${normalizeSlug(district)}/${normalizeSlug(city)}/${category}`}
+				href={`/${currentLanguage}/${transaction}/${normalizeSlug(city)}/${housesApartmentsSlug}`}
 				className="hover:text-foreground transition-colors whitespace-nowrap"
 			>
-				{capitalizeFirst(category)}
+				{capitalizeFirst(housesApartmentsSlug.replace(/-/g, ' '))}
 			</Link>
 			
 			<ChevronRight className="h-4 w-4 flex-shrink-0" />
@@ -79,4 +66,3 @@ export function PropertyBreadcrumbs({
 		</nav>
 	);
 }
-

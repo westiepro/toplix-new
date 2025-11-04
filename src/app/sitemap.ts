@@ -50,8 +50,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 									id: property.id,
 									url_slug_id: property.url_slug_id,
 									city: property.city,
-									district: property.district,
-									property_type: property.property_type,
 									transaction_type: property.transaction_type || 'buy',
 								},
 								locale
