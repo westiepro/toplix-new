@@ -41,7 +41,8 @@ async function getProperty(id: string): Promise<Property | null> {
 		const supabase = createClient(supabaseUrl, supabaseKey);
 
 		// Fetch property with all images
-		const { data: property, error } = await supabase
+		// Try to fetch by url_slug_id first, then by UUID
+		let propertyQuery = supabase
 			.from('properties')
 			.select(`
 				id,
@@ -70,12 +71,21 @@ async function getProperty(id: string): Promise<Property | null> {
 					image_category
 				)
 			`)
-			.or(`id.eq.${id},url_slug_id.eq.${id}`)
-			.eq('status', 'active')
-			.single();
+			.eq('status', 'active');
+
+		// Check if id is a number (url_slug_id) or UUID
+		if (/^\d+$/.test(id)) {
+			// It's a url_slug_id
+			propertyQuery = propertyQuery.eq('url_slug_id', id);
+		} else {
+			// It's a UUID
+			propertyQuery = propertyQuery.eq('id', id);
+		}
+
+		const { data: property, error } = await propertyQuery.single();
 
 		if (error || !property) {
-			console.error('Error fetching property:', error);
+			console.error('Error fetching property:', { error, id, isNumeric: /^\d+$/.test(id) });
 			return null;
 		}
 
