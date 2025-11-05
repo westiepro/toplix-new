@@ -239,7 +239,7 @@ export function MapView({
     }
 
     // Remove old clusters
-    const nextClusterKeys = new Set(clusterGroups.map(c => c.key));
+    const nextClusterKeys = new Set(clusterGroups.map((c: any) => c.key));
     for (const key of Object.keys(existingClusters)) {
       if (!nextClusterKeys.has(key)) {
         existingClusters[key].remove();
@@ -248,7 +248,7 @@ export function MapView({
     }
 
     // Add/update clusters
-    for (const cluster of clusterGroups) {
+    for (const cluster of clusterGroups as any[]) {
       if (existingClusters[cluster.key]) continue;
 
       const el = document.createElement("div");
