@@ -124,8 +124,21 @@ async function getProperty(id: string): Promise<Property | null> {
 	}
 }
 
-// Fetch similar properties directly from Supabase
-async function getSimilarProperties(city: string, excludeId: string): Promise<Property[]> {
+// Haversine formula to calculate distance between two coordinates in km
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+	const R = 6371; // Earth's radius in kilometers
+	const dLat = (lat2 - lat1) * Math.PI / 180;
+	const dLng = (lng2 - lng1) * Math.PI / 180;
+	const a = 
+		Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+		Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+		Math.sin(dLng / 2) * Math.sin(dLng / 2);
+	const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	return R * c;
+}
+
+// Fetch similar properties within 20km radius
+async function getSimilarProperties(lat: number, lng: number, excludeId: string): Promise<Property[]> {
 	try {
 		if (!supabaseUrl || !supabaseKey) {
 			return [];
@@ -133,6 +146,7 @@ async function getSimilarProperties(city: string, excludeId: string): Promise<Pr
 
 		const supabase = createClient(supabaseUrl, supabaseKey);
 
+		// Fetch all active properties (excluding current one)
 		const { data, error } = await supabase
 			.from('properties')
 			.select(`
@@ -159,16 +173,27 @@ async function getSimilarProperties(city: string, excludeId: string): Promise<Pr
 					is_featured
 				)
 			`)
-			.eq('city', city)
 			.neq('id', excludeId)
 			.eq('status', 'active')
-			.limit(3);
+			.not('lat', 'is', null)
+			.not('lng', 'is', null);
 
 		if (error || !data) {
+			console.error('Error fetching properties:', error);
 			return [];
 		}
 
-		return data.map((property: any) => {
+		// Calculate distance for each property and filter by 20km radius
+		const propertiesWithDistance = data
+			.map((property: any) => {
+				const distance = calculateDistance(lat, lng, property.lat, property.lng);
+				return { property, distance };
+			})
+			.filter(({ distance }) => distance <= 20) // Within 20km
+			.sort((a, b) => a.distance - b.distance) // Sort by distance (closest first)
+			.slice(0, 3); // Take top 3 closest
+
+		return propertiesWithDistance.map(({ property }) => {
 			const images = (property.property_images || [])
 				.sort((a: any, b: any) => a.display_order - b.display_order)
 				.map((img: any) => ({
@@ -259,8 +284,8 @@ export default async function PropertyPage({
 	}
 	*/
 
-	// Fetch similar properties
-	const similarProperties = await getSimilarProperties(property.city, id);
+	// Fetch similar properties within 20km radius
+	const similarProperties = await getSimilarProperties(property.lat, property.lng, id);
 
 	// Use images from API or fallback to imageUrl
 	const propertyImages = property.images && property.images.length > 0 
@@ -382,39 +407,43 @@ export default async function PropertyPage({
 							</div>
 						)}
 
-						{/* Location */}
+					{/* Location */}
+					<div className="bg-white rounded-lg p-6 shadow-sm">
+						<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("map.location")}</h2>
+						<div className="h-[400px] rounded-lg overflow-hidden mb-4">
+							<MapView properties={[property]} />
+						</div>
+						<p className="text-gray-700">
+							This property is located in the heart of {property.city}, offering easy access to local amenities, beaches, and attractions.
+						</p>
+					</div>
+
+					{/* Similar Properties Section - Right below the map */}
+					{similarProperties.length > 0 && (
 						<div className="bg-white rounded-lg p-6 shadow-sm">
-							<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("map.location")}</h2>
-							<div className="h-[400px] rounded-lg overflow-hidden">
-								<MapView properties={[property]} />
+							<h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Properties Nearby</h2>
+							<p className="text-sm text-gray-600 mb-4">Properties within 20km of this location</p>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+								{similarProperties.map((similarProperty) => (
+									<PropertyCard
+										key={similarProperty.id}
+										property={similarProperty}
+										source="similar_properties"
+									/>
+								))}
 							</div>
 						</div>
-					</div>
-
-					{/* Right Column - Sidebar */}
-					<div className="lg:col-span-1">
-						<ContactAgentForm
-							propertyId={property.id}
-							propertyAddress={property.address}
-						/>
-					</div>
+					)}
 				</div>
 
-				{/* Similar Properties Section */}
-				{similarProperties.length > 0 && (
-					<div className="mt-12">
-						<h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Properties in the Area</h2>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							{similarProperties.map((similarProperty) => (
-								<PropertyCard
-									key={similarProperty.id}
-									property={similarProperty}
-									source="similar_properties"
-								/>
-							))}
-						</div>
-					</div>
-				)}
+				{/* Right Column - Sidebar */}
+				<div className="lg:col-span-1">
+					<ContactAgentForm
+						propertyId={property.id}
+						propertyAddress={property.address}
+					/>
+				</div>
+			</div>
 			</div>
 
 		{/* Footer */}
