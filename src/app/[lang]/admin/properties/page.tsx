@@ -231,6 +231,44 @@ export default function PropertiesPage() {
 	const cities = Array.from(new Set(properties.map(p => p.city)));
 	const types = Array.from(new Set(properties.map(p => p.property_type)));
 
+	// Auto-translate property description in background
+	const autoTranslateProperty = async (propertyId: string, data: PropertyForm) => {
+		try {
+			// Show a subtle notification
+			toast.info("Translating description to 5 languages...", {
+				duration: 2000,
+			});
+
+			const response = await fetch("/api/properties/translate", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					propertyId: propertyId,
+					title: `${data.type} in ${data.city}`,
+					description: data.description,
+					address: data.address,
+				}),
+			});
+
+			const result = await response.json();
+
+			if (result.success) {
+				const successCount = result.results.filter((r: any) => r.success).length;
+				
+				// Subtle success notification
+				if (successCount > 0) {
+					toast.success(`Auto-translated to ${successCount} languages`, {
+						duration: 3000,
+						description: "PT, ES, FR, DE, SV",
+					});
+				}
+			}
+		} catch (error) {
+			// Silent fail - don't disrupt the user
+			console.warn("Background translation failed:", error);
+		}
+	};
+
 	const onSubmit = async (data: PropertyForm) => {
 		try {
 			console.log("Submitting property:", data);
@@ -282,6 +320,9 @@ export default function PropertiesPage() {
 		const result = await response.json();
 		console.log("Property saved successfully:", result);
 		
+		// Get the saved property ID
+		const savedPropertyId = result.property?.id || editingProperty;
+		
 		// Close dialog and reset form
 		setIsDialogOpen(false);
 		reset();
@@ -296,6 +337,12 @@ export default function PropertiesPage() {
 		toast.success(`Property ${action} successfully`, {
 			description: `${data.address} • ${propertyImages.length} image${propertyImages.length !== 1 ? 's' : ''}`,
 		});
+		
+		// 🎯 AUTO-TRANSLATE DESCRIPTION (if exists)
+		if (savedPropertyId && data.description && data.description.trim().length > 0) {
+			// Start translation in background (don't wait for it)
+			autoTranslateProperty(savedPropertyId, data);
+		}
 	} catch (error) {
 		console.error("Error saving property:", error);
 		const errorMessage = error instanceof Error ? error.message : 'Failed to save property';
