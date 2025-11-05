@@ -30,6 +30,9 @@ import * as z from "zod";
 import { PropertyImageManager, type PropertyImage } from "@/components/admin/PropertyImageManager";
 import { generateFallbackPropertyUrl } from "@/lib/generate-property-url";
 import { LocationMapPicker } from "@/components/admin/LocationMapPicker";
+import { AVAILABLE_FEATURES, FEATURE_LABELS } from "@/lib/property-features";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const propertySchema = z.object({
@@ -45,6 +48,7 @@ const propertySchema = z.object({
 	lat: z.number().min(-90).max(90, "Invalid latitude"),
 	lng: z.number().min(-180).max(180, "Invalid longitude"),
 	description: z.string().optional(),
+	features: z.array(z.string()).optional(),
 	status: z.enum(["active", "inactive"]),
 });
 
@@ -64,6 +68,7 @@ interface Property {
 	lat: number;
 	lng: number;
 	description?: string;
+	features?: string[];
 	status?: 'active' | 'inactive';
 	imageUrl?: string;
 	images?: Array<{
@@ -161,6 +166,7 @@ export default function PropertiesPage() {
 			lat: 37.1010,
 			lng: -8.6730,
 			description: "",
+			features: [],
 			status: "active",
 		},
 	});
@@ -369,6 +375,7 @@ export default function PropertiesPage() {
 			lat: property.lat,
 			lng: property.lng,
 			description: property.description || '',
+			features: property.features || [],
 			status: (property.status as "active" | "inactive") || "active",
 		});
 		
@@ -663,6 +670,38 @@ export default function PropertiesPage() {
 											className="w-full min-h-[80px] px-3 py-2 border rounded-md"
 										/>
 										{errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
+									</div>
+									
+									{/* Property Features */}
+									<div className="space-y-3 col-span-2">
+										<label className="text-sm font-medium">Property Features</label>
+										<div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border rounded-md bg-gray-50">
+											{AVAILABLE_FEATURES.map((feature) => (
+												<div key={feature} className="flex items-center space-x-2">
+													<Checkbox
+														id={`feature-${feature}`}
+														checked={watch("features")?.includes(feature) || false}
+														onCheckedChange={(checked) => {
+															const currentFeatures = watch("features") || [];
+															if (checked) {
+																setValue("features", [...currentFeatures, feature]);
+															} else {
+																setValue("features", currentFeatures.filter(f => f !== feature));
+															}
+														}}
+													/>
+													<Label
+														htmlFor={`feature-${feature}`}
+														className="text-sm font-normal cursor-pointer"
+													>
+														{FEATURE_LABELS[feature]}
+													</Label>
+												</div>
+											))}
+										</div>
+										<p className="text-xs text-gray-500">
+											Selected {watch("features")?.length || 0} of {AVAILABLE_FEATURES.length} features
+										</p>
 									</div>
 								</div>
 

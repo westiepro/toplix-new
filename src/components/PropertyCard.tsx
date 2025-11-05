@@ -48,6 +48,7 @@ export type Property = {
 	lat: number;
 	lng: number;
 	description?: string;
+	features?: string[]; // Property features/amenities
 	imageUrl: string;
 	original_image?: string; // Original property photo (legacy)
 	ai_styles?: AIStyle[]; // AI-generated style variations (legacy)
