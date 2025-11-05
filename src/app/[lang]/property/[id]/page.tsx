@@ -8,6 +8,8 @@ import { PropertyCard } from "@/components/PropertyCard";
 import { PropertyPageClient } from "@/components/PropertyPageClient";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from '@supabase/supabase-js';
+import { generatePropertyUrl } from "@/lib/generate-property-url";
+import type { Locale } from "@/lib/i18n-config";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
