@@ -221,6 +221,9 @@ export default async function PropertyPage({
 	const newUrl = generatePropertyUrl(property, lang as Locale);
 	redirect(newUrl);
 
+	// Fetch similar properties from same city
+	const similarProperties = await getSimilarProperties(property.city, id);
+
 	// Use images from API or fallback to imageUrl
 	const propertyImages = property.images && property.images.length > 0 
 		? property.images.map(img => typeof img === 'string' ? img : img.image_url)
@@ -344,39 +347,42 @@ export default async function PropertyPage({
 							</div>
 						</div>
 
-						{/* Location */}
+					{/* Location */}
+					<div className="bg-white rounded-lg p-6 shadow-sm">
+						<h2 className="text-2xl font-bold text-gray-900 mb-4">Location</h2>
+						<div className="h-[400px] rounded-lg overflow-hidden mb-4">
+							<MapView properties={[property]} />
+						</div>
+						<p className="text-gray-700">
+							This property is located in the heart of {property.city}, offering easy access to local amenities, beaches, and attractions.
+						</p>
+					</div>
+
+					{/* Similar Properties Section - Right below the map */}
+					{similarProperties.length > 0 && (
 						<div className="bg-white rounded-lg p-6 shadow-sm">
-							<h2 className="text-2xl font-bold text-gray-900 mb-4">Location</h2>
-							<div className="h-[400px] rounded-lg overflow-hidden">
-								<MapView properties={[property]} />
+							<h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Properties in the Area</h2>
+							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+								{similarProperties.map((similarProperty) => (
+									<PropertyCard
+										key={similarProperty.id}
+										property={similarProperty}
+										source="similar_properties"
+									/>
+								))}
 							</div>
 						</div>
-					</div>
-
-					{/* Right Column - Sidebar */}
-					<div className="lg:col-span-1">
-						<ContactAgentForm
-							propertyId={property.id}
-							propertyAddress={property.address}
-						/>
-					</div>
+					)}
 				</div>
 
-				{/* Similar Properties Section */}
-				{similarProperties.length > 0 && (
-					<div className="mt-12">
-						<h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Properties in the Area</h2>
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-							{similarProperties.map((similarProperty) => (
-								<PropertyCard
-									key={similarProperty.id}
-									property={similarProperty}
-									source="similar_properties"
-								/>
-							))}
-						</div>
-					</div>
-				)}
+				{/* Right Column - Sidebar */}
+				<div className="lg:col-span-1">
+					<ContactAgentForm
+						propertyId={property.id}
+						propertyAddress={property.address}
+					/>
+				</div>
+			</div>
 			</div>
 
 		{/* Footer */}
