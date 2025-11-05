@@ -209,7 +209,7 @@ export default async function PropertyPage({
 }) {
 	const { id, lang } = await params;
 	
-	// Fetch property and similar properties in parallel
+	// Fetch property
 	const property = await getProperty(id);
 
 	// Show 404 if property not found
@@ -217,8 +217,9 @@ export default async function PropertyPage({
 		notFound();
 	}
 
-	// Fetch similar properties
-	const similarProperties = await getSimilarProperties(property.city, id);
+	// Redirect to new localized URL structure
+	const newUrl = generatePropertyUrl(property, lang as Locale);
+	redirect(newUrl);
 
 	// Use images from API or fallback to imageUrl
 	const propertyImages = property.images && property.images.length > 0 
