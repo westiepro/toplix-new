@@ -98,7 +98,23 @@ export function MapView({
 
     const map = mapRef.current as any;
 
-    map.on("load", () => setStyleLoaded(true));
+    map.on("load", () => {
+      setStyleLoaded(true);
+      
+      // Fit bounds to show all properties on initial load
+      if (properties.length > 0) {
+        const bounds = new (isMapbox ? mapboxgl.LngLatBounds : maplibregl.LngLatBounds)();
+        properties.forEach(p => {
+          bounds.extend([p.lng, p.lat]);
+        });
+        
+        map.fitBounds(bounds, {
+          padding: { top: 80, bottom: 80, left: 80, right: 80 },
+          maxZoom: 14,
+          duration: 1000,
+        });
+      }
+    });
     
     // Debounced bounds change
     map.on("moveend", () => {
@@ -138,37 +154,10 @@ export function MapView({
     selectedPropertyRef.current = selectedProperty || null;
   }, [selectedProperty]);
 
-  // Create cluster groups
+  // Clustering disabled - show all individual markers
   const clusterGroups = useMemo(() => {
-    if (!mapRef.current || !styleLoaded) return [];
-    
-    const map = mapRef.current as any;
-    const zoom = map.getZoom();
-    
-    // Only cluster when zoomed out (zoom < 12)
-    if (zoom >= 12) return [];
-
-    const clusters: { [key: string]: Property[] } = {};
-    const gridSize = 0.1; // Approximately 11km at the equator
-
-    properties.forEach((property) => {
-      const clusterKey = `${Math.floor(property.lat / gridSize)}_${Math.floor(property.lng / gridSize)}`;
-      if (!clusters[clusterKey]) {
-        clusters[clusterKey] = [];
-      }
-      clusters[clusterKey].push(property);
-    });
-
-    return Object.entries(clusters)
-      .filter(([_, props]) => props.length > 1)
-      .map(([key, props]) => ({
-        key,
-        properties: props,
-        lat: props.reduce((sum, p) => sum + p.lat, 0) / props.length,
-        lng: props.reduce((sum, p) => sum + p.lng, 0) / props.length,
-        count: props.length,
-      }));
-  }, [properties, styleLoaded]);
+    return []; // No clustering
+  }, []);
 
   // Update markers and clusters
   useEffect(() => {
@@ -178,11 +167,8 @@ export function MapView({
     const existing = markersRef.current;
     const existingClusters = clustersRef.current;
     
-    // Determine which properties to show individually (not in clusters)
-    const clusteredPropertyIds = new Set(
-      clusterGroups.flatMap(cluster => cluster.properties.map(p => p.id))
-    );
-    const individualProperties = properties.filter(p => !clusteredPropertyIds.has(p.id));
+    // Show all properties individually (no clustering)
+    const individualProperties = properties;
 
     // Remove old individual markers
     const nextIds = new Set(individualProperties.map((p) => p.id));

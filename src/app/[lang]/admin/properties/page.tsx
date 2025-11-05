@@ -128,6 +128,10 @@ export default function PropertiesPage() {
 	const [isDeleting, setIsDeleting] = useState(false);
 	const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
 	const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+	
+	// Pagination state
+	const [currentPage, setCurrentPage] = useState(1);
+	const itemsPerPage = 100;
 
 	// Fetch properties from API
 	const fetchProperties = async () => {
@@ -236,6 +240,18 @@ export default function PropertiesPage() {
 
 		return filtered;
 	}, [properties, searchQuery, cityFilter, typeFilter, statusFilter, sortColumn, sortDirection]);
+
+	// Calculate pagination
+	const totalFilteredProperties = filteredProperties.length;
+	const totalPages = Math.ceil(totalFilteredProperties / itemsPerPage);
+	const startIndex = (currentPage - 1) * itemsPerPage;
+	const endIndex = startIndex + itemsPerPage;
+	const paginatedProperties = filteredProperties.slice(startIndex, endIndex);
+
+	// Reset to page 1 when filters change
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchQuery, cityFilter, typeFilter, statusFilter]);
 
 	const cities = Array.from(new Set(properties.map(p => p.city)));
 	const types = Array.from(new Set(properties.map(p => p.property_type)));
@@ -813,7 +829,12 @@ export default function PropertiesPage() {
 			<Card className="shadow-lg border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
 				<CardHeader className="border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800">
 					<CardTitle className="text-emerald-900 dark:text-emerald-100">
-						All Properties ({filteredProperties.length})
+						All Properties ({totalFilteredProperties})
+						{totalPages > 1 && (
+							<span className="text-sm font-normal text-slate-600 dark:text-slate-400 ml-2">
+								(Page {currentPage} of {totalPages})
+							</span>
+						)}
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
@@ -900,14 +921,14 @@ export default function PropertiesPage() {
 								</TableRow>
 							</TableHeader>
 							<TableBody>
-								{filteredProperties.length === 0 ? (
+								{paginatedProperties.length === 0 ? (
 									<TableRow>
 										<TableCell colSpan={10} className="text-center text-muted-foreground">
-											No properties found
+											{filteredProperties.length === 0 ? 'No properties found' : 'No properties on this page'}
 										</TableCell>
 									</TableRow>
 								) : (
-									filteredProperties.map((property) => (
+									paginatedProperties.map((property) => (
 										<TableRow key={property.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
 											<TableCell>
 												<div className="relative w-20 h-14 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
@@ -982,6 +1003,79 @@ export default function PropertiesPage() {
 								)}
 							</TableBody>
 						</Table>
+					)}
+
+					{/* Pagination Controls */}
+					{!isLoading && totalPages > 1 && (
+						<div className="mt-6 flex items-center justify-between px-2 pb-4 border-t pt-4">
+							<div className="text-sm text-slate-600 dark:text-slate-400">
+								Showing {startIndex + 1} to {Math.min(endIndex, totalFilteredProperties)} of {totalFilteredProperties} properties
+							</div>
+							
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setCurrentPage(1)}
+									disabled={currentPage === 1}
+								>
+									First
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+									disabled={currentPage === 1}
+								>
+									Previous
+								</Button>
+								
+								<div className="flex items-center gap-1">
+									{/* Show page numbers */}
+									{Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+										let pageNum;
+										if (totalPages <= 5) {
+											pageNum = i + 1;
+										} else if (currentPage <= 3) {
+											pageNum = i + 1;
+										} else if (currentPage >= totalPages - 2) {
+											pageNum = totalPages - 4 + i;
+										} else {
+											pageNum = currentPage - 2 + i;
+										}
+										
+										return (
+											<Button
+												key={pageNum}
+												variant={currentPage === pageNum ? "default" : "outline"}
+												size="sm"
+												onClick={() => setCurrentPage(pageNum)}
+												className="w-10"
+											>
+												{pageNum}
+											</Button>
+										);
+									})}
+								</div>
+								
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+									disabled={currentPage === totalPages}
+								>
+									Next
+								</Button>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setCurrentPage(totalPages)}
+									disabled={currentPage === totalPages}
+								>
+									Last
+								</Button>
+							</div>
+						</div>
 					)}
 				</CardContent>
 			</Card>

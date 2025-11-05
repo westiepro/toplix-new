@@ -70,7 +70,24 @@ export function MapView({
 				zoom: 9,
 			});
 		}
-		(mapRef.current as any).on("load", () => setStyleLoaded(true));
+		(mapRef.current as any).on("load", () => {
+			setStyleLoaded(true);
+			
+			// Fit bounds to show all properties on initial load
+			if (properties.length > 1) {
+				const map = mapRef.current as any;
+				const bounds = new (isMapbox ? mapboxgl.LngLatBounds : maplibregl.LngLatBounds)();
+				properties.forEach(p => {
+					bounds.extend([p.lng, p.lat]);
+				});
+				
+				map.fitBounds(bounds, {
+					padding: { top: 80, bottom: 80, left: 80, right: 80 },
+					maxZoom: 14,
+					duration: 1000,
+				});
+			}
+		});
 		;(mapRef.current as any).on("moveend", () => {
 			const b = (mapRef.current as any).getBounds();
 			onBoundsChange?.({ minLat: b.getSouth(), maxLat: b.getNorth(), minLng: b.getWest(), maxLng: b.getEast() });
@@ -107,10 +124,7 @@ export function MapView({
 		const existing = markersRef.current;
 		const nextIds = new Set(properties.map((p) => p.id));
 		
-		// Add circle layer for single property pages
-		const isSingleProperty = properties.length === 1;
-		
-		// Remove existing circle source and layer if they exist
+		// Remove any existing circle layers (not needed)
 		if (map.getLayer('property-circle')) {
 			map.removeLayer('property-circle');
 		}
@@ -119,49 +133,6 @@ export function MapView({
 		}
 		if (map.getSource('property-circle')) {
 			map.removeSource('property-circle');
-		}
-		
-		// Add circle for single property
-		if (isSingleProperty && properties[0]) {
-			const property = properties[0];
-			map.addSource('property-circle', {
-				type: 'geojson',
-				data: {
-					type: 'Feature',
-					geometry: {
-						type: 'Point',
-						coordinates: [property.lng, property.lat]
-					},
-					properties: {}
-				}
-			});
-			
-			// Add outer circle (outline) - bright cyan with high visibility
-			map.addLayer({
-				id: 'property-circle-outline',
-				type: 'circle',
-				source: 'property-circle',
-				paint: {
-					'circle-radius': 50,
-					'circle-color': '#00D9FF',
-					'circle-opacity': 0.5,
-					'circle-stroke-width': 3,
-					'circle-stroke-color': '#00D9FF',
-					'circle-stroke-opacity': 1.0
-				}
-			});
-			
-			// Add inner circle - solid bright cyan
-			map.addLayer({
-				id: 'property-circle',
-				type: 'circle',
-				source: 'property-circle',
-				paint: {
-					'circle-radius': 30,
-					'circle-color': '#00D9FF',
-					'circle-opacity': 0.7
-				}
-			});
 		}
 		
 		for (const id of Object.keys(existing)) {
