@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, Images } from "lucide-react";
 import { PropertyImageModal } from "./PropertyImageModal";
+import { useTranslation } from "@/hooks/useTranslation";
 import type { AIStyledImage } from "./AIDecorationTab";
 
 interface PropertyImageGalleryProps {
@@ -21,6 +22,7 @@ export function PropertyImageGallery({
   originalImage,
   aiStyledImages = [] 
 }: PropertyImageGalleryProps) {
+  const { t } = useTranslation();
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [showModal, setShowModal] = useState(false);
 
@@ -60,7 +62,9 @@ export function PropertyImageGallery({
           {images.length > 1 && (
             <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-2 rounded-full shadow-md flex items-center gap-2">
               <Images className="h-4 w-4" />
-              <span className="text-sm font-medium">{images.length} photos</span>
+              <span className="text-sm font-medium">
+                {images.length} {images.length === 1 ? t("property.photo") : t("property.photos")}
+              </span>
             </div>
           )}
         </div>
