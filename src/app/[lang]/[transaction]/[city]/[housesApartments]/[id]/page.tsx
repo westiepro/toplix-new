@@ -9,7 +9,6 @@ import { PropertyPageClient } from "@/components/PropertyPageClient";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from '@supabase/supabase-js';
 import { getTranslations } from "@/lib/get-translations";
-import { getPropertyTranslation } from "@/lib/property-translation-helper";
 import type { Locale } from "@/lib/i18n-config";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -245,11 +244,27 @@ export default async function PropertyPage({
 		notFound();
 	}
 
-	// Fetch property description translation for current language
-	const propertyTranslation = await getPropertyTranslation(property.id, lang);
+	// Fetch property description translation for current language (server-side)
+	let displayDescription = property.description;
 	
-	// Use translated description if available, otherwise use original
-	const displayDescription = propertyTranslation?.description || property.description;
+	if (lang !== 'en') {
+		try {
+			const supabase = createClient(supabaseUrl, supabaseKey);
+			const { data: translation } = await supabase
+				.from("property_translations")
+				.select("description")
+				.eq("property_id", property.id)
+				.eq("language_code", lang)
+				.single();
+			
+			if (translation?.description) {
+				displayDescription = translation.description;
+			}
+		} catch (error) {
+			console.warn("Failed to fetch property translation:", error);
+			// Fall back to original description
+		}
+	}
 
 	// Validate URL segments match property data (optional - can be disabled for flexibility)
 	// Uncomment to enable strict URL validation:
