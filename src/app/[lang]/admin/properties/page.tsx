@@ -544,25 +544,45 @@ export default function PropertiesPage() {
 								<div className="grid grid-cols-2 gap-4">
 									{/* Location Map Picker - replaces address, city, country, lat, lng fields */}
 									<div className="col-span-2">
-										<LocationMapPicker
-											initialLat={watch("lat")}
-											initialLng={watch("lng")}
-											onLocationSelect={(location) => {
-												setValue("address", location.address);
-												setValue("city", location.city);
-												setValue("country", location.country);
-												setValue("lat", location.lat);
-												setValue("lng", location.lng);
-											}}
-										/>
-									</div>
+								<LocationMapPicker
+									initialLat={watch("lat")}
+									initialLng={watch("lng")}
+									onLocationSelect={(location) => {
+										setValue("address", location.address);
+										setValue("city", location.city);
+										setValue("country", location.country);
+										setValue("lat", location.lat);
+										setValue("lng", location.lng);
+									}}
+								/>
+							</div>
 
-									{/* Hidden fields to store the values */}
-									<input type="hidden" {...register("address")} />
-									<input type="hidden" {...register("city")} />
-									<input type="hidden" {...register("country")} />
-									<input type="hidden" {...register("lat", { valueAsNumber: true })} />
-									<input type="hidden" {...register("lng", { valueAsNumber: true })} />
+							{/* Hidden fields to store the values */}
+							<input type="hidden" {...register("address")} />
+							<input type="hidden" {...register("city")} />
+							<input type="hidden" {...register("country")} />
+							<input type="hidden" {...register("lat", { valueAsNumber: true })} />
+							<input type="hidden" {...register("lng", { valueAsNumber: true })} />
+
+							{/* Location Privacy Toggle - Below Map */}
+							<div className="col-span-2">
+								<div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+									<div className="flex-1">
+										<label htmlFor="show-exact-location" className="font-medium text-sm cursor-pointer flex items-center gap-2">
+											<MapPin className="h-4 w-4 text-blue-600" />
+											Show Exact Location on Maps
+										</label>
+										<p className="text-xs text-gray-600 mt-1">
+											If disabled, a 1km radius circle will be shown instead of the exact pin for privacy protection
+										</p>
+									</div>
+									<Switch
+										id="show-exact-location"
+										checked={watch("show_exact_location") !== false}
+										onCheckedChange={(checked) => setValue("show_exact_location", checked)}
+									/>
+								</div>
+							</div>
 									<div className="space-y-2">
 										<label className="text-sm font-medium">Price</label>
 										<Input 
@@ -664,28 +684,8 @@ export default function PropertiesPage() {
 										className="bg-gray-50 cursor-not-allowed"
 									/>
 									{errors.lng && <p className="text-sm text-destructive">{errors.lng.message}</p>}
-									<p className="text-xs text-gray-500">Auto-filled from map selection</p>
-								</div>
-
-								{/* Location Privacy Toggle */}
-								<div className="col-span-2 border-t border-gray-200 pt-4 mt-2">
-									<div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
-										<div className="flex-1">
-											<label htmlFor="show-exact-location" className="font-medium text-sm cursor-pointer flex items-center gap-2">
-												<MapPin className="h-4 w-4 text-blue-600" />
-												Show Exact Location on Maps
-										</label>
-										<p className="text-xs text-gray-600 mt-1">
-											If disabled, a 1km radius circle will be shown instead of the exact pin for privacy protection
-										</p>
-										</div>
-										<Switch
-											id="show-exact-location"
-											checked={watch("show_exact_location") !== false}
-											onCheckedChange={(checked) => setValue("show_exact_location", checked)}
-										/>
-									</div>
-								</div>
+							<p className="text-xs text-gray-500">Auto-filled from map selection</p>
+						</div>
 
 									<div className="space-y-2 col-span-2">
 										<label className="text-sm font-medium">Description (Optional)</label>
