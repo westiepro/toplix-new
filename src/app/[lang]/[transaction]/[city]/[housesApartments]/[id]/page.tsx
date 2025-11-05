@@ -427,13 +427,13 @@ export default async function PropertyPage({
 				<div className="bg-white rounded-lg p-6 shadow-sm">
 					<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("map.location")}</h2>
 					<div className="h-[400px] rounded-lg overflow-hidden">
-						{(property as any).show_exact_location === false ? (
-							<FuzzyLocationMap 
-								lat={property.lat} 
-								lng={property.lng} 
-								radius={2000} 
-							/>
-						) : (
+					{(property as any).show_exact_location === false ? (
+						<FuzzyLocationMap 
+							lat={property.lat} 
+							lng={property.lng} 
+							radius={1000} 
+						/>
+					) : (
 							<MapView properties={[property]} />
 						)}
 					</div>

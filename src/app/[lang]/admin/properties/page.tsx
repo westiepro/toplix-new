@@ -674,10 +674,10 @@ export default function PropertiesPage() {
 											<label htmlFor="show-exact-location" className="font-medium text-sm cursor-pointer flex items-center gap-2">
 												<MapPin className="h-4 w-4 text-blue-600" />
 												Show Exact Location on Maps
-											</label>
-											<p className="text-xs text-gray-600 mt-1">
-												If disabled, a 2km radius circle will be shown instead of the exact pin for privacy protection
-											</p>
+										</label>
+										<p className="text-xs text-gray-600 mt-1">
+											If disabled, a 1km radius circle will be shown instead of the exact pin for privacy protection
+										</p>
 										</div>
 										<Switch
 											id="show-exact-location"

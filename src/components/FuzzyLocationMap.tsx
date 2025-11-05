@@ -11,10 +11,10 @@ import { Button } from "@/components/ui/button";
 interface FuzzyLocationMapProps {
 	lat: number;
 	lng: number;
-	radius?: number; // in meters, default 2000 (2km)
+	radius?: number; // in meters, default 1000 (1km)
 }
 
-export function FuzzyLocationMap({ lat, lng, radius = 2000 }: FuzzyLocationMapProps) {
+export function FuzzyLocationMap({ lat, lng, radius = 1000 }: FuzzyLocationMapProps) {
 	// Add random offset to circle center for privacy (so exact location isn't in center)
 	// Offset is random within 0-800 meters in any direction
 	const getOffsetCoordinates = (originalLat: number, originalLng: number) => {
@@ -49,7 +49,7 @@ export function FuzzyLocationMap({ lat, lng, radius = 2000 }: FuzzyLocationMapPr
 			map = new (mapboxgl as any).Map({
 				container: containerRef.current,
 				center: [offsetCoords.lng, offsetCoords.lat], // Use offset center
-				zoom: 11.5, // Zoomed out more to show 2km radius
+				zoom: 12.5, // Zoomed in more to show 1km radius
 				style: isSatellite 
 					? "mapbox://styles/mapbox/satellite-streets-v12"
 					: "mapbox://styles/mapbox/streets-v12",
@@ -58,7 +58,7 @@ export function FuzzyLocationMap({ lat, lng, radius = 2000 }: FuzzyLocationMapPr
 			map = new (maplibregl as any).Map({
 				container: containerRef.current,
 				center: [offsetCoords.lng, offsetCoords.lat], // Use offset center
-				zoom: 11.5, // Zoomed out more to show 2km radius
+				zoom: 12.5, // Zoomed in more to show 1km radius
 				style: isSatellite
 					? "https://api.maptiler.com/maps/hybrid/style.json?key=demo"
 					: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
@@ -194,11 +194,11 @@ export function FuzzyLocationMap({ lat, lng, radius = 2000 }: FuzzyLocationMapPr
 			{/* Privacy Notice Overlay */}
 			<div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2.5 rounded-lg shadow-lg border border-gray-200">
 				<div className="flex items-center gap-2">
-					<div className="w-3 h-3 bg-gray-500 rounded-full flex-shrink-0"></div>
-					<div>
-						<p className="text-sm font-medium text-gray-900">Approximate Location</p>
-						<p className="text-xs text-gray-600">Within 2km radius</p>
-					</div>
+				<div className="w-3 h-3 bg-gray-500 rounded-full flex-shrink-0"></div>
+				<div>
+					<p className="text-sm font-medium text-gray-900">Approximate Location</p>
+					<p className="text-xs text-gray-600">Within 1km radius</p>
+				</div>
 				</div>
 			</div>
 
