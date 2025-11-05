@@ -193,6 +193,16 @@ export function FuzzyLocationMap({ lat, lng, radius = 1000 }: FuzzyLocationMapPr
 		<div className="relative w-full h-full">
 			<div ref={containerRef} className="w-full h-full" />
 			
+			{/* Hide any remaining attribution elements */}
+			<style jsx global>{`
+				.mapboxgl-ctrl-attrib,
+				.mapboxgl-ctrl-logo,
+				.maplibregl-ctrl-attrib,
+				.maplibregl-ctrl-logo {
+					display: none !important;
+				}
+			`}</style>
+			
 			{/* Privacy Notice Overlay */}
 			<div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm px-4 py-2.5 rounded-lg shadow-lg border border-gray-200">
 				<div className="flex items-center gap-2">
