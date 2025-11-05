@@ -143,7 +143,7 @@ export function CompanyAnalyticsTab({ companyId, companyName }: CompanyAnalytics
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={(entry) => entry.city}
+                  label={(entry: any) => String(entry.city)}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"

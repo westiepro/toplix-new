@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
           .from('companies')
           .update({
             payment_status: subscription.status === 'active' ? 'paid' : 'unpaid',
-            plan_start: new Date(subscription.current_period_start * 1000).toISOString(),
-            plan_end: new Date(subscription.current_period_end * 1000).toISOString(),
+            plan_start: new Date((subscription as any).current_period_start * 1000).toISOString(),
+            plan_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
           })
           .eq('stripe_customer_id', subscription.customer as string);
         break;

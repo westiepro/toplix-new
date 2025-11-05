@@ -354,16 +354,16 @@ export default function SiteUsersPage() {
 							<CardContent className="flex justify-center">
 								<ResponsiveContainer width="100%" height={300}>
 									<PieChart>
-										<Pie
-											data={deviceData}
-											cx="50%"
-											cy="50%"
-											labelLine={false}
-											label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-											outerRadius={100}
-											fill="#8884d8"
-											dataKey="value"
-										>
+									<Pie
+										data={deviceData}
+										cx="50%"
+										cy="50%"
+										labelLine={false}
+										label={({ name, percent }: any) => `${name} ${(Number(percent) * 100).toFixed(0)}%`}
+										outerRadius={100}
+										fill="#8884d8"
+										dataKey="value"
+									>
 											{deviceData.map((entry, index) => (
 												<Cell key={`cell-${index}`} fill={entry.color} />
 											))}

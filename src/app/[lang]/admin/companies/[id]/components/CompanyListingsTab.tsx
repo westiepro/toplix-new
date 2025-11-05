@@ -41,7 +41,7 @@ export function CompanyListingsTab({ companyId }: CompanyListingsTabProps) {
 
   const filteredListings = listings.filter((listing) => {
     if (statusFilter === 'all') return true;
-    return listing.status === statusFilter;
+    return (listing as any).status === statusFilter;
   });
 
   return (
@@ -105,8 +105,8 @@ export function CompanyListingsTab({ companyId }: CompanyListingsTabProps) {
                   <TableCell>{listing.property_type}</TableCell>
                   <TableCell>{listing.beds}</TableCell>
                   <TableCell>
-                    <Badge variant={listing.status === 'active' ? 'default' : 'secondary'}>
-                      {listing.status}
+                    <Badge variant={(listing as any).status === 'active' ? 'default' : 'secondary'}>
+                      {(listing as any).status || 'active'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

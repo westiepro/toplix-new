@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,7 +16,7 @@ import { SettingsTab } from "@/components/agent-dashboard/SettingsTab";
 
 type TabType = "overview" | "listings" | "inquiries" | "appointments" | "analytics" | "settings";
 
-export default function AgentDashboardPage() {
+function AgentDashboardContent() {
 	const { user, signOut } = useAuth();
 	const searchParams = useSearchParams();
 	const [activeTab, setActiveTab] = useState<TabType>("overview");
@@ -142,6 +142,14 @@ export default function AgentDashboardPage() {
 				</div>
 			</section>
 		</main>
+	);
+}
+
+export default function AgentDashboardPage() {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<AgentDashboardContent />
+		</Suspense>
 	);
 }
 

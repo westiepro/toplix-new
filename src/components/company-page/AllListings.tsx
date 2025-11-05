@@ -46,7 +46,7 @@ export function AllListings({ companyId, companyName }: AllListingsProps) {
 			property.city.toLowerCase().includes(searchTerm.toLowerCase());
 		
 		const matchesType = filterType === "all" || property.property_type === filterType;
-		const matchesStatus = filterStatus === "all" || property.status === filterStatus;
+		const matchesStatus = filterStatus === "all" || (property as any).status === filterStatus;
 
 		return matchesSearch && matchesType && matchesStatus;
 	});

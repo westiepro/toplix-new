@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,7 @@ import { Message3 } from "@/components/dashboard/Message3";
 
 type TabType = "favourites" | "saved" | "recent" | "messages" | "advertise" | "settings";
 
-export default function DashboardPage() {
+function DashboardContent() {
 	const { user, signOut } = useAuth();
 	const { getFavorites } = useFavoritesContext();
 	const { recentlyViewed, syncFromSupabase } = useRecentlyViewedContext();
@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
 	// Sync recently viewed from Supabase on mount (if user is logged in)
 	useEffect(() => {
-		if (user && !user.isAnonymous) {
+		if (user && !(user as any).isAnonymous) {
 			syncFromSupabase();
 		}
 		// Only run once when user changes, not when syncFromSupabase changes
@@ -428,4 +428,12 @@ export default function DashboardPage() {
 			</section>
 		</main>
 	);
-} 
+}
+
+export default function DashboardPage() {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<DashboardContent />
+		</Suspense>
+	);
+}

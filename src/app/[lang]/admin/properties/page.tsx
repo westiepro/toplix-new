@@ -51,7 +51,7 @@ const propertySchema = z.object({
 	description: z.string().optional(),
 	features: z.array(z.string()).optional(),
 	status: z.enum(["active", "inactive"]),
-	show_exact_location: z.boolean().default(true),
+	show_exact_location: z.boolean(),
 });
 
 type PropertyForm = z.infer<typeof propertySchema>;
@@ -391,9 +391,9 @@ export default function PropertiesPage() {
 			url: img.image_url,
 			display_order: img.display_order !== undefined ? img.display_order : index,
 			is_featured: img.is_featured !== undefined ? img.is_featured : index === 0,
-			style_name: img.style_name || undefined,
-			is_original: img.is_original || false,
-			image_category: img.image_category || 'gallery',
+			style_name: (img as any).style_name || undefined,
+			is_original: (img as any).is_original || false,
+			image_category: (img as any).image_category || 'gallery',
 		}));
 	
 	console.log('Loading images for property:', property.id, existingImages);

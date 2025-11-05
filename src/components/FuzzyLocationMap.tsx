@@ -69,9 +69,9 @@ export function FuzzyLocationMap({ lat, lng, radius = 1000 }: FuzzyLocationMapPr
 
 		mapRef.current = map;
 
-		map.on("load", () => {
+		(map as any).on("load", () => {
 			// Add circle source (using offset coordinates)
-			map.addSource("fuzzy-location", {
+			(map as any).addSource("fuzzy-location", {
 				type: "geojson",
 				data: {
 					type: "Feature",
@@ -84,7 +84,7 @@ export function FuzzyLocationMap({ lat, lng, radius = 1000 }: FuzzyLocationMapPr
 			});
 
 			// Add grey circle layer
-			map.addLayer({
+			(map as any).addLayer({
 				id: "fuzzy-circle",
 				type: "circle",
 				source: "fuzzy-location",

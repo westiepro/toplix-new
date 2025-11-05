@@ -173,8 +173,8 @@ async function searchInCountry(query: string, country: string): Promise<SearchLo
 
 		return results.map((result) => {
 			const addr = result.address;
-			const road = addr.road || "";
-			const houseNumber = addr.house_number || "";
+			const road = (addr as any).road || "";
+			const houseNumber = (addr as any).house_number || "";
 			const cityName = 
 				addr.city || 
 				addr.town || 
