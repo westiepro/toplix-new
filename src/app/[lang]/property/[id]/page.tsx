@@ -198,7 +198,7 @@ async function getSimilarProperties(lat: number, lng: number, excludeId: string)
 			})
 			.filter(({ distance }) => distance <= 20) // Within 20km
 			.sort((a, b) => a.distance - b.distance) // Sort by distance (closest first)
-			.slice(0, 3); // Take top 3 closest
+			.slice(0, 4); // Take top 4 closest
 
 		return propertiesWithDistance.map(({ property }) => {
 			const images = (property.property_images || [])
@@ -385,43 +385,43 @@ export default async function PropertyPage({
 							</div>
 						</div>
 
-					{/* Location */}
-					<div className="bg-white rounded-lg p-6 shadow-sm">
-						<h2 className="text-2xl font-bold text-gray-900 mb-4">Location</h2>
-						<div className="h-[400px] rounded-lg overflow-hidden mb-4">
-							<MapView properties={[property]} />
-						</div>
-						<p className="text-gray-700">
-							This property is located in the heart of {property.city}, offering easy access to local amenities, beaches, and attractions.
-						</p>
+				{/* Location */}
+				<div className="bg-white rounded-lg p-6 shadow-sm">
+					<h2 className="text-2xl font-bold text-gray-900 mb-4">Location</h2>
+					<div className="h-[400px] rounded-lg overflow-hidden mb-4">
+						<MapView properties={[property]} />
 					</div>
-
-					{/* Similar Properties Section - Right below the map */}
-					{similarProperties.length > 0 && (
-						<div className="bg-white rounded-lg p-6 shadow-sm">
-							<h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Properties Nearby</h2>
-							<p className="text-sm text-gray-600 mb-4">Properties within 20km of this location</p>
-							<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-								{similarProperties.map((similarProperty) => (
-									<PropertyCard
-										key={similarProperty.id}
-										property={similarProperty}
-										source="similar_properties"
-									/>
-								))}
-							</div>
-						</div>
-					)}
-				</div>
-
-				{/* Right Column - Sidebar */}
-				<div className="lg:col-span-1">
-					<ContactAgentForm
-						propertyId={property.id}
-						propertyAddress={property.address}
-					/>
+					<p className="text-gray-700">
+						This property is located in the heart of {property.city}, offering easy access to local amenities, beaches, and attractions.
+					</p>
 				</div>
 			</div>
+
+			{/* Right Column - Sidebar */}
+			<div className="lg:col-span-1">
+				<ContactAgentForm
+					propertyId={property.id}
+					propertyAddress={property.address}
+				/>
+			</div>
+		</div>
+
+		{/* Similar Properties Section - Full Width Below */}
+		{similarProperties.length > 0 && (
+			<div className="mt-12 bg-white rounded-lg p-6 shadow-sm">
+				<h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Properties Nearby</h2>
+				<p className="text-sm text-gray-600 mb-4">Properties within 20km of this location</p>
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+					{similarProperties.map((similarProperty) => (
+						<PropertyCard
+							key={similarProperty.id}
+							property={similarProperty}
+							source="similar_properties"
+						/>
+					))}
+				</div>
+			</div>
+		)}
 			</div>
 
 		{/* Footer */}
