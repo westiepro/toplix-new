@@ -380,19 +380,25 @@ export default async function PropertyPage({
 						</div>
 
 						{/* Property Features */}
-						<div className="bg-white rounded-lg p-6 shadow-sm">
-							<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("propertyDetail.propertyFeatures")}</h2>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-								{propertyFeatures.map((feature, index) => (
-									<div key={index} className="flex items-center gap-2">
-										<div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-											<Check className="h-3 w-3 text-green-600" />
+						{property.features && property.features.length > 0 && (
+							<div className="bg-white rounded-lg p-6 shadow-sm">
+								<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("propertyDetail.propertyFeatures")}</h2>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+									{property.features.map((featureKey, index) => (
+										<div key={index} className="flex items-center gap-2">
+											<div className="flex-shrink-0 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+												<Check className="h-3 w-3 text-green-600" />
+											</div>
+											<span className="text-gray-700">
+												{t(`propertyDetail.${featureKey}`) !== `propertyDetail.${featureKey}` 
+													? t(`propertyDetail.${featureKey}`)
+													: featureKey}
+											</span>
 										</div>
-										<span className="text-gray-700">{feature}</span>
-									</div>
-								))}
+									))}
+								</div>
 							</div>
-						</div>
+						)}
 
 						{/* Location */}
 						<div className="bg-white rounded-lg p-6 shadow-sm">
