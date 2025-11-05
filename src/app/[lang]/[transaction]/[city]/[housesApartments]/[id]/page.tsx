@@ -467,12 +467,12 @@ export default async function PropertyPage({
 		)}
 			</div>
 
-		{/* Footer */}
-		<footer className="bg-white border-t mt-16">
-			<div className="max-w-[1440px] mx-auto px-4 py-6 text-center text-gray-600 text-sm">
-				© 2024 Toplix. All rights reserved.
-			</div>
-		</footer>
+	{/* Footer */}
+	<footer className="bg-white border-t mt-16">
+		<div className="max-w-[1440px] mx-auto px-4 py-6 text-center text-gray-600 text-sm">
+			© {new Date().getFullYear()} Toplix. All rights reserved.
+		</div>
+	</footer>
 		</main>
 	);
 }
