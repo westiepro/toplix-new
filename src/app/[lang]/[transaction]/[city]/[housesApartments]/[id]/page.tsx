@@ -232,6 +232,10 @@ export default async function PropertyPage({
 }) {
 	const { id, lang, transaction, city, housesApartments } = await params;
 	
+	// Fetch translations for server-side rendering
+	const translations = await getTranslations(lang as Locale);
+	const t = (key: string) => translations[key] || key;
+	
 	// Fetch property
 	const property = await getProperty(id);
 
