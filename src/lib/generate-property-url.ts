@@ -103,35 +103,23 @@ export function isPropertyUrl(pathname: string): boolean {
 }
 
 /**
- * Check if a pathname matches the old property URL pattern
- */
-export function isOldPropertyUrl(pathname: string): boolean {
-	const segments = pathname.replace(/^\/|\/$/g, '').split('/');
-	
-	if (segments.length !== 3) {
-		return false;
-	}
-
-	return segments[1] === 'property' && /^[a-f0-9-]{36}|^\d+$/.test(segments[2]);
-}
-
-/**
  * Generate fallback URL for properties without complete data
+ * Always uses the new localized format
  */
 export function generateFallbackPropertyUrl(
 	property: Partial<PropertyUrlData>,
 	locale: Locale
 ): string {
-	if (!property.id) {
-		return `/${locale}/property/unknown`;
-	}
+	// Default values for missing data
+	const city = property.city || 'portugal';
+	const transactionType = (property.transaction_type as TransactionType) || 'buy';
+	const urlId = property.url_slug_id || property.id || 'unknown';
 
-	if (property.city && (property.url_slug_id || property.id)) {
-		return generatePropertyUrl(property as PropertyUrlData, locale);
-	}
+	const transactionSlug = getTransactionSlug(transactionType, locale);
+	const citySlug = normalizeSlug(city);
+	const housesApartmentsSlug = getHousesApartmentsSlug(locale);
 
-	// Fallback to old format
-	return `/${locale}/property/${property.id}`;
+	return `/${locale}/${transactionSlug}/${citySlug}/${housesApartmentsSlug}/${urlId}`;
 }
 
 /**
