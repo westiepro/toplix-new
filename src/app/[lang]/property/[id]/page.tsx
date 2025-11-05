@@ -388,12 +388,9 @@ export default async function PropertyPage({
 				{/* Location */}
 				<div className="bg-white rounded-lg p-6 shadow-sm">
 					<h2 className="text-2xl font-bold text-gray-900 mb-4">Location</h2>
-					<div className="h-[400px] rounded-lg overflow-hidden mb-4">
+					<div className="h-[400px] rounded-lg overflow-hidden">
 						<MapView properties={[property]} />
 					</div>
-					<p className="text-gray-700">
-						This property is located in the heart of {property.city}, offering easy access to local amenities, beaches, and attractions.
-					</p>
 				</div>
 			</div>
 
