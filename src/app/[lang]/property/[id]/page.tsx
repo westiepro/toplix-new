@@ -178,8 +178,13 @@ async function getSimilarProperties(lat: number, lng: number, excludeId: string)
 			.not('lat', 'is', null)
 			.not('lng', 'is', null);
 
-		if (error || !data) {
-			console.error('Error fetching properties:', error);
+		if (error) {
+			console.error('Error fetching similar properties:', error);
+			return [];
+		}
+
+		if (!data || data.length === 0) {
+			console.log('No properties found for similar properties calculation');
 			return [];
 		}
 
@@ -246,8 +251,13 @@ export default async function PropertyPage({
 	const newUrl = generatePropertyUrl(property, lang as Locale);
 	redirect(newUrl);
 
-	// Fetch similar properties within 20km radius
-	const similarProperties = await getSimilarProperties(property.lat, property.lng, id);
+	// Fetch similar properties within 20km radius (only if coordinates exist)
+	let similarProperties: Property[] = [];
+	if (property.lat && property.lng) {
+		similarProperties = await getSimilarProperties(property.lat, property.lng, id);
+	} else {
+		console.warn('Property missing coordinates, cannot fetch similar properties');
+	}
 
 	// Use images from API or fallback to imageUrl
 	const propertyImages = property.images && property.images.length > 0 
