@@ -59,7 +59,7 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 						<div className="flex-1 min-w-0">
 							<p className="font-semibold text-sm">{formatPrice(property.price)}</p>
 							<p className="text-xs text-muted-foreground truncate">
-								{property.address}
+								{property.city}
 							</p>
 							<div className="flex items-center gap-3 text-xs text-muted-foreground">
 								<div className="flex items-center gap-1">
