@@ -144,6 +144,7 @@ function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 async function getSimilarProperties(lat: number, lng: number, excludeId: string): Promise<Property[]> {
 	try {
 		if (!supabaseUrl || !supabaseKey) {
+			console.warn('Supabase credentials missing for similar properties');
 			return [];
 		}
 
@@ -178,13 +179,14 @@ async function getSimilarProperties(lat: number, lng: number, excludeId: string)
 			.not('lat', 'is', null)
 			.not('lng', 'is', null);
 
-		if (error) {
-			console.error('Error fetching similar properties:', error);
+		// Supabase sometimes returns an empty error object
+		if (error && Object.keys(error).length > 0) {
+			console.error('Error fetching similar properties:', JSON.stringify(error));
 			return [];
 		}
 
 		if (!data || data.length === 0) {
-			console.log('No properties found for similar properties calculation');
+			// This is normal - just means no other properties found
 			return [];
 		}
 
