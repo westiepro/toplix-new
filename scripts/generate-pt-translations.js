@@ -283,6 +283,10 @@ const portugueseTranslations = {
 	"admin.dashboard.quickActions": "Ações Rápidas",
 	"admin.dashboard.viewAll": "Ver Todos",
 	
+	// Map
+	"map.satellite": "Satélite",
+	"map.location": "Localização",
+	
 	// Common
 	"common.loading": "A carregar...",
 	"common.error": "Erro",

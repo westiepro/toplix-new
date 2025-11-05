@@ -324,6 +324,12 @@ export const TRANSLATION_KEYS = {
 		exploreProperties: "dashboard.exploreProperties",
 	},
 
+	// Map
+	map: {
+		satellite: "map.satellite",
+		location: "map.location",
+	},
+
 	// Common
 	common: {
 		loading: "common.loading",
@@ -621,6 +627,10 @@ export const ENGLISH_TRANSLATIONS: Record<string, string> = {
 	"dashboard.noRecentViews": "No recently viewed properties",
 	"dashboard.noRecentViewsDescription": "Properties you view will appear here",
 	"dashboard.exploreProperties": "Explore Properties",
+
+	// Map
+	"map.satellite": "Satellite",
+	"map.location": "Location",
 
 	// Common
 	"common.loading": "Loading...",

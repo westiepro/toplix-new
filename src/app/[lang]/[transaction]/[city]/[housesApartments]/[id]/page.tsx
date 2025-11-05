@@ -315,7 +315,7 @@ export default async function PropertyPage({
 									<Bed className="h-6 w-6 text-white" />
 								</div>
 								<div className="flex-1 min-w-0">
-									<p className="text-xs font-medium text-purple-700 mb-1">Bedrooms</p>
+									<p className="text-xs font-medium text-purple-700 mb-1">{t("propertyDetail.bedrooms")}</p>
 									<p className="text-lg font-bold text-gray-900">{property.beds}</p>
 								</div>
 							</div>
@@ -324,7 +324,7 @@ export default async function PropertyPage({
 									<Bath className="h-6 w-6 text-white" />
 								</div>
 								<div className="flex-1 min-w-0">
-									<p className="text-xs font-medium text-emerald-700 mb-1">Bathrooms</p>
+									<p className="text-xs font-medium text-emerald-700 mb-1">{t("propertyDetail.bathrooms")}</p>
 									<p className="text-lg font-bold text-gray-900">{property.baths}</p>
 								</div>
 							</div>
@@ -333,7 +333,7 @@ export default async function PropertyPage({
 									<Maximize className="h-6 w-6 text-white" />
 								</div>
 								<div className="flex-1 min-w-0">
-									<p className="text-xs font-medium text-amber-700 mb-1">Area</p>
+									<p className="text-xs font-medium text-amber-700 mb-1">{t("propertyDetail.area")}</p>
 									<p className="text-lg font-bold text-gray-900">{property.area} m²</p>
 								</div>
 							</div>
@@ -342,7 +342,7 @@ export default async function PropertyPage({
 
 						{/* About This Property */}
 						<div className="bg-white rounded-lg p-6 shadow-sm">
-							<h2 className="text-2xl font-bold text-gray-900 mb-4">About This Property</h2>
+							<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("propertyDetail.aboutThisProperty")}</h2>
 							<div className="text-gray-700 leading-relaxed space-y-3">
 								<p>
 									{property.description || `This stunning ${property.property_type?.toLowerCase() || "property"} offers luxurious living in the heart of ${property.city}. With ${property.beds} bedrooms and ${property.baths} bathrooms, this property combines modern design with exceptional comfort.`}
@@ -361,7 +361,7 @@ export default async function PropertyPage({
 
 						{/* Property Features */}
 						<div className="bg-white rounded-lg p-6 shadow-sm">
-							<h2 className="text-2xl font-bold text-gray-900 mb-4">Property Features</h2>
+							<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("propertyDetail.propertyFeatures")}</h2>
 							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
 								{propertyFeatures.map((feature, index) => (
 									<div key={index} className="flex items-center gap-2">
@@ -376,7 +376,7 @@ export default async function PropertyPage({
 
 						{/* Location */}
 						<div className="bg-white rounded-lg p-6 shadow-sm">
-							<h2 className="text-2xl font-bold text-gray-900 mb-4">Location</h2>
+							<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("map.location")}</h2>
 							<div className="h-[400px] rounded-lg overflow-hidden">
 								<MapView properties={[property]} />
 							</div>

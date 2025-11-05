@@ -1,4 +1,4 @@
--- Complete Portuguese translations for all 262 keys
+-- Complete Portuguese translations for all 264 keys
 -- Generated automatically
 -- Run this in your Supabase SQL Editor
 
@@ -255,6 +255,8 @@ VALUES
 ('admin.dashboard.recentActivity', 'pt', 'Atividade Recente', false, 'admin'),
 ('admin.dashboard.quickActions', 'pt', 'Ações Rápidas', false, 'admin'),
 ('admin.dashboard.viewAll', 'pt', 'Ver Todos', false, 'admin'),
+('map.satellite', 'pt', 'Satélite', false, 'map'),
+('map.location', 'pt', 'Localização', false, 'map'),
 ('common.loading', 'pt', 'A carregar...', false, 'common'),
 ('common.error', 'pt', 'Erro', false, 'common'),
 ('common.success', 'pt', 'Sucesso', false, 'common'),
