@@ -53,6 +53,7 @@ export function FuzzyLocationMap({ lat, lng, radius = 1000 }: FuzzyLocationMapPr
 				style: isSatellite 
 					? "mapbox://styles/mapbox/satellite-streets-v12"
 					: "mapbox://styles/mapbox/streets-v12",
+				attributionControl: false, // Remove Mapbox attribution
 			});
 		} else {
 			map = new (maplibregl as any).Map({
@@ -62,6 +63,7 @@ export function FuzzyLocationMap({ lat, lng, radius = 1000 }: FuzzyLocationMapPr
 				style: isSatellite
 					? "https://api.maptiler.com/maps/hybrid/style.json?key=demo"
 					: "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
+				attributionControl: false, // Remove MapLibre attribution
 			});
 		}
 
