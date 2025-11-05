@@ -77,14 +77,14 @@ export function Navbar() {
 							<Button variant="secondary" size="sm" className="gap-2"><Map className="h-4 w-4" /> {t("navbar.explore")}</Button>
 						</LocaleLink>
 						
-						{user ? (
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button variant="ghost" size="sm" className="gap-2">
-										<User className="h-4 w-4" />
-										<span className="hidden md:inline truncate max-w-[150px]">{user.email}</span>
-									</Button>
-								</DropdownMenuTrigger>
+					{user ? (
+						<DropdownMenu>
+							<DropdownMenuTrigger asChild suppressHydrationWarning>
+								<Button variant="ghost" size="sm" className="gap-2" suppressHydrationWarning>
+									<User className="h-4 w-4" />
+									<span className="hidden md:inline truncate max-w-[150px]">{user.email}</span>
+								</Button>
+							</DropdownMenuTrigger>
 								<DropdownMenuContent align="end" className="w-48">
 									<div className="px-2 py-1.5 text-sm">
 										<p className="font-medium">{user.email}</p>
@@ -113,18 +113,18 @@ export function Navbar() {
 							</Button>
 						)}
 
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-							<Button variant="ghost" size="sm" className="gap-2 relative">
-								<Heart className="h-4 w-4" />
-								<span className="hidden md:inline">{t("navbar.favorites")}</span>
-								{favoriteProperties.length > 0 && (
-									<Badge variant="secondary" className="ml-1 px-1.5 py-0 h-5 text-xs">
-										{favoriteProperties.length}
-									</Badge>
-								)}
-								</Button>
-							</DropdownMenuTrigger>
+					<DropdownMenu>
+						<DropdownMenuTrigger asChild suppressHydrationWarning>
+						<Button variant="ghost" size="sm" className="gap-2 relative" suppressHydrationWarning>
+							<Heart className="h-4 w-4" />
+							<span className="hidden md:inline">{t("navbar.favorites")}</span>
+							{favoriteProperties.length > 0 && (
+								<Badge variant="secondary" className="ml-1 px-1.5 py-0 h-5 text-xs">
+									{favoriteProperties.length}
+								</Badge>
+							)}
+							</Button>
+						</DropdownMenuTrigger>
 							<DropdownMenuContent align="end" className="p-0">
 								<FavoritesDropdown favorites={favoriteProperties} />
 							</DropdownMenuContent>
