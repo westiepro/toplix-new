@@ -144,10 +144,10 @@ export function MapView({
 				paint: {
 					'circle-radius': 50,
 					'circle-color': '#00D9FF',
-					'circle-opacity': 0.25,
+					'circle-opacity': 0.5,
 					'circle-stroke-width': 3,
 					'circle-stroke-color': '#00D9FF',
-					'circle-stroke-opacity': 0.8
+					'circle-stroke-opacity': 1.0
 				}
 			});
 			
@@ -159,7 +159,7 @@ export function MapView({
 				paint: {
 					'circle-radius': 30,
 					'circle-color': '#00D9FF',
-					'circle-opacity': 0.4
+					'circle-opacity': 0.7
 				}
 			});
 		}
