@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatPrice, type Property } from "@/components/PropertyCard";
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
+import { Heart, Bed, Bath } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { LocaleLink } from "@/components/LocaleLink";
@@ -61,9 +61,16 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 							<p className="text-xs text-muted-foreground truncate">
 								{property.address}
 							</p>
-							<p className="text-xs text-muted-foreground">
-								{property.beds} {t("favorites.bd")} · {property.baths} {t("favorites.ba")}
-							</p>
+							<div className="flex items-center gap-3 text-xs text-muted-foreground">
+								<div className="flex items-center gap-1">
+									<Bed className="h-3.5 w-3.5" />
+									<span>{property.beds}</span>
+								</div>
+								<div className="flex items-center gap-1">
+									<Bath className="h-3.5 w-3.5" />
+									<span>{property.baths}</span>
+								</div>
+							</div>
 						</div>
 					</Link>
 					);
