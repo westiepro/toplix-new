@@ -294,7 +294,8 @@ export default async function PropertyPage({
 	// Fetch similar properties within 20km radius (only if coordinates exist)
 	let similarProperties: Property[] = [];
 	if (property.lat && property.lng) {
-		similarProperties = await getSimilarProperties(property.lat, property.lng, id);
+		// Pass the actual property UUID, not the url_slug_id
+		similarProperties = await getSimilarProperties(property.lat, property.lng, property.id);
 	} else {
 		console.warn('Property missing coordinates, cannot fetch similar properties');
 	}
