@@ -17,6 +17,7 @@ export interface Property {
   lat: number;
   lng: number;
   description?: string;
+  show_exact_location?: boolean;
   imageUrl: string;
   images?: PropertyImage[]; // Multiple property images
 }

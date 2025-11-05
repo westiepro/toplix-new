@@ -107,6 +107,63 @@ export function MapView({
 		const existing = markersRef.current;
 		const nextIds = new Set(properties.map((p) => p.id));
 		
+		// Add circle layer for single property pages
+		const isSingleProperty = properties.length === 1;
+		
+		// Remove existing circle source and layer if they exist
+		if (map.getLayer('property-circle')) {
+			map.removeLayer('property-circle');
+		}
+		if (map.getLayer('property-circle-outline')) {
+			map.removeLayer('property-circle-outline');
+		}
+		if (map.getSource('property-circle')) {
+			map.removeSource('property-circle');
+		}
+		
+		// Add circle for single property
+		if (isSingleProperty && properties[0]) {
+			const property = properties[0];
+			map.addSource('property-circle', {
+				type: 'geojson',
+				data: {
+					type: 'Feature',
+					geometry: {
+						type: 'Point',
+						coordinates: [property.lng, property.lat]
+					},
+					properties: {}
+				}
+			});
+			
+			// Add outer circle (outline) - bright cyan with high visibility
+			map.addLayer({
+				id: 'property-circle-outline',
+				type: 'circle',
+				source: 'property-circle',
+				paint: {
+					'circle-radius': 50,
+					'circle-color': '#00D9FF',
+					'circle-opacity': 0.25,
+					'circle-stroke-width': 3,
+					'circle-stroke-color': '#00D9FF',
+					'circle-stroke-opacity': 0.8
+				}
+			});
+			
+			// Add inner circle - solid bright cyan
+			map.addLayer({
+				id: 'property-circle',
+				type: 'circle',
+				source: 'property-circle',
+				paint: {
+					'circle-radius': 30,
+					'circle-color': '#00D9FF',
+					'circle-opacity': 0.4
+				}
+			});
+		}
+		
 		for (const id of Object.keys(existing)) {
 			if (!nextIds.has(id)) {
 				existing[id].remove();
@@ -281,6 +338,7 @@ export function MapView({
 		const content = document.createElement("div");
 		content.className = "w-[220px] transition-opacity duration-200";
 		const propertyUrl = generateFallbackPropertyUrl(selectedProperty, currentLanguage);
+		const isApproximate = (selectedProperty as any).show_exact_location === false;
 		content.style.opacity = "0";
 		content.innerHTML = `
 			<div class="relative rounded-md overflow-hidden shadow-lg bg-white text-black transition-all duration-200">
@@ -290,6 +348,12 @@ export function MapView({
 					<div class="text-xs text-gray-600">${selectedProperty.address}, ${selectedProperty.city}</div>
 					<div class="text-xs">${selectedProperty.beds} bd · ${selectedProperty.baths} ba · ${selectedProperty.area} sqft</div>
 					<a href="${propertyUrl}" class="inline-block mt-2 text-xs font-medium text-white bg-blue-600 px-2 py-1 rounded hover:bg-blue-700 transition-colors">View details</a>
+					${isApproximate ? `
+						<div class="mt-2 pt-2 border-t border-gray-200 flex items-center gap-1.5 justify-center">
+							<span class="w-2 h-2 bg-gray-500 rounded-full"></span>
+							<span class="text-[10px] text-gray-500 italic">Approximated location</span>
+						</div>
+					` : ''}
 				</div>
 				<button data-close class="absolute right-1 top-1 h-6 w-6 rounded-full bg-white/90 text-black text-xs hover:bg-white transition-colors">×</button>
 			</div>

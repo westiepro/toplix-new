@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
       lng: property.lng,
       description: property.description || '',
       status: property.status || 'active',
+      show_exact_location: property.show_exact_location !== false,
     };
 
     console.log('Inserting property:', propertyData);
@@ -166,6 +167,7 @@ export async function PUT(request: NextRequest) {
       lng: property.lng,
       description: property.description || '',
       status: property.status || 'active',
+      show_exact_location: property.show_exact_location !== false,
     };
 
     console.log('Updating property data:', propertyData);
@@ -290,6 +292,7 @@ export async function GET(request: NextRequest) {
         lng,
         description,
         status,
+        show_exact_location,
         property_images(
           id,
           image_url,
@@ -406,6 +409,7 @@ export async function GET(request: NextRequest) {
         lng: property.lng,
         description: translation?.description || property.description,
         status: property.status || 'active',
+        show_exact_location: property.show_exact_location !== false,
         imageUrl: featuredImage?.image_url || 'https://via.placeholder.com/800x600?text=No+Image',
         images: property.property_images || [], // Include all images for editing
       };

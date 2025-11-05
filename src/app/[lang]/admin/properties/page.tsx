@@ -23,7 +23,8 @@ import {
 	DialogTitle,
 } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Edit, Eye, Download, FileDown, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Search, Edit, Eye, Download, FileDown, Trash2, ArrowUpDown, ArrowUp, ArrowDown, MapPin } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -50,6 +51,7 @@ const propertySchema = z.object({
 	description: z.string().optional(),
 	features: z.array(z.string()).optional(),
 	status: z.enum(["active", "inactive"]),
+	show_exact_location: z.boolean().default(true),
 });
 
 type PropertyForm = z.infer<typeof propertySchema>;
@@ -168,6 +170,7 @@ export default function PropertiesPage() {
 			description: "",
 			features: [],
 			status: "active",
+			show_exact_location: true,
 		},
 	});
 
@@ -377,6 +380,7 @@ export default function PropertiesPage() {
 			description: property.description || '',
 			features: property.features || [],
 			status: (property.status as "active" | "inactive") || "active",
+			show_exact_location: (property as any).show_exact_location !== false,
 		});
 		
 	// Load existing images from the property
@@ -662,6 +666,27 @@ export default function PropertiesPage() {
 									{errors.lng && <p className="text-sm text-destructive">{errors.lng.message}</p>}
 									<p className="text-xs text-gray-500">Auto-filled from map selection</p>
 								</div>
+
+								{/* Location Privacy Toggle */}
+								<div className="col-span-2 border-t border-gray-200 pt-4 mt-2">
+									<div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+										<div className="flex-1">
+											<label htmlFor="show-exact-location" className="font-medium text-sm cursor-pointer flex items-center gap-2">
+												<MapPin className="h-4 w-4 text-blue-600" />
+												Show Exact Location on Maps
+											</label>
+											<p className="text-xs text-gray-600 mt-1">
+												If disabled, a 2km radius circle will be shown instead of the exact pin for privacy protection
+											</p>
+										</div>
+										<Switch
+											id="show-exact-location"
+											checked={watch("show_exact_location") !== false}
+											onCheckedChange={(checked) => setValue("show_exact_location", checked)}
+										/>
+									</div>
+								</div>
+
 									<div className="space-y-2 col-span-2">
 										<label className="text-sm font-medium">Description (Optional)</label>
 										<textarea 

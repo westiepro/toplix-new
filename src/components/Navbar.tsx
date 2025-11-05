@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Heart, User, Map, Home, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +27,10 @@ export function Navbar() {
 	const { getFavorites, cleanupStaleFavorites, clearAllFavorites } = useFavoritesContext();
 	const favoriteIds = getFavorites();
 	const [favoriteProperties, setFavoriteProperties] = useState<Property[]>([]);
+	const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+	const [favoritesDropdownOpen, setFavoritesDropdownOpen] = useState(false);
+	const userTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const favoritesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	// Load favorite properties
 	useEffect(() => {
@@ -78,20 +82,44 @@ export function Navbar() {
 						</LocaleLink>
 						
 					{user ? (
-						<DropdownMenu>
+						<DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
 							<DropdownMenuTrigger asChild suppressHydrationWarning>
-								<Button variant="ghost" size="sm" className="gap-2" suppressHydrationWarning>
+								<Button 
+									variant="ghost" 
+									size="sm" 
+									className="gap-2" 
+									suppressHydrationWarning
+									onMouseEnter={() => {
+										if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+										setUserDropdownOpen(true);
+									}}
+									onMouseLeave={() => {
+										userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 100);
+									}}
+								>
 									<User className="h-4 w-4" />
 									<span className="hidden md:inline truncate max-w-[150px]">{user.email}</span>
 								</Button>
 							</DropdownMenuTrigger>
-								<DropdownMenuContent align="end" className="w-48">
+								<DropdownMenuContent 
+									align="end" 
+									className="w-64"
+									sideOffset={2}
+									onMouseEnter={() => {
+										if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+										setUserDropdownOpen(true);
+									}}
+									onMouseLeave={() => {
+										userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 100);
+									}}
+								>
 									<div className="px-2 py-1.5 text-sm">
-										<p className="font-medium">{user.email}</p>
+										<p className="font-medium truncate">{user.email}</p>
 									</div>
 									<DropdownMenuSeparator />
 									<LocaleLink href="/user-dashboard" className="block">
 										<DropdownMenuItem className="cursor-pointer">
+											<Home className="mr-2 h-4 w-4 text-blue-600" />
 											{t("navbar.dashboard")}
 										</DropdownMenuItem>
 									</LocaleLink>
@@ -113,9 +141,21 @@ export function Navbar() {
 							</Button>
 						)}
 
-					<DropdownMenu>
+					<DropdownMenu open={favoritesDropdownOpen} onOpenChange={setFavoritesDropdownOpen}>
 						<DropdownMenuTrigger asChild suppressHydrationWarning>
-						<Button variant="ghost" size="sm" className="gap-2 relative" suppressHydrationWarning>
+						<Button 
+							variant="ghost" 
+							size="sm" 
+							className="gap-2 relative" 
+							suppressHydrationWarning
+							onMouseEnter={() => {
+								if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+								setFavoritesDropdownOpen(true);
+							}}
+							onMouseLeave={() => {
+								favoritesTimeoutRef.current = setTimeout(() => setFavoritesDropdownOpen(false), 100);
+							}}
+						>
 							<Heart className="h-4 w-4" />
 							<span className="hidden md:inline">{t("navbar.favorites")}</span>
 							{favoriteProperties.length > 0 && (
@@ -125,7 +165,18 @@ export function Navbar() {
 							)}
 							</Button>
 						</DropdownMenuTrigger>
-							<DropdownMenuContent align="end" className="p-0">
+							<DropdownMenuContent 
+								align="end" 
+								className="p-0"
+								sideOffset={2}
+								onMouseEnter={() => {
+									if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+									setFavoritesDropdownOpen(true);
+								}}
+								onMouseLeave={() => {
+									favoritesTimeoutRef.current = setTimeout(() => setFavoritesDropdownOpen(false), 100);
+								}}
+							>
 								<FavoritesDropdown favorites={favoriteProperties} />
 							</DropdownMenuContent>
 						</DropdownMenu>

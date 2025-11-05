@@ -20,14 +20,14 @@ export function LanguageSwitcher() {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="ghost" size="sm" className="px-2">
+			<DropdownMenuTrigger asChild suppressHydrationWarning>
+				<Button variant="ghost" size="sm" className="px-2" suppressHydrationWarning>
 					<span className="text-2xl hover:scale-110 transition-transform">
 						{currentLang?.flag_emoji || "🌐"}
 					</span>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-48">
+			<DropdownMenuContent align="end" className="w-48" suppressHydrationWarning>
 				{languages.map((language) => (
 					<DropdownMenuItem
 						key={language.code}

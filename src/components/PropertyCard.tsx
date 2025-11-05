@@ -49,6 +49,7 @@ export type Property = {
 	lng: number;
 	description?: string;
 	features?: string[]; // Property features/amenities
+	show_exact_location?: boolean; // Controls map display: true = exact pin, false = 1km circle
 	imageUrl: string;
 	original_image?: string; // Original property photo (legacy)
 	ai_styles?: AIStyle[]; // AI-generated style variations (legacy)

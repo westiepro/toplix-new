@@ -206,6 +206,7 @@ export function PropertyImageManager({
 }: PropertyImageManagerProps) {
   const [newImageUrl, setNewImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   
   // Check if Cloudinary is configured
   const isCloudinaryConfigured = !!(
@@ -286,35 +287,30 @@ export function PropertyImageManager({
     toast.success("Image removed successfully");
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadSingleFile = async (file: File) => {
     if (images.length >= maxImages) {
       toast.error(`Maximum ${maxImages} images allowed`);
-      return;
+      return false;
     }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error("Please upload an image file");
-      return;
+      toast.error(`${file.name} is not an image file`);
+      return false;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("Image size must be less than 10MB");
-      return;
+      toast.error(`${file.name} is too large (max 10MB)`);
+      return false;
     }
-
-    setIsUploading(true);
 
     try {
       // Upload to Cloudinary
       const { url, publicId } = await uploadToCloudinary(file, 'properties');
       
       const newImage: PropertyImage = {
-        id: `img-${Date.now()}`,
+        id: `img-${Date.now()}-${Math.random()}`,
         url: url,
         publicId: publicId,
         display_order: images.length,
@@ -322,14 +318,88 @@ export function PropertyImageManager({
       };
 
       onChange([...images, newImage]);
-      toast.success("Image uploaded to Cloudinary!");
+      return true;
       
     } catch (error) {
       console.error("Upload failed:", error);
-      toast.error("Failed to upload image. Check Cloudinary configuration.");
-    } finally {
-      setIsUploading(false);
-      e.target.value = ""; // Reset file input
+      toast.error(`Failed to upload ${file.name}`);
+      return false;
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setIsUploading(true);
+    let successCount = 0;
+
+    for (const file of files) {
+      const success = await uploadSingleFile(file);
+      if (success) successCount++;
+    }
+
+    setIsUploading(false);
+    
+    if (successCount > 0) {
+      toast.success(`Successfully uploaded ${successCount} image(s)!`);
+    }
+    
+    e.target.value = ""; // Reset file input
+  };
+
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set to false if leaving the drop zone itself, not child elements
+    if (e.currentTarget === e.target) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+    if (imageFiles.length === 0) {
+      toast.error("Please drop image files only");
+      return;
+    }
+
+    const availableSlots = maxImages - images.length;
+    if (imageFiles.length > availableSlots) {
+      toast.error(`Can only add ${availableSlots} more image(s)`);
+      return;
+    }
+
+    setIsUploading(true);
+    let successCount = 0;
+
+    for (const file of imageFiles) {
+      const success = await uploadSingleFile(file);
+      if (success) successCount++;
+    }
+
+    setIsUploading(false);
+
+    if (successCount > 0) {
+      toast.success(`Successfully uploaded ${successCount} image(s)!`);
     }
   };
 
@@ -344,8 +414,29 @@ export function PropertyImageManager({
         </div>
       </div>
 
-      {/* Add Image Section */}
-      <div className="space-y-3 p-4 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+      {/* Add Image Section with Drag & Drop */}
+      <div 
+        className={`relative space-y-3 p-4 rounded-lg border-2 border-dashed transition-all ${
+          isDragging 
+            ? 'bg-blue-50 border-blue-400 scale-[1.02]' 
+            : 'bg-gray-50 border-gray-300'
+        }`}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        {/* Drag & Drop Overlay */}
+        {isDragging && (
+          <div className="absolute inset-0 bg-blue-500/10 rounded-lg flex items-center justify-center z-10 pointer-events-none">
+            <div className="text-center p-8 bg-white/90 rounded-xl shadow-lg backdrop-blur-sm">
+              <Upload className="h-16 w-16 text-blue-600 mx-auto mb-3 animate-bounce" />
+              <p className="text-xl font-bold text-blue-900 mb-1">Drop images here</p>
+              <p className="text-sm text-blue-700">Upload multiple images at once</p>
+            </div>
+          </div>
+        )}
+
         {/* URL Input */}
         <div className="flex gap-2">
           <Input
@@ -377,6 +468,7 @@ export function PropertyImageManager({
               <Input
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleFileUpload}
                 disabled={isUploading || images.length >= maxImages}
                 className="cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
@@ -390,6 +482,12 @@ export function PropertyImageManager({
                 </div>
               </div>
             )}
+            {/* Drag & Drop Hint */}
+            <div className="mt-2 text-center">
+              <p className="text-xs text-gray-500">
+                Or drag and drop images here to upload
+              </p>
+            </div>
           </div>
         ) : (
           <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-md">
@@ -464,4 +562,3 @@ export function PropertyImageManager({
     </div>
   );
 }
-

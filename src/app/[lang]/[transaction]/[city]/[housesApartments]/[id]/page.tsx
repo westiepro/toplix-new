@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/Navbar";
 import { MapView } from "@/components/MapView";
+import { FuzzyLocationMap } from "@/components/FuzzyLocationMap";
 import type { Property, PropertyImage } from "@/components/PropertyCard";
 import { Bed, Bath, Maximize, MapPin, Check } from "lucide-react";
 import { PropertyImageGallery } from "@/components/PropertyImageGallery";
@@ -46,6 +47,7 @@ async function getProperty(id: string): Promise<Property | null> {
 				description,
 				features,
 				status,
+				show_exact_location,
 				property_images(
 					id,
 					image_url,
@@ -113,6 +115,7 @@ async function getProperty(id: string): Promise<Property | null> {
 			lat: property.lat,
 			lng: property.lng,
 			description: property.description,
+			show_exact_location: property.show_exact_location,
 			imageUrl: galleryImages[0]?.image_url || allImages[0]?.image_url || 'https://via.placeholder.com/800x600?text=No+Image',
 			images: galleryImages,
 			originalImage: originalImage?.image_url,
@@ -424,7 +427,15 @@ export default async function PropertyPage({
 				<div className="bg-white rounded-lg p-6 shadow-sm">
 					<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("map.location")}</h2>
 					<div className="h-[400px] rounded-lg overflow-hidden">
-						<MapView properties={[property]} />
+						{(property as any).show_exact_location === false ? (
+							<FuzzyLocationMap 
+								lat={property.lat} 
+								lng={property.lng} 
+								radius={2000} 
+							/>
+						) : (
+							<MapView properties={[property]} />
+						)}
 					</div>
 				</div>
 			</div>
