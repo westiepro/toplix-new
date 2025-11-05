@@ -9,6 +9,7 @@ import { PropertyPageClient } from "@/components/PropertyPageClient";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from '@supabase/supabase-js';
 import { getTranslations } from "@/lib/get-translations";
+import { getPropertyTranslation } from "@/lib/property-translation-helper";
 import type { Locale } from "@/lib/i18n-config";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -244,6 +245,12 @@ export default async function PropertyPage({
 		notFound();
 	}
 
+	// Fetch property description translation for current language
+	const propertyTranslation = await getPropertyTranslation(property.id, lang);
+	
+	// Use translated description if available, otherwise use original
+	const displayDescription = propertyTranslation?.description || property.description;
+
 	// Validate URL segments match property data (optional - can be disabled for flexibility)
 	// Uncomment to enable strict URL validation:
 	/*
@@ -350,17 +357,8 @@ export default async function PropertyPage({
 						<div className="bg-white rounded-lg p-6 shadow-sm">
 							<h2 className="text-2xl font-bold text-gray-900 mb-4">{t("propertyDetail.aboutThisProperty")}</h2>
 							<div className="text-gray-700 leading-relaxed space-y-3">
-								<p>
-									{property.description || `This stunning ${property.property_type?.toLowerCase() || "property"} offers luxurious living in the heart of ${property.city}. With ${property.beds} bedrooms and ${property.baths} bathrooms, this property combines modern design with exceptional comfort.`}
-								</p>
-								<p>
-									The property features high-end finishes throughout, spacious living areas with abundant natural light, and a modern kitchen equipped with premium appliances. The master bedroom includes an en-suite bathroom and access to a large terrace with breathtaking views.
-								</p>
-								<p>
-									Located in a prime area, you'll be just steps away from boutiques, restaurants, nightlife, beautiful beaches, and world-class golf courses. This property also offers excellent rental income potential.
-								</p>
-								<p>
-									Additional amenities include 24-hour concierge service, a communal pool, landscaped gardens, underground parking, storage space, and high-quality construction throughout.
+								<p className="whitespace-pre-wrap">
+									{displayDescription || `This stunning ${property.property_type?.toLowerCase() || "property"} offers luxurious living in the heart of ${property.city}. With ${property.beds} bedrooms and ${property.baths} bathrooms, this property combines modern design with exceptional comfort.`}
 								</p>
 							</div>
 						</div>
