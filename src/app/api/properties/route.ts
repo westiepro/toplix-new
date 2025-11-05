@@ -353,7 +353,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Limit results to prevent overwhelming the client
-    query = query.limit(200);
+    query = query.limit(1000);
 
     // Execute query
     const { data, error } = await query;
