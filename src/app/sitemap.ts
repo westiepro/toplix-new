@@ -15,7 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		'',
 		'/homes',
 		'/homes-enhanced',
-		'/dashboard',
+		'/user-dashboard',
 		'/auth',
 	];
 

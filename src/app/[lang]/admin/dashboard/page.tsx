@@ -22,7 +22,7 @@ import {
 	Legend, 
 	ResponsiveContainer 
 } from "recharts";
-import { Download, Eye, TrendingUp, Home, Users } from "lucide-react";
+import { Download, Eye, TrendingUp, Home, Users, Building2, UserCircle } from "lucide-react";
 
 // Mock data
 const visitorsData = [
@@ -72,7 +72,7 @@ const agentPerformance = [
 ];
 
 export default function AdminDashboard() {
-	const [dateRange, setDateRange] = useState("30");
+	const [dateRange, setDateRange] = useState("all");
 
 	const stats = useMemo(() => {
 		const totalVisitors = visitorsData.reduce((sum, d) => sum + d.visitors, 0);
@@ -84,7 +84,8 @@ export default function AdminDashboard() {
 			totalVisitors,
 			totalPageViews,
 			totalProperties: 60,
-			totalAgents: 4,
+			totalCompanies: 12,
+			totalUsers: 450,
 			avgPrice,
 			avgViews: Math.round(avgViews),
 		};
@@ -106,6 +107,7 @@ export default function AdminDashboard() {
 							<SelectValue placeholder="Date range" />
 						</SelectTrigger>
 						<SelectContent>
+							<SelectItem value="all">All time</SelectItem>
 							<SelectItem value="7">Last 7 days</SelectItem>
 							<SelectItem value="30">Last 30 days</SelectItem>
 							<SelectItem value="90">Last 90 days</SelectItem>
@@ -119,7 +121,7 @@ export default function AdminDashboard() {
 			</div>
 
 			{/* Stats Grid */}
-			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
 				<Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium">Total Visitors</CardTitle>
@@ -167,15 +169,30 @@ export default function AdminDashboard() {
 
 				<Card className="border-l-4 border-l-orange-500 bg-gradient-to-br from-orange-50 to-white dark:from-orange-950/20 dark:to-background">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-						<CardTitle className="text-sm font-medium">Active Agents</CardTitle>
+						<CardTitle className="text-sm font-medium">Total Companies</CardTitle>
 						<div className="p-2 bg-orange-500/10 rounded-lg">
-							<Users className="h-5 w-5 text-orange-600" />
+							<Building2 className="h-5 w-5 text-orange-600" />
 						</div>
 					</CardHeader>
 					<CardContent>
-						<div className="text-3xl font-bold text-orange-600">{stats.totalAgents}</div>
+						<div className="text-3xl font-bold text-orange-600">{stats.totalCompanies}</div>
 						<p className="text-xs text-muted-foreground mt-1">
-							<span className="text-green-600 font-semibold">100%</span> active
+							<span className="text-green-600 font-semibold">+2</span> new this month
+						</p>
+					</CardContent>
+				</Card>
+
+				<Card className="border-l-4 border-l-cyan-500 bg-gradient-to-br from-cyan-50 to-white dark:from-cyan-950/20 dark:to-background">
+					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+						<CardTitle className="text-sm font-medium">Total Users</CardTitle>
+						<div className="p-2 bg-cyan-500/10 rounded-lg">
+							<UserCircle className="h-5 w-5 text-cyan-600" />
+						</div>
+					</CardHeader>
+					<CardContent>
+						<div className="text-3xl font-bold text-cyan-600">{stats.totalUsers}</div>
+						<p className="text-xs text-muted-foreground mt-1">
+							<span className="text-green-600 font-semibold">+23</span> new this week
 						</p>
 					</CardContent>
 				</Card>

@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS properties (
     baths INTEGER NOT NULL,
     area INTEGER NOT NULL, -- in square feet
     property_type TEXT NOT NULL DEFAULT 'Apartment',
+    company TEXT, -- Real estate company that the property belongs to
     transaction_type TEXT NOT NULL DEFAULT 'buy' CHECK (transaction_type IN ('buy', 'rent')),
     lat DOUBLE PRECISION NOT NULL,
     lng DOUBLE PRECISION NOT NULL,
@@ -58,6 +59,7 @@ CREATE INDEX IF NOT EXISTS idx_properties_property_type ON properties(property_t
 CREATE INDEX IF NOT EXISTS idx_properties_transaction_type ON properties(transaction_type);
 CREATE INDEX IF NOT EXISTS idx_properties_url_slug_id ON properties(url_slug_id);
 CREATE INDEX IF NOT EXISTS idx_properties_status ON properties(status);
+CREATE INDEX IF NOT EXISTS idx_properties_company ON properties(company);
 CREATE INDEX IF NOT EXISTS idx_property_images_property_id ON property_images(property_id);
 CREATE INDEX IF NOT EXISTS idx_property_images_featured ON property_images(is_featured);
 CREATE INDEX IF NOT EXISTS idx_property_images_style ON property_images(style_name);

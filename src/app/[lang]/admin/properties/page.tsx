@@ -28,6 +28,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { PropertyImageManager, type PropertyImage } from "@/components/admin/PropertyImageManager";
+import { generateFallbackPropertyUrl } from "@/lib/generate-property-url";
 import { LocationMapPicker } from "@/components/admin/LocationMapPicker";
 import { toast } from "sonner";
 
@@ -40,6 +41,7 @@ const propertySchema = z.object({
 	baths: z.number().min(0),
 	area: z.number().min(0),
 	type: z.string().min(1),
+	company: z.string().optional(),
 	lat: z.number().min(-90).max(90, "Invalid latitude"),
 	lng: z.number().min(-180).max(180, "Invalid longitude"),
 	description: z.string().optional(),
@@ -58,6 +60,7 @@ interface Property {
 	baths: number;
 	area: number;
 	property_type: string;
+	company?: string;
 	lat: number;
 	lng: number;
 	description?: string;
@@ -71,7 +74,7 @@ interface Property {
 	}>;
 }
 
-type SortColumn = 'address' | 'city' | 'price' | 'type' | 'beds' | 'baths' | 'status';
+type SortColumn = 'address' | 'city' | 'price' | 'type' | 'company' | 'beds' | 'baths' | 'status';
 type SortDirection = 'asc' | 'desc' | null;
 
 /**
@@ -154,6 +157,7 @@ export default function PropertiesPage() {
 			baths: 2,
 			area: 1100,
 			type: "Apartment",
+			company: "",
 			lat: 37.1010,
 			lng: -8.6730,
 			description: "",
@@ -194,6 +198,10 @@ export default function PropertiesPage() {
 					case 'type':
 						aValue = a.property_type.toLowerCase();
 						bValue = b.property_type.toLowerCase();
+						break;
+					case 'company':
+						aValue = (a.company || '').toLowerCase();
+						bValue = (b.company || '').toLowerCase();
 						break;
 					case 'beds':
 						aValue = a.beds;
@@ -310,6 +318,7 @@ export default function PropertiesPage() {
 			baths: property.baths,
 			area: property.area,
 			type: property.property_type,
+			company: property.company || '',
 			lat: property.lat,
 			lng: property.lng,
 			description: property.description || '',
@@ -411,19 +420,19 @@ export default function PropertiesPage() {
 
 	return (
 		<div className="space-y-6">
-			<Breadcrumbs items={[{ label: "Properties" }]} />
+			<Breadcrumbs items={[{ label: "All Properties" }]} />
 
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 				<div>
-					<h1 className="text-3xl font-bold">Properties</h1>
-					<p className="text-muted-foreground">Manage your property listings</p>
+					<h1 className="text-3xl font-bold">All Properties</h1>
+					<p className="text-muted-foreground">View details from all properties on the website</p>
 				</div>
 				<div className="flex gap-2">
-					<Button variant="outline" onClick={() => handleExport("csv")}>
+					<Button variant="outline" onClick={() => handleExport("csv")} className="border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
 						<Download className="h-4 w-4 mr-2" />
 						Export CSV
 					</Button>
-					<Button variant="outline" onClick={() => handleExport("pdf")}>
+					<Button variant="outline" onClick={() => handleExport("pdf")} className="border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800">
 						<FileDown className="h-4 w-4 mr-2" />
 						Export PDF
 					</Button>
@@ -438,6 +447,7 @@ export default function PropertiesPage() {
 							baths: 2,
 							area: 1100,
 							type: "Apartment",
+							company: "",
 							lat: 37.1010,
 							lng: -8.6730,
 							description: "",
@@ -445,19 +455,34 @@ export default function PropertiesPage() {
 						}); 
 						setPropertyImages([]); 
 						setIsDialogOpen(true);
-					}}>
+					}} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30">
 						<Plus className="h-4 w-4 mr-2" />
 						Add Property
 					</Button>
 					<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
 						<DialogContent className="!max-w-[80vw] !w-[80vw] max-h-[90vh] overflow-y-auto">
 							<DialogHeader>
-								<DialogTitle>{editingProperty ? "Edit Property" : "Add New Property"}</DialogTitle>
-								<DialogDescription>
-									{editingProperty ? "Update property information and images" : "Create a new property listing with images"}
-								</DialogDescription>
+								<div className="flex items-start justify-between">
+									<div>
+										<DialogTitle>{editingProperty ? "Edit Property" : "Add New Property"}</DialogTitle>
+										<DialogDescription>
+											{editingProperty ? "Update property information and images" : "Create a new property listing with images"}
+										</DialogDescription>
+									</div>
+									<div className="flex gap-2">
+										<Button type="button" variant="outline" onClick={() => {
+											setIsDialogOpen(false);
+											setPropertyImages([]);
+										}}>
+											Cancel
+										</Button>
+										<Button type="submit" form="property-form" className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white">
+											Save Property
+										</Button>
+									</div>
+								</div>
 							</DialogHeader>
-							<form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+							<form id="property-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
 								<div className="grid grid-cols-2 gap-4">
 									{/* Location Map Picker - replaces address, city, country, lat, lng fields */}
 									<div className="col-span-2">
@@ -503,6 +528,14 @@ export default function PropertiesPage() {
 												<SelectItem value="Commercial">Commercial</SelectItem>
 											</SelectContent>
 										</Select>
+									</div>
+									<div className="space-y-2">
+										<label className="text-sm font-medium">Company</label>
+										<Input 
+											{...register("company")} 
+											placeholder="Real Estate Company Name" 
+										/>
+										<p className="text-xs text-muted-foreground">Which company this property belongs to (optional)</p>
 									</div>
 									<div className="space-y-2">
 										<label className="text-sm font-medium">Bedrooms</label>
@@ -594,17 +627,6 @@ export default function PropertiesPage() {
 										maxImages={8}
 									/>
 								</div>
-
-								{/* Form Actions */}
-								<div className="flex justify-end gap-2 border-t pt-4">
-									<Button type="button" variant="outline" onClick={() => {
-										setIsDialogOpen(false);
-										setPropertyImages([]);
-									}}>
-										Cancel
-									</Button>
-									<Button type="submit">Save Property</Button>
-								</div>
 							</form>
 						</DialogContent>
 					</Dialog>
@@ -612,20 +634,20 @@ export default function PropertiesPage() {
 			</div>
 
 			{/* Filters */}
-			<Card>
+			<Card className="shadow-md border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
 				<CardContent className="pt-6">
 					<div className="flex flex-col sm:flex-row gap-4">
 						<div className="relative flex-1">
-							<Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+							<Search className="absolute left-3 top-3 h-4 w-4 text-emerald-500" />
 							<Input
 								placeholder="Search properties..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="pl-10"
+								className="pl-10 border-slate-300 dark:border-slate-700 focus:ring-emerald-500 focus:border-emerald-500"
 							/>
 						</div>
 						<Select value={cityFilter} onValueChange={setCityFilter}>
-							<SelectTrigger className="w-[180px]">
+							<SelectTrigger className="w-[180px] border-slate-300 dark:border-slate-700">
 								<SelectValue placeholder="All Cities" />
 							</SelectTrigger>
 							<SelectContent>
@@ -636,7 +658,7 @@ export default function PropertiesPage() {
 							</SelectContent>
 						</Select>
 					<Select value={typeFilter} onValueChange={setTypeFilter}>
-						<SelectTrigger className="w-[180px]">
+						<SelectTrigger className="w-[180px] border-slate-300 dark:border-slate-700">
 							<SelectValue placeholder="All Types" />
 						</SelectTrigger>
 						<SelectContent>
@@ -647,7 +669,7 @@ export default function PropertiesPage() {
 						</SelectContent>
 					</Select>
 					<Select value={statusFilter} onValueChange={setStatusFilter}>
-						<SelectTrigger className="w-[180px]">
+						<SelectTrigger className="w-[180px] border-slate-300 dark:border-slate-700">
 							<SelectValue placeholder="All Status" />
 						</SelectTrigger>
 						<SelectContent>
@@ -677,9 +699,11 @@ export default function PropertiesPage() {
 			</Card>
 
 			{/* Properties Table */}
-			<Card>
-				<CardHeader>
-					<CardTitle>All Properties ({filteredProperties.length})</CardTitle>
+			<Card className="shadow-lg border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+				<CardHeader className="border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800">
+					<CardTitle className="text-emerald-900 dark:text-emerald-100">
+						All Properties ({filteredProperties.length})
+					</CardTitle>
 				</CardHeader>
 				<CardContent>
 					{isLoading ? (
@@ -727,6 +751,15 @@ export default function PropertiesPage() {
 									</TableHead>
 									<TableHead>
 										<button
+											onClick={() => handleSort('company')}
+											className="flex items-center gap-2 hover:text-foreground transition-colors"
+										>
+											Company
+											{getSortIcon('company')}
+										</button>
+									</TableHead>
+									<TableHead>
+										<button
 											onClick={() => handleSort('beds')}
 											className="flex items-center gap-2 hover:text-foreground transition-colors"
 										>
@@ -758,15 +791,15 @@ export default function PropertiesPage() {
 							<TableBody>
 								{filteredProperties.length === 0 ? (
 									<TableRow>
-										<TableCell colSpan={9} className="text-center text-muted-foreground">
+										<TableCell colSpan={10} className="text-center text-muted-foreground">
 											No properties found
 										</TableCell>
 									</TableRow>
 								) : (
 									filteredProperties.map((property) => (
-										<TableRow key={property.id}>
+										<TableRow key={property.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
 											<TableCell>
-												<div className="relative w-20 h-14 rounded overflow-hidden bg-gray-100">
+												<div className="relative w-20 h-14 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700">
 													{property.imageUrl ? (
 														<Image
 															src={property.imageUrl}
@@ -776,35 +809,42 @@ export default function PropertiesPage() {
 															sizes="80px"
 														/>
 													) : (
-														<div className="flex items-center justify-center h-full text-xs text-gray-400">
+														<div className="flex items-center justify-center h-full text-xs text-slate-400">
 															No image
 														</div>
 													)}
 												</div>
 											</TableCell>
-											<TableCell className="font-medium">
+											<TableCell className="font-semibold text-slate-900 dark:text-slate-100">
 												{formatAddressDisplay(property.address, property.city)}
 											</TableCell>
-											<TableCell>{property.city}</TableCell>
-											<TableCell>€{property.price.toLocaleString()}</TableCell>
-											<TableCell>{property.property_type}</TableCell>
-											<TableCell>{property.beds}</TableCell>
-											<TableCell>{property.baths}</TableCell>
+											<TableCell className="text-slate-700 dark:text-slate-300">{property.city}</TableCell>
+											<TableCell className="font-semibold text-emerald-600 dark:text-emerald-400">€{property.price.toLocaleString()}</TableCell>
+											<TableCell>
+												<span className="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">
+													{property.property_type}
+												</span>
+											</TableCell>
+											<TableCell className="text-slate-700 dark:text-slate-300">
+												{property.company || <span className="text-slate-400 italic">Not assigned</span>}
+											</TableCell>
+											<TableCell className="text-slate-700 dark:text-slate-300">{property.beds}</TableCell>
+											<TableCell className="text-slate-700 dark:text-slate-300">{property.baths}</TableCell>
 											<TableCell>
 												{property.status === 'active' ? (
-													<Badge className="bg-green-500 hover:bg-green-600 text-white">
+													<Badge className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm">
 														Active
 													</Badge>
 												) : (
-													<Badge variant="secondary" className="bg-gray-400 hover:bg-gray-500 text-white">
+													<Badge variant="secondary" className="bg-slate-400 hover:bg-slate-500 text-white shadow-sm">
 														Inactive
 													</Badge>
 												)}
 											</TableCell>
 											<TableCell className="text-right">
-												<div className="flex justify-end gap-2">
-													<Button variant="ghost" size="icon" asChild>
-														<a href={`/en/property/${property.id}`} target="_blank">
+												<div className="flex justify-end gap-1">
+													<Button variant="ghost" size="icon" asChild className="hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600 dark:hover:text-blue-400">
+														<a href={generateFallbackPropertyUrl(property, 'en')} target="_blank">
 															<Eye className="h-4 w-4" />
 														</a>
 													</Button>
@@ -812,6 +852,7 @@ export default function PropertiesPage() {
 														variant="ghost" 
 														size="icon"
 														onClick={() => handleEdit(property)}
+														className="hover:bg-emerald-50 dark:hover:bg-emerald-950 hover:text-emerald-600 dark:hover:text-emerald-400"
 													>
 														<Edit className="h-4 w-4" />
 													</Button>
@@ -819,7 +860,7 @@ export default function PropertiesPage() {
 														variant="ghost" 
 														size="icon"
 														onClick={() => handleDeleteClick(property)}
-														className="text-destructive hover:text-destructive hover:bg-destructive/10"
+														className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
 													>
 														<Trash2 className="h-4 w-4" />
 													</Button>

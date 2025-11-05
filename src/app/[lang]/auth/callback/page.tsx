@@ -31,7 +31,7 @@ export default function AuthCallbackPage() {
 				if (data.session) {
 					// Successfully authenticated! Redirect to dashboard
 					console.log("Auth callback successful, redirecting to dashboard");
-					router.push("/dashboard");
+					router.push("/user-dashboard");
 				} else {
 					// No session found
 					console.warn("No session found in auth callback");

@@ -33,14 +33,44 @@ export default function AdminLoginPage() {
 
 	const onSubmit = async (data: LoginForm) => {
 		setIsLoading(true);
-		// TODO: Implement actual authentication
-		// For now, just redirect to dashboard
-		setTimeout(() => {
-			// Store simple auth in localStorage (replace with proper auth in production)
+		
+		try {
+			const response = await fetch('/api/auth/login', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(data),
+			});
+
+			const result = await response.json();
+
+			if (!response.ok) {
+				// Show error message
+				const errorDiv = document.getElementById('login-error');
+				if (errorDiv) {
+					errorDiv.textContent = result.error || 'Login failed';
+					errorDiv.classList.remove('hidden');
+				}
+				setIsLoading(false);
+				return;
+			}
+
+			// Store authentication info
 			localStorage.setItem("admin-authenticated", "true");
+			localStorage.setItem("admin-user", JSON.stringify(result.admin));
+			
+			// Redirect to dashboard
 			router.push(`/${currentLanguage}/admin/dashboard`);
+		} catch (error) {
+			console.error('Login error:', error);
+			const errorDiv = document.getElementById('login-error');
+			if (errorDiv) {
+				errorDiv.textContent = 'Failed to connect to server';
+				errorDiv.classList.remove('hidden');
+			}
 			setIsLoading(false);
-		}, 500);
+		}
 	};
 
 	return (
@@ -58,6 +88,9 @@ export default function AdminLoginPage() {
 					</CardHeader>
 					<CardContent>
 						<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+							{/* Error Message */}
+							<div id="login-error" className="hidden bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm"></div>
+							
 							<div className="space-y-2">
 								<label htmlFor="email" className="text-sm font-medium">
 									Email
@@ -102,7 +135,8 @@ export default function AdminLoginPage() {
 						</form>
 
 						<div className="mt-4 text-center text-sm text-muted-foreground">
-							<p>Demo: Use any email and password to login</p>
+							<p>Use your admin credentials to login</p>
+							<p className="text-xs mt-1">Default: admin@example.com (check database for password)</p>
 						</div>
 					</CardContent>
 				</Card>

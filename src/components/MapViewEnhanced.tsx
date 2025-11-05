@@ -202,7 +202,7 @@ export function MapView({
       el.style.cursor = "pointer";
       
       const inner = document.createElement("div");
-      inner.className = "rounded-md bg-[#198754] text-white text-xs font-semibold shadow-lg px-2 py-1 transition-all duration-200";
+      inner.className = "rounded-md bg-blue-600 text-white text-xs font-semibold shadow-lg px-2 py-1 transition-all duration-200";
       inner.textContent = formatPriceShort(p.price);
       inner.style.transformOrigin = "bottom center";
       inner.style.willChange = "transform";
@@ -248,7 +248,7 @@ export function MapView({
       
       inner.style.transform = shouldHighlight ? "scale(1.15)" : isSelected ? "scale(1.1)" : "scale(1)";
       inner.className = `rounded-md text-white text-xs font-semibold shadow-lg px-2 py-1 transition-all duration-200 ${
-        shouldHighlight || isSelected ? 'bg-[#0d6efd]' : 'bg-[#198754]'
+        shouldHighlight || isSelected ? 'bg-blue-700' : 'bg-blue-600'
       }`;
     }
 
@@ -335,7 +335,7 @@ export function MapView({
             ${selectedProperty.beds} bd · ${selectedProperty.baths} ba · ${selectedProperty.area} m²
           </div>
           <div class="flex items-center gap-2 mb-3">
-            <button class="flex-1 bg-[#198754] hover:bg-[#157347] text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
+            <button class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors">
               View details
             </button>
             <button class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Add to favorites">

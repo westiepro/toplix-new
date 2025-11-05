@@ -174,6 +174,56 @@ export default function AnalyticsPage() {
 				</div>
 			</div>
 
+			{/* Enhanced Tabs - Moved to Top */}
+			<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+				<TabsList className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm p-2 h-auto grid w-full grid-cols-5 gap-2 rounded-xl border-2 border-slate-200 dark:border-slate-800 shadow-lg">
+					<TabsTrigger 
+						value="traffic" 
+						className="h-16 data-[state=active]:bg-gradient-to-br data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-blue-500/30 data-[state=active]:scale-[1.02] transition-all duration-200 rounded-lg font-semibold text-base hover:bg-slate-100 dark:hover:bg-slate-800"
+					>
+						<div className="flex flex-col items-center gap-1">
+							<Activity className="h-5 w-5" />
+							<span>Traffic</span>
+						</div>
+					</TabsTrigger>
+					<TabsTrigger 
+						value="properties" 
+						className="h-16 data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-purple-500/30 data-[state=active]:scale-[1.02] transition-all duration-200 rounded-lg font-semibold text-base hover:bg-slate-100 dark:hover:bg-slate-800"
+					>
+						<div className="flex flex-col items-center gap-1">
+							<Home className="h-5 w-5" />
+							<span>Properties</span>
+						</div>
+					</TabsTrigger>
+					<TabsTrigger 
+						value="behavior" 
+						className="h-16 data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-green-500/30 data-[state=active]:scale-[1.02] transition-all duration-200 rounded-lg font-semibold text-base hover:bg-slate-100 dark:hover:bg-slate-800"
+					>
+						<div className="flex flex-col items-center gap-1">
+							<MousePointer className="h-5 w-5" />
+							<span>Behavior</span>
+						</div>
+					</TabsTrigger>
+					<TabsTrigger 
+						value="geography" 
+						className="h-16 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-orange-500/30 data-[state=active]:scale-[1.02] transition-all duration-200 rounded-lg font-semibold text-base hover:bg-slate-100 dark:hover:bg-slate-800"
+					>
+						<div className="flex flex-col items-center gap-1">
+							<Globe className="h-5 w-5" />
+							<span>Geography</span>
+						</div>
+					</TabsTrigger>
+					<TabsTrigger 
+						value="technology" 
+						className="h-16 data-[state=active]:bg-gradient-to-br data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-xl data-[state=active]:shadow-indigo-500/30 data-[state=active]:scale-[1.02] transition-all duration-200 rounded-lg font-semibold text-base hover:bg-slate-100 dark:hover:bg-slate-800"
+					>
+						<div className="flex flex-col items-center gap-1">
+							<Monitor className="h-5 w-5" />
+							<span>Technology</span>
+						</div>
+					</TabsTrigger>
+				</TabsList>
+
 			{/* KPI Cards */}
 			<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 				<Card className="border-l-4 border-l-blue-500 bg-gradient-to-br from-blue-50 to-white dark:from-blue-950/20 dark:to-background">
@@ -267,26 +317,6 @@ export default function AnalyticsPage() {
 					</CardHeader>
 				</Card>
 			)}
-
-			{/* Tabs for different analytics views */}
-			<Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-				<TabsList className="bg-muted/50 p-1 grid w-full grid-cols-5">
-					<TabsTrigger value="traffic" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
-						Traffic
-					</TabsTrigger>
-					<TabsTrigger value="properties" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
-						Properties
-					</TabsTrigger>
-					<TabsTrigger value="behavior" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-500 data-[state=active]:text-white">
-						Behavior
-					</TabsTrigger>
-					<TabsTrigger value="geography" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
-						Geography
-					</TabsTrigger>
-					<TabsTrigger value="technology" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-500 data-[state=active]:to-purple-500 data-[state=active]:text-white">
-						Technology
-					</TabsTrigger>
-				</TabsList>
 
 				{/* Traffic Tab */}
 				<TabsContent value="traffic" className="space-y-4">

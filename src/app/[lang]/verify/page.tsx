@@ -108,7 +108,7 @@ function VerifyContent() {
 			toast.success("Password set successfully! Redirecting...");
 			setIsVerified(true);
 			setTimeout(() => {
-				router.push("/dashboard");
+				router.push("/user-dashboard");
 			}, 1500);
 		}
 	};

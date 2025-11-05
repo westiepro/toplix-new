@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(
   request: NextRequest,
@@ -12,14 +12,14 @@ export async function GET(
     const params = await context.params;
     const { id } = params;
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
         { error: 'Database configuration missing' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch company
     const { data: company, error } = await supabase
@@ -72,14 +72,14 @@ export async function PUT(
     const { id } = params;
     const updates = await request.json();
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
         { error: 'Database configuration missing' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: company, error } = await supabase
       .from('companies')
@@ -89,8 +89,20 @@ export async function PUT(
       .single();
 
     if (error) {
+      console.error('Error updating company:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       return NextResponse.json(
-        { error: 'Failed to update company', details: error.message },
+        { 
+          error: 'Failed to update company', 
+          details: error.message,
+          hint: error.hint,
+          code: error.code
+        },
         { status: 500 }
       );
     }
@@ -116,14 +128,14 @@ export async function DELETE(
     const params = await context.params;
     const { id } = params;
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
         { error: 'Database configuration missing' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { error } = await supabase
       .from('companies')

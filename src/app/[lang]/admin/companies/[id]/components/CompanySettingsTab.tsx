@@ -35,14 +35,21 @@ export function CompanySettingsTab({ company, onUpdate, onDelete }: CompanySetti
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update status');
+        const errorData = await response.json();
+        console.error('Status update error:', errorData);
+        throw new Error(errorData.details || errorData.error || 'Failed to update status');
       }
 
-      toast.success(`Company ${newStatus === 'active' ? 'activated' : 'suspended'}`);
+      const result = await response.json();
+      console.log('Status updated successfully:', result);
+      
+      toast.success(`Company ${newStatus === 'active' ? 'activated' : 'suspended'}!`);
       onUpdate();
     } catch (error) {
       console.error('Error updating status:', error);
-      toast.error('Failed to update status');
+      toast.error('Failed to update status', {
+        description: error instanceof Error ? error.message : 'Please try again'
+      });
     }
   };
 
@@ -66,7 +73,9 @@ export function CompanySettingsTab({ company, onUpdate, onDelete }: CompanySetti
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete company');
+        const errorData = await response.json();
+        console.error('Delete error:', errorData);
+        throw new Error(errorData.details || errorData.error || 'Failed to delete company');
       }
 
       toast.success('Company deleted successfully');
@@ -74,7 +83,9 @@ export function CompanySettingsTab({ company, onUpdate, onDelete }: CompanySetti
       onDelete();
     } catch (error) {
       console.error('Error deleting company:', error);
-      toast.error('Failed to delete company');
+      toast.error('Failed to delete company', {
+        description: error instanceof Error ? error.message : 'Please try again'
+      });
     } finally {
       setIsDeleting(false);
     }

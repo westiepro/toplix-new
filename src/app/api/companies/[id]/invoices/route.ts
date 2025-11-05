@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 export async function GET(
   request: NextRequest,
@@ -12,14 +12,14 @@ export async function GET(
     const params = await context.params;
     const { id } = params;
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
         { error: 'Database configuration missing' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: invoices, error } = await supabase
       .from('company_invoices')
@@ -56,14 +56,14 @@ export async function POST(
     const { id } = params;
     const invoice = await request.json();
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !supabaseServiceKey) {
       return NextResponse.json(
         { error: 'Database configuration missing' },
         { status: 500 }
       );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Generate invoice number if not provided
     const invoiceNumber = invoice.invoice_number || `INV-${Date.now()}`;

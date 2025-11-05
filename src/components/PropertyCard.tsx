@@ -190,7 +190,7 @@ export function PropertyCard({ property, highlighted, position = 0, source = 'se
 	return (
 		<>
 			<Link href={propertyUrl} prefetch={true} onClick={handleCardClick}>
-				<Card className={`overflow-hidden transition hover:shadow-lg ${highlighted ? "ring-2 ring-green-600" : ""} p-0 gap-0`}>
+				<Card className={`overflow-hidden transition hover:shadow-lg ${highlighted ? "ring-2 ring-blue-600" : ""} p-0 gap-0`}>
 					<div 
 						className="relative h-72 w-full group"
 						onMouseEnter={() => setIsImageHovered(true)}

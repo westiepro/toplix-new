@@ -13,6 +13,8 @@ import ReactDOM from "react-dom/client";
 import { Heart, Share2 } from "lucide-react";
 import { trackMapInteraction } from "@/lib/analytics-events";
 import { formatPriceShort } from "@/lib/utils";
+import { generateFallbackPropertyUrl } from "@/lib/generate-property-url";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 type Bounds = { minLat: number; maxLat: number; minLng: number; maxLng: number };
 
@@ -33,6 +35,7 @@ export function MapView({
 	highlightedId?: string | null;
 	location?: { lat: number; lng: number; zoom: number } | null;
 }) {
+	const { currentLanguage } = useLanguage();
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const mapRef = useRef<mapboxgl.Map | maplibregl.Map | null>(null);
 	const markersRef = useRef<Record<string, mapboxgl.Marker | maplibregl.Marker>>({});
@@ -116,7 +119,7 @@ export function MapView({
 			el.style.cursor = "pointer";
 			// Inner node receives visual styles so we don't clobber map's transform on the root
 			const inner = document.createElement("div");
-			inner.className = "map-price-marker rounded-md bg-[#198754] text-white text-xs font-semibold shadow px-1.5 py-0.5";
+			inner.className = "map-price-marker rounded-md bg-blue-600 text-white text-xs font-semibold shadow px-1.5 py-0.5";
 			inner.textContent = formatPriceShort(p.price);
 			inner.style.transformOrigin = "bottom center";
 			inner.style.willChange = "transform";
@@ -277,6 +280,7 @@ export function MapView({
 		
 		const content = document.createElement("div");
 		content.className = "w-[220px] transition-opacity duration-200";
+		const propertyUrl = generateFallbackPropertyUrl(selectedProperty, currentLanguage);
 		content.style.opacity = "0";
 		content.innerHTML = `
 			<div class="relative rounded-md overflow-hidden shadow-lg bg-white text-black transition-all duration-200">
@@ -285,7 +289,7 @@ export function MapView({
 					<div class="text-sm font-semibold">${formatPriceShort(selectedProperty.price)}</div>
 					<div class="text-xs text-gray-600">${selectedProperty.address}, ${selectedProperty.city}</div>
 					<div class="text-xs">${selectedProperty.beds} bd · ${selectedProperty.baths} ba · ${selectedProperty.area} sqft</div>
-					<a href="/property/${selectedProperty.id}" class="inline-block mt-2 text-xs font-medium text-white bg-[#198754] px-2 py-1 rounded hover:bg-[#157347] transition-colors">View details</a>
+					<a href="${propertyUrl}" class="inline-block mt-2 text-xs font-medium text-white bg-blue-600 px-2 py-1 rounded hover:bg-blue-700 transition-colors">View details</a>
 				</div>
 				<button data-close class="absolute right-1 top-1 h-6 w-6 rounded-full bg-white/90 text-black text-xs hover:bg-white transition-colors">×</button>
 			</div>

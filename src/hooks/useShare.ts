@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { generateFallbackPropertyUrl } from "@/lib/generate-property-url";
+import type { Locale } from "@/lib/i18n-config";
 
 interface ShareProperty {
   id: string;
@@ -9,6 +11,8 @@ interface ShareProperty {
   city: string;
   price: number;
   country?: string;
+  transaction_type?: string;
+  url_slug_id?: string;
 }
 
 interface UseShareResult {
@@ -35,9 +39,10 @@ export function useShare(
 ): UseShareResult {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  // Construct the property URL
+  // Construct the property URL using the SEO-friendly URL generator
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-  const propertyUrl = `${baseUrl}/${lang}/property/${property.id}`;
+  const relativePath = generateFallbackPropertyUrl(property, lang as Locale);
+  const propertyUrl = `${baseUrl}${relativePath}`;
 
   // Share title and text (use translation if available)
   const shareTitle = `${property.address} ${t?.("share.inCity") || "in"} ${property.city}`;

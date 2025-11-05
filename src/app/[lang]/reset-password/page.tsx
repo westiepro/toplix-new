@@ -61,7 +61,7 @@ function ResetPasswordContent() {
 		} else {
 			toast.success("Password reset successfully! Redirecting to dashboard...");
 			setTimeout(() => {
-				router.push("/dashboard");
+				router.push("/user-dashboard");
 			}, 1500);
 		}
 	};

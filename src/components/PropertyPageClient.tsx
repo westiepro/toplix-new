@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Heart, Share2 } from "lucide-react";
 import { useFavoritesContext } from "@/contexts/FavoritesContext";
+import { useRecentlyViewedContext } from "@/contexts/RecentlyViewedContext";
 import { toast } from "sonner";
 import { useShare } from "@/hooks/useShare";
 import { ShareModal } from "@/components/ShareModal";
@@ -22,18 +23,24 @@ export function PropertyPageClient({ property }: PropertyPageClientProps) {
 	const { t } = useTranslation();
 	const { currentLanguage } = useLanguage();
 	const { isFavorite, addFavorite, removeFavorite } = useFavoritesContext();
+	const { addToRecentlyViewed } = useRecentlyViewedContext();
 	const { user, isGuest } = useAuth();
 	const [showLoginModal, setShowLoginModal] = useState(false);
 
 	// Track property view on mount
 	useEffect(() => {
+		// Track for analytics
 		trackPropertyView(
 			property.id,
 			property.address,
 			property.price,
 			property.city
 		);
-	}, [property.id, property.address, property.price, property.city]);
+		
+		// Add to recently viewed
+		addToRecentlyViewed(property.id);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [property.id]); // Only re-run when property ID changes
 
 	// Share functionality
 	const {

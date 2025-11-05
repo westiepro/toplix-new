@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LocaleLink } from "@/components/LocaleLink";
+import { generateFallbackPropertyUrl } from "@/lib/generate-property-url";
 
 type FavoritesDropdownProps = {
 	favorites: Property[];
@@ -38,7 +40,7 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 		<div className="w-96">
 			<div className="max-h-96 overflow-y-auto">
 				{displayFavorites.map((property) => {
-					const propertyUrl = `/${currentLanguage}/property/${property.id}`;
+					const propertyUrl = generateFallbackPropertyUrl(property, currentLanguage);
 					return (
 						<Link
 							key={property.id}
@@ -75,9 +77,11 @@ export function FavoritesDropdown({ favorites }: FavoritesDropdownProps) {
 				</div>
 			)}
 			<div className="p-3 border-t">
-				<Button variant="outline" className="w-full">
-					{t("favorites.viewAll")}
-				</Button>
+				<LocaleLink href="/user-dashboard?tab=favourites">
+					<Button variant="outline" className="w-full">
+						{t("favorites.viewAll")}
+					</Button>
+				</LocaleLink>
 			</div>
 		</div>
 	);

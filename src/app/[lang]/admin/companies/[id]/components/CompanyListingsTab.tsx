@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, Home, Loader2 } from "lucide-react";
 import type { Property } from "@/components/PropertyCard";
+import { generateFallbackPropertyUrl } from "@/lib/generate-property-url";
 
 interface CompanyListingsTabProps {
   companyId: string;
@@ -110,7 +111,7 @@ export function CompanyListingsTab({ companyId }: CompanyListingsTabProps) {
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/en/property/${listing.id}`} target="_blank">
+                      <Link href={generateFallbackPropertyUrl(listing, 'en')} target="_blank">
                         <Eye className="h-4 w-4" />
                       </Link>
                     </Button>

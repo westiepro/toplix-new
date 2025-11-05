@@ -17,7 +17,7 @@ export default function AuthPage() {
 			setMessage("Supabase keys missing. Add them to .env.local to enable auth.");
 			return;
 		}
-		const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined } });
+		const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: typeof window !== "undefined" ? `${window.location.origin}/user-dashboard` : undefined } });
 		setMessage(error ? error.message : "Check your email for a login link.");
 	}
 

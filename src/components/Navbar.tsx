@@ -55,8 +55,8 @@ export function Navbar() {
 	};
 
 	const handleDashboardClick = () => {
-		console.log("Dashboard clicked - navigating to /dashboard");
-		router.push(`/${currentLanguage}/dashboard`);
+		console.log("Dashboard clicked - navigating to /user-dashboard");
+		router.push(`/${currentLanguage}/user-dashboard`);
 	};
 
 	return (
@@ -90,7 +90,7 @@ export function Navbar() {
 										<p className="font-medium">{user.email}</p>
 									</div>
 									<DropdownMenuSeparator />
-									<LocaleLink href="/dashboard" className="block">
+									<LocaleLink href="/user-dashboard" className="block">
 										<DropdownMenuItem className="cursor-pointer">
 											{t("navbar.dashboard")}
 										</DropdownMenuItem>

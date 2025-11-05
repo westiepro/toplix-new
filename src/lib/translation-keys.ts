@@ -296,6 +296,32 @@ export const TRANSLATION_KEYS = {
 		browsingAsGuest: "login.browsingAsGuest",
 	},
 
+	// Dashboard
+	dashboard: {
+		title: "dashboard.title",
+		welcomeBack: "dashboard.welcomeBack",
+		signOut: "dashboard.signOut",
+		myFavourites: "dashboard.myFavourites",
+		savedSearches: "dashboard.savedSearches",
+		recentlyViewed: "dashboard.recentlyViewed",
+		inbox: "dashboard.inbox",
+		sellYourProperty: "dashboard.sellYourProperty",
+		settings: "dashboard.settings",
+		propertiesYouLove: "dashboard.propertiesYouLove",
+		beds: "dashboard.beds",
+		baths: "dashboard.baths",
+		sqft: "dashboard.sqft",
+		noFavourites: "dashboard.noFavourites",
+		noFavouritesDescription: "dashboard.noFavouritesDescription",
+		startBrowsing: "dashboard.startBrowsing",
+		noSavedSearches: "dashboard.noSavedSearches",
+		noSavedSearchesDescription: "dashboard.noSavedSearchesDescription",
+		createSearch: "dashboard.createSearch",
+		noRecentViews: "dashboard.noRecentViews",
+		noRecentViewsDescription: "dashboard.noRecentViewsDescription",
+		exploreProperties: "dashboard.exploreProperties",
+	},
+
 	// Common
 	common: {
 		loading: "common.loading",
@@ -336,7 +362,7 @@ export const ENGLISH_TRANSLATIONS: Record<string, string> = {
 	"navbar.myAccount": "My Account",
 	"navbar.signIn": "Sign In",
 	"navbar.signOut": "Sign Out",
-	"navbar.dashboard": "Dashboard",
+	"navbar.dashboard": "My Dashboard",
 	"navbar.guestBanner": "Browsing as guest - Sign in to save favorites and access all features",
 	"navbar.guestSignIn": "Sign In",
 
@@ -567,6 +593,30 @@ export const ENGLISH_TRANSLATIONS: Record<string, string> = {
 	"login.signedInSuccess": "Signed in successfully!",
 	"login.welcomeLoggedIn": "Welcome! You're now logged in.",
 	"login.browsingAsGuest": "Browsing as guest",
+
+	// Dashboard
+	"dashboard.title": "My Dashboard",
+	"dashboard.welcomeBack": "Welcome back",
+	"dashboard.signOut": "Sign Out",
+	"dashboard.myFavourites": "My Favourites",
+	"dashboard.savedSearches": "Saved Searches",
+	"dashboard.recentlyViewed": "Recently Viewed",
+	"dashboard.inbox": "Inbox",
+	"dashboard.sellYourProperty": "Sell your property",
+	"dashboard.settings": "Settings",
+	"dashboard.propertiesYouLove": "Properties you love",
+	"dashboard.beds": "beds",
+	"dashboard.baths": "baths",
+	"dashboard.sqft": "sq ft",
+	"dashboard.noFavourites": "No favourites yet",
+	"dashboard.noFavouritesDescription": "Start adding properties to your favourites to see them here",
+	"dashboard.startBrowsing": "Start Browsing",
+	"dashboard.noSavedSearches": "No saved searches",
+	"dashboard.noSavedSearchesDescription": "Save your search criteria to quickly find properties later",
+	"dashboard.createSearch": "Create Search",
+	"dashboard.noRecentViews": "No recently viewed properties",
+	"dashboard.noRecentViewsDescription": "Properties you view will appear here",
+	"dashboard.exploreProperties": "Explore Properties",
 
 	// Common
 	"common.loading": "Loading...",
