@@ -58,6 +58,8 @@ export function PropertyImageGallery({
             className="object-cover"
             sizes="(max-width: 1200px) 100vw, 1200px"
             priority
+            loading="eager"
+            unoptimized
           />
           {images.length > 1 && (
             <div className="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm text-gray-900 px-3 py-2 rounded-full shadow-md flex items-center gap-2">
