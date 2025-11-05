@@ -14,24 +14,6 @@ import type { Locale } from "@/lib/i18n-config";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Available property features (master list for admin selection)
-export const AVAILABLE_FEATURES = [
-	"marinaViews",
-	"undergroundParking",
-	"airConditioning",
-	"liftAccess",
-	"concierge24h",
-	"wineFridge",
-	"securitySystem",
-	"largeTerrace",
-	"storageRoom",
-	"doubleGlazing",
-	"frontLineLocation",
-	"communalPool",
-	"underfloorHeating",
-	"fiberInternet",
-] as const;
-
 // Fetch property data directly from Supabase
 async function getProperty(id: string): Promise<Property | null> {
 	try {
