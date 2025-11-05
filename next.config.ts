@@ -23,13 +23,17 @@ const nextConfig: NextConfig = {
 				protocol: "https",
 				hostname: "**.cloudinary.com",
 			},
-			{
-				protocol: "https",
-				hostname: "cdn.pixabay.com",
-			},
-		],
-		unoptimized: false,
-	},
+		{
+			protocol: "https",
+			hostname: "cdn.pixabay.com",
+		},
+		{
+			protocol: "https",
+			hostname: "images.pexels.com",
+		},
+	],
+	unoptimized: false,
+},
 };
 
 export default nextConfig;
