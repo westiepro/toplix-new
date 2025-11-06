@@ -12,7 +12,7 @@ export interface Property {
   baths: number;
   area: number;
   property_type?: string;
-  transaction_type?: string;
+  transaction_type?: 'buy' | 'rent';
   url_slug_id?: string;
   lat: number;
   lng: number;

@@ -45,6 +45,7 @@ const propertySchema = z.object({
 	baths: z.number().min(0),
 	area: z.number().min(0),
 	type: z.string().min(1),
+	transaction_type: z.enum(["buy", "rent"]),
 	company: z.string().optional(),
 	lat: z.number().min(-90).max(90, "Invalid latitude"),
 	lng: z.number().min(-180).max(180, "Invalid longitude"),
@@ -66,6 +67,7 @@ interface Property {
 	baths: number;
 	area: number;
 	property_type: string;
+	transaction_type?: 'buy' | 'rent';
 	company?: string;
 	lat: number;
 	lng: number;
@@ -164,6 +166,7 @@ export default function PropertiesPage() {
 			city: "Lagos",
 			country: "Portugal",
 			price: 350000,
+			transaction_type: "buy",
 			beds: 2,
 			baths: 2,
 			area: 1100,
@@ -390,6 +393,7 @@ export default function PropertiesPage() {
 			baths: property.baths,
 			area: property.area,
 			type: property.property_type,
+			transaction_type: (property.transaction_type as "buy" | "rent") || "buy",
 			company: property.company || '',
 			lat: property.lat,
 			lng: property.lng,
@@ -510,13 +514,14 @@ export default function PropertiesPage() {
 						<FileDown className="h-4 w-4 mr-2" />
 						Export PDF
 					</Button>
-					<Button onClick={() => { 
-						setEditingProperty(null); 
+					<Button 					onClick={() => {
+						setEditingProperty(null);
 						reset({
 							address: "Rua da Praia 45",
 							city: "Lagos",
 							country: "Portugal",
 							price: 350000,
+							transaction_type: "buy",
 							beds: 2,
 							baths: 2,
 							area: 1100,
@@ -526,7 +531,7 @@ export default function PropertiesPage() {
 							lng: -8.6730,
 							description: "",
 							status: "active",
-						}); 
+						});
 						setPropertyImages([]); 
 						setIsDialogOpen(true);
 					}} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30">
@@ -620,6 +625,18 @@ export default function PropertiesPage() {
 												<SelectItem value="Townhouse">Townhouse</SelectItem>
 												<SelectItem value="Land">Land</SelectItem>
 												<SelectItem value="Commercial">Commercial</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+									<div className="space-y-2">
+										<label className="text-sm font-medium">Transaction Type</label>
+										<Select value={watch("transaction_type")} onValueChange={(value) => setValue("transaction_type", value as "buy" | "rent")}>
+											<SelectTrigger>
+												<SelectValue placeholder="Select transaction type" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="buy">For Sale (Buy)</SelectItem>
+												<SelectItem value="rent">For Rent</SelectItem>
 											</SelectContent>
 										</Select>
 									</div>
@@ -881,6 +898,7 @@ export default function PropertiesPage() {
 											{getSortIcon('type')}
 										</button>
 									</TableHead>
+									<TableHead>Transaction</TableHead>
 									<TableHead>
 										<button
 											onClick={() => handleSort('company')}
@@ -923,7 +941,7 @@ export default function PropertiesPage() {
 							<TableBody>
 								{paginatedProperties.length === 0 ? (
 									<TableRow>
-										<TableCell colSpan={10} className="text-center text-muted-foreground">
+										<TableCell colSpan={11} className="text-center text-muted-foreground">
 											{filteredProperties.length === 0 ? 'No properties found' : 'No properties on this page'}
 										</TableCell>
 									</TableRow>
@@ -955,6 +973,15 @@ export default function PropertiesPage() {
 											<TableCell>
 												<span className="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">
 													{property.property_type}
+												</span>
+											</TableCell>
+											<TableCell>
+												<span className={`px-2 py-1 rounded-md text-xs font-medium ${
+													property.transaction_type === 'rent' 
+														? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' 
+														: 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+												}`}>
+													{property.transaction_type === 'rent' ? 'For Rent' : 'For Sale'}
 												</span>
 											</TableCell>
 											<TableCell className="text-slate-700 dark:text-slate-300">
