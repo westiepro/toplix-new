@@ -54,13 +54,13 @@ export function HeroSearch() {
 			params.set("zoom", "12");
 			params.set("q", location.name);
 			params.set("for", searchType);
-			router.push(`/homes?${params.toString()}`);
+			router.push(`/buy?${params.toString()}`);
 		} else if (query.trim()) {
 			// Otherwise just use the query text
 			const params = new URLSearchParams();
 			params.set("q", query.trim());
 			params.set("for", searchType);
-			router.push(`/homes?${params.toString()}`);
+			router.push(`/buy?${params.toString()}`);
 		}
 	}
 
@@ -98,7 +98,7 @@ export function HeroSearch() {
 						params.set("zoom", "12");
 						params.set("q", location.name);
 						params.set("for", searchType);
-						router.push(`/homes?${params.toString()}`);
+						router.push(`/buy?${params.toString()}`);
 					}, 0);
 				}
 				break;

@@ -212,7 +212,7 @@ function DashboardContent() {
 											Start browsing properties and click the heart icon to save your favourites here for easy access.
 										</p>
 										<Button asChild className="bg-blue-600 hover:bg-blue-700">
-											<a href="/homes">Browse Properties</a>
+											<a href="/buy">Browse Properties</a>
 										</Button>
 									</CardContent>
 								</Card>
@@ -237,7 +237,7 @@ function DashboardContent() {
 										Save your search criteria to quickly find properties that match your preferences.
 									</p>
 									<Button asChild variant="outline">
-										<a href="/homes">Create a Search</a>
+										<a href="/buy">Create a Search</a>
 									</Button>
 								</CardContent>
 							</Card>
@@ -276,7 +276,7 @@ function DashboardContent() {
 											Properties you view will appear here for quick access.
 										</p>
 										<Button asChild variant="outline">
-											<a href="/homes">Explore Properties</a>
+											<a href="/buy">Explore Properties</a>
 										</Button>
 									</CardContent>
 								</Card>

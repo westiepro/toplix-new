@@ -20,7 +20,7 @@ export default function CompanyNotFound() {
 							Back to Home
 						</Button>
 					</Link>
-					<Link href="/homes">
+					<Link href="/buy">
 						<Button size="lg" variant="outline">
 							Browse Properties
 						</Button>

@@ -181,7 +181,7 @@ async function addProperties() {
   }
 
   console.log('\n✨ Done! Added 5 properties with 25 total images.');
-  console.log('🌐 Check your site at http://localhost:3001/en/homes');
+  console.log('🌐 Check your site at http://localhost:3001/en/buy');
 }
 
 // Run the script

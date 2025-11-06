@@ -13,7 +13,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 	// Add static pages for all locales
 	const staticPages = [
 		'',
-		'/homes',
+		'/buy',
 		'/homes-enhanced',
 		'/user-dashboard',
 		'/auth',

@@ -72,12 +72,12 @@ export function Navbar() {
 						<span>{t("navbar.brand")}</span>
 					</LocaleLink>
 					<nav className="hidden items-center gap-6 md:flex">
-						<LocaleLink href="/homes" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.buy")}</LocaleLink>
-						<LocaleLink href="/homes?for=rent" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.rent")}</LocaleLink>
+						<LocaleLink href="/buy" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.buy")}</LocaleLink>
+						<LocaleLink href="/buy?for=rent" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.rent")}</LocaleLink>
 						<LocaleLink href="/sell" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.sell")}</LocaleLink>
 					</nav>
 					<div className="flex items-center gap-2">
-						<LocaleLink href="/homes">
+						<LocaleLink href="/buy">
 							<Button variant="secondary" size="sm" className="gap-2"><Map className="h-4 w-4" /> {t("navbar.explore")}</Button>
 						</LocaleLink>
 						
