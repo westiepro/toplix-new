@@ -6,7 +6,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { getTranslations } from "@/lib/get-translations";
 import { locales, localeNames, localeFlags, type Locale } from "@/lib/i18n-config";
 import { createClient } from "@supabase/supabase-js";
-import PlausibleProvider from "next-plausible";
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -89,15 +89,6 @@ export default async function LocaleLayout({
 
 	return (
 		<html lang={validLang} suppressHydrationWarning>
-			<head>
-				<PlausibleProvider
-					domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN || "localhost"}
-					customDomain={process.env.NEXT_PUBLIC_PLAUSIBLE_URL}
-					trackOutboundLinks
-					trackFileDownloads
-					enabled={!!process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
-				/>
-			</head>
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
@@ -110,6 +101,11 @@ export default async function LocaleLayout({
 						{children}
 					</LanguageProvider>
 				</Providers>
+				
+				{/* Google Analytics 4 */}
+				{process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+					<GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+				)}
 			</body>
 		</html>
 	);

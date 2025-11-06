@@ -1,11 +1,5 @@
-// Analytics event tracking utilities for Plausible
+// Analytics event tracking utilities for Google Analytics 4
 // Custom events that can be tracked throughout the application
-
-declare global {
-  interface Window {
-    plausible?: (event: string, options?: { props: Record<string, any> }) => void;
-  }
-}
 
 /**
  * Track property view events
@@ -16,14 +10,24 @@ export const trackPropertyView = (
   price: number,
   city?: string
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Property View', {
-      props: {
-        property_id: propertyId,
-        property_title: propertyTitle,
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'view_item', {
+      currency: 'EUR',
+      value: price,
+      items: [{
+        item_id: propertyId,
+        item_name: propertyTitle,
+        item_category: city || 'Unknown',
         price: price,
-        city: city || 'Unknown',
-      },
+      }]
+    });
+    
+    // Also track as custom event
+    window.gtag('event', 'property_view', {
+      property_id: propertyId,
+      property_title: propertyTitle,
+      price: price,
+      city: city || 'Unknown',
     });
   }
 };
@@ -35,12 +39,10 @@ export const trackPropertyInquiry = (
   propertyId: string,
   contactMethod: 'email' | 'phone' | 'whatsapp' | 'form'
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Property Inquiry', {
-      props: {
-        property_id: propertyId,
-        contact_method: contactMethod,
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'generate_lead', {
+      property_id: propertyId,
+      contact_method: contactMethod,
     });
   }
 };
@@ -52,13 +54,20 @@ export const trackPropertyFavorite = (
   propertyId: string,
   action: 'add' | 'remove'
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Property Favorite', {
-      props: {
-        property_id: propertyId,
-        action,
-      },
-    });
+  if (typeof window !== 'undefined' && window.gtag) {
+    if (action === 'add') {
+      window.gtag('event', 'add_to_wishlist', {
+        items: [{
+          item_id: propertyId,
+        }]
+      });
+    } else {
+      window.gtag('event', 'remove_from_wishlist', {
+        items: [{
+          item_id: propertyId,
+        }]
+      });
+    }
   }
 };
 
@@ -69,12 +78,11 @@ export const trackPropertyShare = (
   propertyId: string,
   method: 'link' | 'social' | 'email'
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Property Share', {
-      props: {
-        property_id: propertyId,
-        share_method: method,
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'share', {
+      method: method,
+      content_type: 'property',
+      item_id: propertyId,
     });
   }
 };
@@ -92,16 +100,14 @@ export const trackSearch = (
     propertyType?: string;
   }
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Search', {
-      props: {
-        location,
-        price_min: filters?.priceMin || 0,
-        price_max: filters?.priceMax || 0,
-        beds: filters?.beds || 0,
-        baths: filters?.baths || 0,
-        property_type: filters?.propertyType || 'any',
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'search', {
+      search_term: location,
+      price_min: filters?.priceMin || 0,
+      price_max: filters?.priceMax || 0,
+      beds: filters?.beds || 0,
+      baths: filters?.baths || 0,
+      property_type: filters?.propertyType || 'any',
     });
   }
 };
@@ -113,12 +119,10 @@ export const trackMapInteraction = (
   action: 'zoom_in' | 'zoom_out' | 'pan' | 'marker_click' | 'cluster_click',
   details?: Record<string, any>
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Map Interaction', {
-      props: {
-        action,
-        ...details,
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'map_interaction', {
+      interaction_type: action,
+      ...details,
     });
   }
 };
@@ -130,12 +134,10 @@ export const trackFilterChange = (
   filterType: 'price' | 'beds' | 'baths' | 'property_type' | 'location',
   value: any
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Filter Change', {
-      props: {
-        filter_type: filterType,
-        value: String(value),
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'filter_applied', {
+      filter_type: filterType,
+      filter_value: String(value),
     });
   }
 };
@@ -147,12 +149,10 @@ export const trackLanguageSwitch = (
   fromLang: string,
   toLang: string
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Language Switch', {
-      props: {
-        from_language: fromLang,
-        to_language: toLang,
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'language_switch', {
+      from_language: fromLang,
+      to_language: toLang,
     });
   }
 };
@@ -165,13 +165,13 @@ export const trackPropertyCardClick = (
   position: number,
   source: 'search_results' | 'map_popup' | 'favorites' | 'homepage' | 'similar_properties'
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Property Card Click', {
-      props: {
-        property_id: propertyId,
-        position,
-        source,
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'select_item', {
+      items: [{
+        item_id: propertyId,
+        index: position,
+      }],
+      item_list_name: source,
     });
   }
 };
@@ -182,11 +182,9 @@ export const trackPropertyCardClick = (
 export const trackSavedSearch = (
   searchCriteria: string
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('Saved Search', {
-      props: {
-        criteria: searchCriteria,
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'save_search', {
+      search_criteria: searchCriteria,
     });
   }
 };
@@ -198,12 +196,10 @@ export const trackAIStyleView = (
   propertyId: string,
   styleName: string
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible('AI Style View', {
-      props: {
-        property_id: propertyId,
-        style_name: styleName,
-      },
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'ai_style_view', {
+      property_id: propertyId,
+      style_name: styleName,
     });
   }
 };
@@ -215,8 +211,8 @@ export const trackCustomEvent = (
   eventName: string,
   props?: Record<string, any>
 ) => {
-  if (typeof window !== 'undefined' && window.plausible) {
-    window.plausible(eventName, props ? { props } : undefined);
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', eventName, props);
   }
 };
 

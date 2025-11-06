@@ -44,7 +44,8 @@ export type Property = {
 	baths: number;
 	area: number; // sqft or m²
 	property_type?: string;
-	transaction_type?: string;
+	transaction_type?: 'buy' | 'rent';
+	url_slug_id?: string;
 	lat: number;
 	lng: number;
 	description?: string;
