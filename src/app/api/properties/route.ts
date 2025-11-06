@@ -254,6 +254,7 @@ export async function GET(request: NextRequest) {
     const city = searchParams.get('city');
     const search = searchParams.get('search'); // General search query
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
+    const includeCityCounts = searchParams.get('includeCityCounts') === 'true';
     const sw_lat = searchParams.get('sw_lat');
     const sw_lng = searchParams.get('sw_lng');
     const ne_lat = searchParams.get('ne_lat');
@@ -424,9 +425,27 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    // Calculate city counts if requested (for search dropdown optimization)
+    let cityCounts: Record<string, number> = {};
+    if (includeCityCounts && search) {
+      // Fetch all properties matching the search to get accurate city counts
+      const { data: allProperties } = await supabase
+        .from('properties')
+        .select('city, country')
+        .or(`address.ilike.%${search}%,city.ilike.%${search}%,description.ilike.%${search}%`);
+      
+      if (allProperties) {
+        allProperties.forEach((prop: any) => {
+          const cityKey = `${prop.city}, ${prop.country || 'Portugal'}`;
+          cityCounts[cityKey] = (cityCounts[cityKey] || 0) + 1;
+        });
+      }
+    }
+
     const response = NextResponse.json({
       properties,
       count: properties.length,
+      ...(includeCityCounts && { cityCounts }), // Only include if requested
       filters: {
         city,
         bounds: sw_lat && sw_lng && ne_lat && ne_lng ? {

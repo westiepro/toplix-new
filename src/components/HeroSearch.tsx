@@ -35,6 +35,9 @@ export function HeroSearch() {
 	const [isSearching, setIsSearching] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
+	
+	// Cache for search results
+	const searchCache = useRef<Map<string, { cities: SearchLocation[], properties: Property[], counts: Record<string, number> }>>(new Map());
 
 	// Instant search with smart caching
 	const performSearch = useCallback(async (searchQuery: string) => {
@@ -47,33 +50,43 @@ export function HeroSearch() {
 			return;
 		}
 
+		// Check cache first for instant results
+		const cached = searchCache.current.get(searchQuery.toLowerCase());
+		if (cached) {
+			setSuggestions(cached.cities);
+			setProperties(cached.properties);
+			setPropertyCounts(cached.counts);
+			setShowSuggestions(cached.cities.length > 0 || cached.properties.length > 0);
+			setSelectedIndex(-1);
+			return;
+		}
+
 		setIsSearching(true);
 		
-		// Search both cities and properties in parallel
-		const [cityResults, propertyResults] = await Promise.all([
+		// Search both cities and properties in parallel (optimized - only 2 API calls!)
+		const [cityResults, apiResponse] = await Promise.all([
 			searchLocations(searchQuery),
-			fetch(`/api/properties?search=${encodeURIComponent(searchQuery)}&limit=5`)
-				.then(res => res.ok ? res.json() : { properties: [] })
-				.then(data => data.properties || [])
-				.catch(() => [])
+			fetch(`/api/properties?search=${encodeURIComponent(searchQuery)}&limit=5&includeCityCounts=true`)
+				.then(res => res.ok ? res.json() : { properties: [], cityCounts: {} })
+				.catch(() => ({ properties: [], cityCounts: {} }))
 		]);
 		
-		// Count properties per city from full dataset
-		const counts: Record<string, number> = {};
-		if (cityResults.length > 0) {
-			// Fetch counts for each city
-			const countPromises = cityResults.slice(0, 5).map(async (city) => {
-				try {
-					const res = await fetch(`/api/properties?city=${encodeURIComponent(city.name.split(',')[0])}`);
-					if (res.ok) {
-						const data = await res.json();
-						counts[city.name] = data.count || data.properties?.length || 0;
-					}
-				} catch (error) {
-					counts[city.name] = 0;
-				}
-			});
-			await Promise.all(countPromises);
+		const propertyResults = apiResponse.properties || [];
+		const counts = apiResponse.cityCounts || {};
+		
+		// Cache the results for instant retrieval
+		searchCache.current.set(searchQuery.toLowerCase(), {
+			cities: cityResults.slice(0, 5),
+			properties: propertyResults.slice(0, 5),
+			counts
+		});
+		
+		// Limit cache size to prevent memory issues
+		if (searchCache.current.size > 50) {
+			const firstKey = searchCache.current.keys().next().value;
+			if (firstKey) {
+				searchCache.current.delete(firstKey);
+			}
 		}
 		
 		setSuggestions(cityResults.slice(0, 5));
@@ -84,10 +97,28 @@ export function HeroSearch() {
 		setIsSearching(false);
 	}, []);
 
-	// Trigger instant search when query changes
+	// Debounced search for better performance
+	const debouncedSearch = useCallback(
+		(() => {
+			let timeoutId: NodeJS.Timeout;
+			return (searchQuery: string) => {
+				clearTimeout(timeoutId);
+				if (searchQuery.length < 2) {
+					performSearch(searchQuery);
+					return;
+				}
+				timeoutId = setTimeout(() => {
+					performSearch(searchQuery);
+				}, 200); // 200ms delay for optimal responsiveness
+			};
+		})(),
+		[performSearch]
+	);
+
+	// Trigger debounced search when query changes
 	useEffect(() => {
-		performSearch(query);
-	}, [query, performSearch]);
+		debouncedSearch(query);
+	}, [query, debouncedSearch]);
 
 	// Prefetch function (can be enhanced with actual prefetch logic)
 	const prefetchProperties = () => {
