@@ -4,11 +4,13 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { searchLocations, debounce, type SearchLocation } from "@/lib/geocoding";
-import { MapPin, Loader2 } from "lucide-react";
+import { searchLocations, type SearchLocation } from "@/lib/geocoding";
+import { MapPin, Loader2, Search as SearchIcon } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Locale } from "@/lib/i18n-config";
-import { prefetchProperties } from "@/lib/properties-cache";
+import { EnhancedSearchDropdown } from "@/components/EnhancedSearchDropdown";
+import type { Property } from "@/components/PropertyCard";
+import { generatePropertyUrl } from "@/lib/generate-property-url";
 
 // Route translations
 const routeTranslations: Record<Locale, Record<string, string>> = {
@@ -26,6 +28,8 @@ export function HeroSearch() {
 	const [query, setQuery] = useState("");
 	const [searchType, setSearchType] = useState<"buy" | "rent">("buy");
 	const [suggestions, setSuggestions] = useState<SearchLocation[]>([]);
+	const [properties, setProperties] = useState<Property[]>([]);
+	const [propertyCounts, setPropertyCounts] = useState<Record<string, number>>({});
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const [isSearching, setIsSearching] = useState(false);
@@ -36,15 +40,46 @@ export function HeroSearch() {
 	const performSearch = useCallback(async (searchQuery: string) => {
 		if (searchQuery.length < 2) {
 			setSuggestions([]);
+			setProperties([]);
+			setPropertyCounts({});
 			setShowSuggestions(false);
 			setIsSearching(false);
 			return;
 		}
 
 		setIsSearching(true);
-		const results = await searchLocations(searchQuery);
-		setSuggestions(results);
-		setShowSuggestions(results.length > 0);
+		
+		// Search both cities and properties in parallel
+		const [cityResults, propertyResults] = await Promise.all([
+			searchLocations(searchQuery),
+			fetch(`/api/properties?search=${encodeURIComponent(searchQuery)}&limit=5`)
+				.then(res => res.ok ? res.json() : { properties: [] })
+				.then(data => data.properties || [])
+				.catch(() => [])
+		]);
+		
+		// Count properties per city from full dataset
+		const counts: Record<string, number> = {};
+		if (cityResults.length > 0) {
+			// Fetch counts for each city
+			const countPromises = cityResults.slice(0, 5).map(async (city) => {
+				try {
+					const res = await fetch(`/api/properties?city=${encodeURIComponent(city.name.split(',')[0])}`);
+					if (res.ok) {
+						const data = await res.json();
+						counts[city.name] = data.count || data.properties?.length || 0;
+					}
+				} catch (error) {
+					counts[city.name] = 0;
+				}
+			});
+			await Promise.all(countPromises);
+		}
+		
+		setSuggestions(cityResults.slice(0, 5));
+		setProperties(propertyResults.slice(0, 5));
+		setPropertyCounts(counts);
+		setShowSuggestions(cityResults.length > 0 || propertyResults.length > 0);
 		setSelectedIndex(-1);
 		setIsSearching(false);
 	}, []);
@@ -53,6 +88,12 @@ export function HeroSearch() {
 	useEffect(() => {
 		performSearch(query);
 	}, [query, performSearch]);
+
+	// Prefetch function (can be enhanced with actual prefetch logic)
+	const prefetchProperties = () => {
+		// Placeholder for property prefetching
+		// Could pre-load property data here
+	};
 
 
 	function onSubmit(e: React.FormEvent) {
@@ -84,20 +125,22 @@ export function HeroSearch() {
 		}
 	}
 
-	// Handle keyboard navigation
+	// Handle keyboard navigation across cities and properties
 	function handleKeyDown(e: React.KeyboardEvent) {
-		if (e.key === "Enter" && (!showSuggestions || suggestions.length === 0 || selectedIndex < 0)) {
+		const totalItems = suggestions.length + properties.length;
+		
+		if (e.key === "Enter" && (!showSuggestions || totalItems === 0 || selectedIndex < 0)) {
 			// Let form handle submit if no suggestion is selected
 			return;
 		}
 
-		if (!showSuggestions || suggestions.length === 0) return;
+		if (!showSuggestions || totalItems === 0) return;
 
 		switch (e.key) {
 			case "ArrowDown":
 				e.preventDefault();
 				setSelectedIndex(prev => 
-					prev < suggestions.length - 1 ? prev + 1 : prev
+					prev < totalItems - 1 ? prev + 1 : prev
 				);
 				break;
 			case "ArrowUp":
@@ -107,21 +150,17 @@ export function HeroSearch() {
 			case "Enter":
 				e.preventDefault();
 				if (selectedIndex >= 0) {
-					const location = suggestions[selectedIndex];
-					setQuery(location.name);
-					setShowSuggestions(false);
-					// Prefetch and submit with selected location
-					prefetchProperties();
-					setTimeout(() => {
-						const buyRoute = routeTranslations[currentLanguage]?.buy || 'buy';
-						const params = new URLSearchParams();
-						params.set("lat", location.lat.toString());
-						params.set("lng", location.lng.toString());
-						params.set("zoom", "12");
-						params.set("q", location.name);
-						params.set("for", searchType);
-						router.push(`/${currentLanguage}/${buyRoute}?${params.toString()}`);
-					}, 0);
+					// Check if selection is a city or property
+					if (selectedIndex < suggestions.length) {
+						// City selected
+						const location = suggestions[selectedIndex];
+						handleCitySelect(location);
+					} else {
+						// Property selected
+						const propertyIndex = selectedIndex - suggestions.length;
+						const property = properties[propertyIndex];
+						handlePropertySelect(property);
+					}
 				}
 				break;
 			case "Escape":
@@ -131,10 +170,9 @@ export function HeroSearch() {
 		}
 	}
 
-	function handleSelect(location: SearchLocation) {
+	function handleCitySelect(location: SearchLocation) {
 		setQuery(location.name);
 		setShowSuggestions(false);
-		// Prefetch and auto-submit with geocoded location
 		prefetchProperties();
 		const buyRoute = routeTranslations[currentLanguage]?.buy || 'buy';
 		const params = new URLSearchParams();
@@ -144,6 +182,20 @@ export function HeroSearch() {
 		params.set("q", location.name);
 		params.set("for", searchType);
 		router.push(`/${currentLanguage}/${buyRoute}?${params.toString()}`);
+	}
+
+	function handlePropertySelect(property: Property) {
+		setShowSuggestions(false);
+		const propertyUrl = generatePropertyUrl(
+			{
+				id: property.id,
+				url_slug_id: property.url_slug_id,
+				transaction_type: property.transaction_type || searchType,
+				city: property.city,
+			},
+			currentLanguage
+		);
+		router.push(propertyUrl);
 	}
 
 	// Close dropdown when clicking outside
@@ -223,28 +275,20 @@ export function HeroSearch() {
 					</Button>
 				</div>
 
-				{/* Autocomplete Dropdown */}
-				{showSuggestions && suggestions.length > 0 && (
+				{/* Enhanced Search Dropdown */}
+				{showSuggestions && (suggestions.length > 0 || properties.length > 0) && (
 					<div
 						ref={dropdownRef}
-						className="absolute top-full left-[180px] right-[65px] z-50 mt-3 max-h-80 overflow-auto rounded-xl border border-gray-200 bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-300"
+						className="absolute top-full left-[180px] right-[65px] z-50 mt-3 animate-in fade-in slide-in-from-top-2 duration-300"
 					>
-						{suggestions.map((location, index) => (
-							<button
-								key={location.id}
-								type="button"
-								onClick={() => handleSelect(location)}
-								className={`w-full px-4 py-3 text-left text-sm transition-all duration-200 cursor-pointer flex items-center gap-3 border-b border-gray-100 last:border-b-0 ${
-									index === selectedIndex ? "bg-[#2C477D]/10 text-[#2C477D] font-medium" : "hover:bg-gray-50 text-gray-700"
-								}`}
-							>
-								<MapPin className={`h-4 w-4 flex-shrink-0 ${index === selectedIndex ? "text-[#2C477D]" : "text-gray-400"}`} />
-								<div className="flex-1 min-w-0">
-									<div className="font-medium truncate">{location.name}</div>
-									<div className="text-xs text-gray-500 truncate">{location.displayName}</div>
-								</div>
-							</button>
-						))}
+						<EnhancedSearchDropdown
+							cities={suggestions}
+							properties={properties}
+							propertyCounts={propertyCounts}
+							selectedIndex={selectedIndex}
+							onCitySelect={handleCitySelect}
+							onPropertySelect={handlePropertySelect}
+						/>
 					</div>
 				)}
 			</form>

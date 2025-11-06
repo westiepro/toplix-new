@@ -252,6 +252,8 @@ export async function GET(request: NextRequest) {
     
     // Extract query parameters
     const city = searchParams.get('city');
+    const search = searchParams.get('search'); // General search query
+    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
     const sw_lat = searchParams.get('sw_lat');
     const sw_lng = searchParams.get('sw_lng');
     const ne_lat = searchParams.get('ne_lat');
@@ -312,6 +314,11 @@ export async function GET(request: NextRequest) {
       query = query.ilike('city', `%${city}%`);
     }
 
+    // Apply general search filter (searches address, city, description)
+    if (search) {
+      query = query.or(`address.ilike.%${search}%,city.ilike.%${search}%,description.ilike.%${search}%`);
+    }
+
     // Apply viewport bounds filter (spatial query)
     if (sw_lat && sw_lng && ne_lat && ne_lng) {
       const swLat = parseFloat(sw_lat);
@@ -355,7 +362,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Limit results to prevent overwhelming the client
-    query = query.limit(1000);
+    query = query.limit(limit || 1000);
 
     // Execute query
     const { data, error } = await query;
