@@ -344,10 +344,13 @@ const generateSQL = () => {
 		// Escape single quotes in SQL
 		const escapedValue = value.replace(/'/g, "''");
 		
-		const sql = `INSERT INTO translations (key, language_code, value, is_auto_translated)
-VALUES ('${key}', 'es', '${escapedValue}', true)
+		// Extract namespace (first part before the dot)
+		const namespace = key.split('.')[0];
+		
+		const sql = `INSERT INTO translations (key, language_code, value, namespace, is_auto_translated)
+VALUES ('${key}', 'es', '${escapedValue}', '${namespace}', true)
 ON CONFLICT (key, language_code) 
-DO UPDATE SET value = EXCLUDED.value, is_auto_translated = true, updated_at = NOW();`;
+DO UPDATE SET value = EXCLUDED.value, namespace = EXCLUDED.namespace, is_auto_translated = true, updated_at = NOW();`;
 		
 		sqlStatements.push(sql);
 	}
