@@ -534,7 +534,7 @@ export default function PropertiesPage() {
 						});
 						setPropertyImages([]); 
 						setIsDialogOpen(true);
-					}} className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30">
+					}} className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/30">
 						<Plus className="h-4 w-4 mr-2" />
 						Add Property
 					</Button>
@@ -555,7 +555,7 @@ export default function PropertiesPage() {
 										}}>
 											Cancel
 										</Button>
-										<Button type="submit" form="property-form" className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white">
+										<Button type="submit" form="property-form" className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white">
 											Save Property
 										</Button>
 									</div>
@@ -681,7 +681,7 @@ export default function PropertiesPage() {
 											<SelectContent>
 												<SelectItem value="active">
 													<div className="flex items-center gap-2">
-														<div className="w-2 h-2 rounded-full bg-green-500"></div>
+														<div className="w-2 h-2 rounded-full bg-blue-500"></div>
 														Active
 													</div>
 												</SelectItem>
@@ -782,12 +782,12 @@ export default function PropertiesPage() {
 				<CardContent className="pt-6">
 					<div className="flex flex-col sm:flex-row gap-4">
 						<div className="relative flex-1">
-							<Search className="absolute left-3 top-3 h-4 w-4 text-emerald-500" />
+							<Search className="absolute left-3 top-3 h-4 w-4 text-blue-500" />
 							<Input
 								placeholder="Search properties..."
 								value={searchQuery}
 								onChange={(e) => setSearchQuery(e.target.value)}
-								className="pl-10 border-slate-300 dark:border-slate-700 focus:ring-emerald-500 focus:border-emerald-500"
+								className="pl-10 border-slate-300 dark:border-slate-700 focus:ring-blue-500 focus:border-blue-500"
 							/>
 						</div>
 						<Select value={cityFilter} onValueChange={setCityFilter}>
@@ -820,7 +820,7 @@ export default function PropertiesPage() {
 							<SelectItem value="all">All Status</SelectItem>
 							<SelectItem value="active">
 								<div className="flex items-center gap-2">
-									<div className="w-2 h-2 rounded-full bg-green-500"></div>
+									<div className="w-2 h-2 rounded-full bg-blue-500"></div>
 									Active
 								</div>
 							</SelectItem>
@@ -844,8 +844,8 @@ export default function PropertiesPage() {
 
 			{/* Properties Table */}
 			<Card className="shadow-lg border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
-				<CardHeader className="border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-slate-800">
-					<CardTitle className="text-emerald-900 dark:text-emerald-100">
+				<CardHeader className="border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-800 dark:to-slate-800">
+					<CardTitle className="text-blue-900 dark:text-blue-100">
 						All Properties ({totalFilteredProperties})
 						{totalPages > 1 && (
 							<span className="text-sm font-normal text-slate-600 dark:text-slate-400 ml-2">
@@ -969,7 +969,7 @@ export default function PropertiesPage() {
 												{formatAddressDisplay(property.address, property.city)}
 											</TableCell>
 											<TableCell className="text-slate-700 dark:text-slate-300">{property.city}</TableCell>
-											<TableCell className="font-semibold text-emerald-600 dark:text-emerald-400">€{property.price.toLocaleString()}</TableCell>
+											<TableCell className="font-semibold text-blue-600 dark:text-blue-400">€{property.price.toLocaleString()}</TableCell>
 											<TableCell>
 												<span className="px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-300">
 													{property.property_type}
@@ -991,7 +991,7 @@ export default function PropertiesPage() {
 											<TableCell className="text-slate-700 dark:text-slate-300">{property.baths}</TableCell>
 											<TableCell>
 												{property.status === 'active' ? (
-													<Badge className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-sm">
+													<Badge className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-sm">
 														Active
 													</Badge>
 												) : (
@@ -1011,7 +1011,7 @@ export default function PropertiesPage() {
 														variant="ghost" 
 														size="icon"
 														onClick={() => handleEdit(property)}
-														className="hover:bg-emerald-50 dark:hover:bg-emerald-950 hover:text-emerald-600 dark:hover:text-emerald-400"
+														className="hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-600 dark:hover:text-blue-400"
 													>
 														<Edit className="h-4 w-4" />
 													</Button>

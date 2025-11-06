@@ -8,7 +8,10 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password } = await request.json();
 
+    console.log('🔐 LOGIN ATTEMPT:', { email, passwordLength: password?.length });
+
     if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Missing Supabase config');
       return NextResponse.json(
         { error: 'Database configuration missing' },
         { status: 500 }
@@ -17,6 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     if (!email || !password) {
+      console.log('❌ Missing email or password');
       return NextResponse.json(
         { error: 'Email and password are required' },
         { status: 400 }
@@ -26,6 +30,7 @@ export async function POST(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Find admin user by email
+    console.log('🔍 Looking up admin:', email);
     const { data: admin, error } = await supabase
       .from('site_admins')
       .select('*')
@@ -33,15 +38,23 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error || !admin) {
-      console.log('Admin not found:', email);
+      console.log('❌ Admin not found:', email, error?.message);
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
 
+    console.log('✅ Admin found:', { 
+      email: admin.email, 
+      role: admin.role, 
+      status: admin.status,
+      hasPasswordHash: !!admin.password_hash 
+    });
+
     // Check if account is suspended
     if (admin.status === 'suspended') {
+      console.log('❌ Account suspended');
       return NextResponse.json(
         { error: 'Your account has been suspended. Please contact support.' },
         { status: 403 }
@@ -54,13 +67,24 @@ export async function POST(request: NextRequest) {
       ? Buffer.from(admin.password_hash, 'base64').toString()
       : null;
 
+    console.log('🔑 Password check:', {
+      hasStoredPassword: !!storedPassword,
+      storedPasswordLength: storedPassword?.length,
+      providedPasswordLength: password.length,
+      passwordsMatch: storedPassword === password
+    });
+
     if (!storedPassword || storedPassword !== password) {
-      console.log('Invalid password for:', email);
+      console.log('❌ Invalid password for:', email);
+      console.log('Expected:', storedPassword);
+      console.log('Received:', password);
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
+
+    console.log('✅ Password verified!');
 
     // Update last login timestamp
     await supabase

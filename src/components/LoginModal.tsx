@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Mail } from "lucide-react";
+import { X, Mail, Settings } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -18,21 +19,25 @@ type ModalState = "initial" | "existing_user" | "check_email";
 
 export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 	const { t } = useTranslation();
+	const { currentLanguage } = useLanguage();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [modalState, setModalState] = useState<ModalState>("initial");
 	const [isLoading, setIsLoading] = useState(false);
 	const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+	const [isAdmin, setIsAdmin] = useState(false);
 	const { signIn, signUp, signInWithOAuth, continueAsGuest, sendMagicLink, requestPasswordReset } = useAuth();
 
 	// Reset state when modal closes
 	useEffect(() => {
 		if (!open) {
+			console.log("🚪 Modal closing...");
 			setTimeout(() => {
 				setEmail("");
 				setPassword("");
 				setModalState("initial");
 				setIsLoading(false);
+				setIsAdmin(false);
 			}, 200);
 		}
 	}, [open]);
@@ -62,7 +67,8 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 			}
 
 			if (data.exists) {
-				// Email exists - show password field for existing users
+				// Email exists - check if admin or regular user
+				setIsAdmin(data.isAdmin || false);
 				setModalState("existing_user");
 				setIsCheckingEmail(false);
 			} else {
@@ -96,14 +102,80 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 		}
 
 		setIsLoading(true);
-		const { error } = await signIn(email, password);
 
-		if (error) {
-			toast.error(error.message);
-			setIsLoading(false);
+		// Admin login flow
+		if (isAdmin) {
+			try {
+				const response = await fetch('/api/auth/login', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+					body: JSON.stringify({ email, password }),
+				});
+
+				const result = await response.json();
+
+				if (!response.ok) {
+					toast.error(result.error || 'Login failed');
+					setIsLoading(false);
+					return;
+				}
+
+				console.log("=== ADMIN LOGIN START ===");
+				console.log("API Response:", result);
+				
+				// Store admin authentication info with timestamp to prevent Fast Refresh issues
+				const authData = {
+					authenticated: "true",
+					timestamp: Date.now()
+				};
+				
+				localStorage.setItem("admin-authenticated", "true");
+				localStorage.setItem("admin-user", JSON.stringify(result.admin));
+				localStorage.setItem("admin-login-timestamp", authData.timestamp.toString());
+				
+				// Immediately verify
+				const storedAuth = localStorage.getItem("admin-authenticated");
+				const storedUser = localStorage.getItem("admin-user");
+				console.log("Stored auth:", storedAuth);
+				console.log("Stored user:", storedUser);
+				
+				if (storedAuth !== "true" || !storedUser) {
+					console.error("❌ CRITICAL: localStorage NOT SET!");
+					toast.error("Failed to store login info. Please try again.");
+					setIsLoading(false);
+					return;
+				}
+				
+				console.log("✅ localStorage verified");
+				
+				const redirectUrl = `/${currentLanguage}/admin/dashboard`;
+				console.log("✅ Performing redirect NOW to:", redirectUrl);
+				console.log("Current location:", window.location.href);
+				
+				// Add a flag to prevent any interference
+				sessionStorage.setItem("admin-redirect-in-progress", "true");
+				
+				// Use location.replace instead of href to prevent back button issues
+				console.log("🚀 Executing window.location.replace...");
+				window.location.replace(redirectUrl);
+			} catch (error) {
+				console.error('Admin login error:', error);
+				toast.error('Failed to connect to server');
+				setIsLoading(false);
+			}
 		} else {
-			toast.success(t("login.signedInSuccess"));
-			onOpenChange(false);
+			// Regular user login flow
+			const { error } = await signIn(email, password);
+
+			if (error) {
+				toast.error(error.message);
+				setIsLoading(false);
+			} else {
+				toast.success(t("login.signedInSuccess"));
+				onOpenChange(false);
+			}
 		}
 	};
 
@@ -245,18 +317,28 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 									className="h-11"
 								/>
 
-							{/* Password field for existing users */}
-							{modalState === "existing_user" && (
-								<Input
-									type="password"
-									placeholder={t("login.passwordPlaceholder")}
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									onKeyPress={handleKeyPress}
-									disabled={isLoading}
-									className="h-11"
-								/>
-							)}
+						{/* Admin badge indicator */}
+						{modalState === "existing_user" && isAdmin && (
+							<div className="flex items-center gap-2 px-3 py-2 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900 rounded-lg">
+								<Settings className="h-4 w-4 text-purple-600" />
+								<span className="text-sm text-purple-600 dark:text-purple-400 font-medium">
+									Admin Account
+								</span>
+							</div>
+						)}
+
+						{/* Password field for existing users */}
+						{modalState === "existing_user" && (
+							<Input
+								type="password"
+								placeholder={isAdmin ? "Admin Password" : t("login.passwordPlaceholder")}
+								value={password}
+								onChange={(e) => setPassword(e.target.value)}
+								onKeyPress={handleKeyPress}
+								disabled={isLoading}
+								className="h-11"
+							/>
+						)}
 
 							{modalState === "existing_user" ? (
 								<div className="space-y-3">

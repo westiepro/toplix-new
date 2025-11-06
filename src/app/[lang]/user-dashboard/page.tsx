@@ -15,10 +15,12 @@ import { Heart, Search, Clock, Home as HomeIcon, Settings as SettingsIcon, LogOu
 import { Message1 } from "@/components/dashboard/Message1";
 import { Message2 } from "@/components/dashboard/Message2";
 import { Message3 } from "@/components/dashboard/Message3";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type TabType = "favourites" | "saved" | "recent" | "messages" | "advertise" | "settings";
 
 function DashboardContent() {
+	const { t } = useTranslation();
 	const { user, signOut } = useAuth();
 	const { getFavorites } = useFavoritesContext();
 	const { recentlyViewed, syncFromSupabase } = useRecentlyViewedContext();
@@ -95,15 +97,15 @@ function DashboardContent() {
 				<div className="bg-gradient-to-r from-blue-600 to-blue-400 rounded-3xl shadow-lg p-8 mb-6">
 					<div className="flex items-center justify-between">
 						<div>
-							<h1 className="text-4xl font-bold text-white mb-2">My Dashboard</h1>
-							<p className="text-white/90 text-lg">Welcome back, {getUserName(user?.email)}</p>
+							<h1 className="text-4xl font-bold text-white mb-2">{t("dashboard.title")}</h1>
+							<p className="text-white/90 text-lg">{t("dashboard.welcomeBack")}, {getUserName(user?.email)}</p>
 						</div>
 						<Button 
 							onClick={handleSignOut}
 							className="bg-white/20 hover:bg-white/30 text-white border-2 border-white backdrop-blur-sm gap-2"
 						>
 							<LogOut className="h-4 w-4" />
-							Sign Out
+							{t("dashboard.signOut")}
 						</Button>
 					</div>
 				</div>
@@ -119,7 +121,7 @@ function DashboardContent() {
 						}`}
 					>
 						<Heart className={`h-5 w-5 ${activeTab === "favourites" ? "fill-pink-200 text-pink-200" : "text-pink-400"}`} />
-						<span className="font-medium">My Favourites</span>
+						<span className="font-medium">{t("dashboard.myFavourites")}</span>
 					</button>
 					<button
 						onClick={() => setActiveTab("saved")}
@@ -130,7 +132,7 @@ function DashboardContent() {
 						}`}
 					>
 						<Search className={`h-5 w-5 ${activeTab === "saved" ? "text-white" : "text-blue-400"}`} />
-						<span className="font-medium">Saved Searches</span>
+						<span className="font-medium">{t("dashboard.savedSearches")}</span>
 					</button>
 					<button
 						onClick={() => setActiveTab("recent")}
@@ -141,7 +143,7 @@ function DashboardContent() {
 						}`}
 					>
 						<Clock className={`h-5 w-5 ${activeTab === "recent" ? "text-white" : "text-purple-400"}`} />
-						<span className="font-medium">Recently Viewed</span>
+						<span className="font-medium">{t("dashboard.recentlyViewed")}</span>
 					</button>
 					<button
 						onClick={() => setActiveTab("messages")}
@@ -152,7 +154,7 @@ function DashboardContent() {
 						}`}
 					>
 						<MessageSquare className={`h-5 w-5 ${activeTab === "messages" ? "text-white" : "text-green-400"}`} />
-						<span className="font-medium">Inbox</span>
+						<span className="font-medium">{t("dashboard.inbox")}</span>
 					</button>
 					<button
 						onClick={() => setActiveTab("advertise")}
@@ -163,7 +165,7 @@ function DashboardContent() {
 						}`}
 					>
 						<HomeIcon className={`h-5 w-5 ${activeTab === "advertise" ? "text-white" : "text-orange-400"}`} />
-						<span className="font-medium">Sell your property</span>
+						<span className="font-medium">{t("dashboard.sellYourProperty")}</span>
 					</button>
 					<button
 						onClick={() => setActiveTab("settings")}
@@ -174,7 +176,7 @@ function DashboardContent() {
 						}`}
 					>
 						<SettingsIcon className={`h-5 w-5 ${activeTab === "settings" ? "text-white" : "text-yellow-500"}`} />
-						<span className="font-medium">Settings</span>
+						<span className="font-medium">{t("dashboard.settings")}</span>
 					</button>
 				</div>
 
@@ -184,15 +186,15 @@ function DashboardContent() {
 					{activeTab === "favourites" && (
 						<div className="space-y-6">
 							<div>
-								<h2 className="text-3xl font-bold text-blue-600 mb-1">My Favourites</h2>
-								<p className="text-gray-600">Properties you love</p>
+								<h2 className="text-3xl font-bold text-blue-600 mb-1">{t("dashboard.myFavourites")}</h2>
+								<p className="text-gray-600">{t("dashboard.propertiesYouLove")}</p>
 							</div>
 
 							{isLoadingFavorites ? (
 								<Card>
 									<CardContent className="flex flex-col items-center justify-center py-16">
 										<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-										<p className="text-gray-600">Loading your favorites...</p>
+										<p className="text-gray-600">{t("dashboard.loadingFavorites")}</p>
 									</CardContent>
 								</Card>
 							) : favoriteProperties.length > 0 ? (
@@ -207,12 +209,12 @@ function DashboardContent() {
 										<div className="mb-4 p-6 rounded-full bg-pink-100">
 											<Heart className="h-16 w-16 text-pink-500" />
 										</div>
-										<h3 className="text-xl font-semibold mb-2">No favourites yet</h3>
+										<h3 className="text-xl font-semibold mb-2">{t("dashboard.noFavourites")}</h3>
 										<p className="text-sm text-muted-foreground max-w-md mb-6">
-											Start browsing properties and click the heart icon to save your favourites here for easy access.
+											{t("dashboard.noFavouritesDescriptionFull")}
 										</p>
 										<Button asChild className="bg-blue-600 hover:bg-blue-700">
-											<a href="/buy">Browse Properties</a>
+											<a href="/buy">{t("dashboard.browseProperties")}</a>
 										</Button>
 									</CardContent>
 								</Card>
@@ -224,20 +226,20 @@ function DashboardContent() {
 					{activeTab === "saved" && (
 						<div className="space-y-6">
 							<div>
-								<h2 className="text-3xl font-bold text-blue-600 mb-1">Saved Searches</h2>
-								<p className="text-gray-600">Your custom search filters</p>
+								<h2 className="text-3xl font-bold text-blue-600 mb-1">{t("dashboard.savedSearches")}</h2>
+								<p className="text-gray-600">{t("dashboard.yourCustomSearchFilters")}</p>
 							</div>
 							<Card className="border-2 border-dashed border-gray-300">
 								<CardContent className="flex flex-col items-center justify-center py-16 text-center">
 									<div className="mb-4 p-6 rounded-full bg-blue-100">
 										<Search className="h-16 w-16 text-blue-600" />
 									</div>
-									<h3 className="text-xl font-semibold mb-2">No saved searches</h3>
+									<h3 className="text-xl font-semibold mb-2">{t("dashboard.noSavedSearches")}</h3>
 									<p className="text-sm text-muted-foreground max-w-md mb-6">
-										Save your search criteria to quickly find properties that match your preferences.
+										{t("dashboard.noSavedSearchesDescriptionFull")}
 									</p>
 									<Button asChild variant="outline">
-										<a href="/buy">Create a Search</a>
+										<a href="/buy">{t("dashboard.createASearch")}</a>
 									</Button>
 								</CardContent>
 							</Card>
@@ -248,15 +250,15 @@ function DashboardContent() {
 					{activeTab === "recent" && (
 						<div className="space-y-6">
 							<div>
-								<h2 className="text-3xl font-bold text-blue-600 mb-1">Recently Viewed</h2>
-								<p className="text-gray-600">Properties you've looked at</p>
+								<h2 className="text-3xl font-bold text-blue-600 mb-1">{t("dashboard.recentlyViewed")}</h2>
+								<p className="text-gray-600">{t("dashboard.propertiesYouLookedAt")}</p>
 							</div>
 
 							{isLoadingRecent ? (
 								<Card>
 									<CardContent className="flex flex-col items-center justify-center py-16">
 										<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mb-4"></div>
-										<p className="text-gray-600">Loading recently viewed...</p>
+										<p className="text-gray-600">{t("dashboard.loadingRecentlyViewed")}</p>
 									</CardContent>
 								</Card>
 							) : recentlyViewedProperties.length > 0 ? (
@@ -271,12 +273,12 @@ function DashboardContent() {
 										<div className="mb-4 p-6 rounded-full bg-purple-100">
 											<Clock className="h-16 w-16 text-purple-600" />
 										</div>
-										<h3 className="text-xl font-semibold mb-2">No recent views</h3>
+										<h3 className="text-xl font-semibold mb-2">{t("dashboard.noRecentViews")}</h3>
 										<p className="text-sm text-muted-foreground max-w-md mb-6">
-											Properties you view will appear here for quick access.
+											{t("dashboard.noRecentViewsDescriptionFull")}
 										</p>
 										<Button asChild variant="outline">
-											<a href="/buy">Explore Properties</a>
+											<a href="/buy">{t("dashboard.exploreProperties")}</a>
 										</Button>
 									</CardContent>
 								</Card>
@@ -292,8 +294,8 @@ function DashboardContent() {
 								<CardContent className="pt-6">
 									<div className="flex items-center justify-between">
 										<div>
-											<p className="font-semibold text-blue-900 mb-1">Compare Message Layouts</p>
-											<p className="text-sm text-gray-600">Choose which layout you prefer:</p>
+											<p className="font-semibold text-blue-900 mb-1">{t("dashboard.compareMessageLayouts")}</p>
+											<p className="text-sm text-gray-600">{t("dashboard.chooseLayoutPreference")}</p>
 										</div>
 										<div className="flex gap-2">
 											<Button
@@ -302,7 +304,7 @@ function DashboardContent() {
 												onClick={() => setMessageLayout('layout1')}
 												className={messageLayout === 'layout1' ? 'bg-blue-600' : ''}
 											>
-												Message1 (Sections)
+												{t("dashboard.message1Sections")}
 											</Button>
 											<Button
 												variant={messageLayout === 'layout2' ? 'default' : 'outline'}
@@ -310,7 +312,7 @@ function DashboardContent() {
 												onClick={() => setMessageLayout('layout2')}
 												className={messageLayout === 'layout2' ? 'bg-purple-600' : ''}
 											>
-												Message2 (Sub-tabs)
+												{t("dashboard.message2SubTabs")}
 											</Button>
 											<Button
 												variant={messageLayout === 'layout3' ? 'default' : 'outline'}
@@ -318,7 +320,7 @@ function DashboardContent() {
 												onClick={() => setMessageLayout('layout3')}
 												className={messageLayout === 'layout3' ? 'bg-green-600' : ''}
 											>
-												Message3 (Feed)
+												{t("dashboard.message3Feed")}
 											</Button>
 										</div>
 									</div>
@@ -336,19 +338,19 @@ function DashboardContent() {
 					{activeTab === "advertise" && (
 						<div className="space-y-6">
 							<div>
-								<h2 className="text-3xl font-bold text-blue-600 mb-1">Sell Your Property</h2>
-								<p className="text-gray-600">List your property with us</p>
+								<h2 className="text-3xl font-bold text-blue-600 mb-1">{t("dashboard.sellYourProperty")}</h2>
+								<p className="text-gray-600">{t("dashboard.listPropertyWithUs")}</p>
 							</div>
 							<Card>
 								<CardHeader>
-									<CardTitle>Ready to sell or rent?</CardTitle>
-									<CardDescription>Get your property in front of thousands of buyers</CardDescription>
+									<CardTitle>{t("dashboard.readyToSellOrRent")}</CardTitle>
+									<CardDescription>{t("dashboard.getPropertyInFront")}</CardDescription>
 								</CardHeader>
 								<CardContent>
 									<p className="text-muted-foreground mb-6">
-										Contact our team to learn more about advertising options.
+										{t("dashboard.contactTeamAdvertising")}
 									</p>
-									<Button className="bg-blue-600 hover:bg-blue-700">Contact Us</Button>
+									<Button className="bg-blue-600 hover:bg-blue-700">{t("dashboard.contactUs")}</Button>
 								</CardContent>
 							</Card>
 						</div>
@@ -358,8 +360,8 @@ function DashboardContent() {
 					{activeTab === "settings" && (
 						<div className="space-y-6">
 							<div>
-								<h2 className="text-3xl font-bold text-blue-600 mb-1">Account Settings</h2>
-								<p className="text-gray-600">Manage your account</p>
+								<h2 className="text-3xl font-bold text-blue-600 mb-1">{t("dashboard.accountSettings")}</h2>
+								<p className="text-gray-600">{t("dashboard.manageYourAccount")}</p>
 							</div>
 
 							<div className="grid gap-6 md:grid-cols-2">
@@ -367,24 +369,24 @@ function DashboardContent() {
 									<CardHeader>
 										<CardTitle className="flex items-center gap-2">
 											<Mail className="h-5 w-5" />
-											Personal Information
+											{t("dashboard.personalInformation")}
 										</CardTitle>
-										<CardDescription>Update your profile details</CardDescription>
+										<CardDescription>{t("dashboard.updateProfileDetails")}</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-4">
 										<div className="space-y-2">
-											<label className="text-sm font-medium">Full Name</label>
+											<label className="text-sm font-medium">{t("dashboard.fullName")}</label>
 											<Input defaultValue={getUserName(user?.email)} />
 										</div>
 										<div className="space-y-2">
-											<label className="text-sm font-medium">Email</label>
+											<label className="text-sm font-medium">{t("dashboard.email")}</label>
 											<Input type="email" defaultValue={user?.email || ""} disabled />
 										</div>
 										<div className="space-y-2">
-											<label className="text-sm font-medium">Phone</label>
-											<Input type="tel" placeholder="Add your phone number" />
+											<label className="text-sm font-medium">{t("dashboard.phone")}</label>
+											<Input type="tel" placeholder={t("dashboard.addPhoneNumber")} />
 										</div>
-										<Button className="w-full bg-blue-600 hover:bg-blue-700">Save Changes</Button>
+										<Button className="w-full bg-blue-600 hover:bg-blue-700">{t("dashboard.saveChanges")}</Button>
 									</CardContent>
 								</Card>
 
@@ -392,33 +394,33 @@ function DashboardContent() {
 									<CardHeader>
 										<CardTitle className="flex items-center gap-2">
 											<Bell className="h-5 w-5" />
-											Notifications
+											{t("dashboard.notifications")}
 										</CardTitle>
-										<CardDescription>Manage your notification preferences</CardDescription>
+										<CardDescription>{t("dashboard.manageNotificationPreferences")}</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-4">
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="font-medium text-sm">Email Notifications</p>
-												<p className="text-xs text-muted-foreground">Receive updates about new properties</p>
+												<p className="font-medium text-sm">{t("dashboard.emailNotifications")}</p>
+												<p className="text-xs text-muted-foreground">{t("dashboard.receiveUpdatesNewProperties")}</p>
 											</div>
 											<input type="checkbox" defaultChecked className="h-4 w-4" />
 										</div>
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="font-medium text-sm">Price Alerts</p>
-												<p className="text-xs text-muted-foreground">Get notified of price changes</p>
+												<p className="font-medium text-sm">{t("dashboard.priceAlerts")}</p>
+												<p className="text-xs text-muted-foreground">{t("dashboard.notifiedPriceChanges")}</p>
 											</div>
 											<input type="checkbox" defaultChecked className="h-4 w-4" />
 										</div>
 										<div className="flex items-center justify-between">
 											<div>
-												<p className="font-medium text-sm">New Listings</p>
-												<p className="text-xs text-muted-foreground">Alert me about new properties</p>
+												<p className="font-medium text-sm">{t("dashboard.newListings")}</p>
+												<p className="text-xs text-muted-foreground">{t("dashboard.alertNewProperties")}</p>
 											</div>
 											<input type="checkbox" className="h-4 w-4" />
 										</div>
-										<Button variant="outline" className="w-full">Update Preferences</Button>
+										<Button variant="outline" className="w-full">{t("dashboard.updatePreferences")}</Button>
 									</CardContent>
 								</Card>
 							</div>

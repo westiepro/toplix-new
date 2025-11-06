@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 		// This will trigger instant signup flow, which is the default behavior
 		if (!supabaseServiceKey) {
 			console.warn("SUPABASE_SERVICE_ROLE_KEY not set - defaulting to instant signup flow for all users");
-			return NextResponse.json({ exists: false });
+			return NextResponse.json({ exists: false, isAdmin: false });
 		}
 
 		// Create admin client with service role key
@@ -38,6 +38,28 @@ export async function POST(request: NextRequest) {
 				persistSession: false,
 			},
 		});
+
+		// Check if user is an admin first
+		const { data: adminUser, error: adminError } = await supabaseAdmin
+			.from('site_admins')
+			.select('id, email, status')
+			.eq('email', email.toLowerCase())
+			.maybeSingle();
+
+		if (adminUser) {
+			// Check if admin account is suspended
+			if (adminUser.status === 'suspended') {
+				return NextResponse.json(
+					{ error: 'Your account has been suspended. Please contact support.' },
+					{ status: 403 }
+				);
+			}
+			
+			return NextResponse.json({ 
+				exists: true, 
+				isAdmin: true 
+			});
+		}
 
 		// Query auth.users to check if email exists
 		const { data, error } = await supabaseAdmin.auth.admin.listUsers();
@@ -55,7 +77,10 @@ export async function POST(request: NextRequest) {
 			(user) => user.email?.toLowerCase() === email.toLowerCase()
 		);
 
-		return NextResponse.json({ exists: userExists });
+		return NextResponse.json({ 
+			exists: userExists,
+			isAdmin: false 
+		});
 	} catch (error) {
 		console.error("Error in check-email endpoint:", error);
 		return NextResponse.json(

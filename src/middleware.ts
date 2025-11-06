@@ -138,16 +138,27 @@ export async function middleware(request: NextRequest) {
 
 	const { data: { session } } = await supabase.auth.getSession();
 
-	// Protected routes check (now with locale prefix)
-	const protectedRoutes = [`/${pathnameLocale}/dashboard`, `/${pathnameLocale}/admin`];
-	const isProtectedRoute = protectedRoutes.some((route) =>
-		pathname.startsWith(route)
-	);
-
+	// Admin routes use localStorage-based auth, not Supabase sessions
+	// So we skip the session check for admin routes
+	const isAdminRoute = pathname.startsWith(`/${pathnameLocale}/admin`);
+	
 	// Admin login page should be accessible
 	if (pathname === `/${pathnameLocale}/admin/login`) {
 		return response;
 	}
+	
+	// Allow all admin routes to pass through
+	// (AuthGuard component will handle admin authentication)
+	if (isAdminRoute) {
+		console.log("Middleware: Admin route detected, allowing through (AuthGuard will verify)");
+		return response;
+	}
+
+	// Protected routes check (user dashboard requires Supabase session)
+	const protectedRoutes = [`/${pathnameLocale}/dashboard`];
+	const isProtectedRoute = protectedRoutes.some((route) =>
+		pathname.startsWith(route)
+	);
 
 	// If accessing a protected route without a session, redirect to home
 	if (isProtectedRoute && !session) {

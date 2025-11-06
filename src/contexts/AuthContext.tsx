@@ -35,14 +35,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			return;
 		}
 
+		// Check if admin is logged in - if so, don't interfere
+		const isAdminAuth = localStorage.getItem("admin-authenticated") === "true";
+		if (isAdminAuth) {
+			console.log("👑 Admin session detected, AuthContext will not interfere");
+			setLoading(false);
+			return;
+		}
+
 		// Check for guest mode
 		const guestMode = localStorage.getItem("guest_mode");
 		if (guestMode === "true") {
 			setIsGuest(true);
 		}
 
+		console.log("🔐 AuthContext initializing...");
+
 		// Get initial session
 		supabase.auth.getSession().then(({ data: { session } }) => {
+			console.log("🔐 Initial session:", session ? "exists" : "none");
 			setSession(session);
 			setUser(session?.user ?? null);
 			setLoading(false);
@@ -52,6 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		const {
 			data: { subscription },
 		} = supabase.auth.onAuthStateChange((_event, session) => {
+			console.log("🔐 Auth state changed:", _event, session ? "has session" : "no session");
 			setSession(session);
 			setUser(session?.user ?? null);
 			setLoading(false);
@@ -157,6 +169,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		const supabase = getSupabaseClient();
 		if (!supabase) return;
 
+		// Check if admin before doing anything
+		const isAdminAuth = localStorage.getItem("admin-authenticated") === "true";
+		
+		console.log("🚪 SignOut called", { isAdminAuth });
+		
+		// DO NOT sign out if admin is logged in!
+		if (isAdminAuth) {
+			console.log("⚠️ BLOCKED: Admin session active, ignoring signOut request");
+			return; // Don't do anything for admin sessions
+		}
+
 		await supabase.auth.signOut();
 		
 		// Clear all user-specific data from localStorage
@@ -165,7 +188,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		
 		setIsGuest(false);
 		
-		// Redirect to home page after sign out
+		// Redirect to homepage
+		console.log("🚪 Redirecting to homepage after signOut");
 		window.location.href = '/';
 	};
 
