@@ -6,9 +6,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { searchLocations, debounce, type SearchLocation } from "@/lib/geocoding";
 import { MapPin, Loader2 } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import type { Locale } from "@/lib/i18n-config";
+
+// Route translations
+const routeTranslations: Record<Locale, Record<string, string>> = {
+	en: { buy: 'buy' },
+	pt: { buy: 'comprar' },
+	es: { buy: 'comprar' },
+	fr: { buy: 'acheter' },
+	de: { buy: 'kaufen' },
+	sv: { buy: 'kop' },
+};
 
 export function HeroSearch() {
 	const router = useRouter();
+	const { currentLanguage } = useLanguage();
 	const [query, setQuery] = useState("");
 	const [searchType, setSearchType] = useState<"buy" | "rent">("buy");
 	const [suggestions, setSuggestions] = useState<SearchLocation[]>([]);
@@ -45,6 +58,9 @@ export function HeroSearch() {
 		e.preventDefault();
 		setShowSuggestions(false);
 		
+		// Get translated route for current language
+		const buyRoute = routeTranslations[currentLanguage]?.buy || 'buy';
+		
 		// If there's a selected suggestion, use it
 		if (selectedIndex >= 0 && suggestions[selectedIndex]) {
 			const location = suggestions[selectedIndex];
@@ -54,13 +70,13 @@ export function HeroSearch() {
 			params.set("zoom", "12");
 			params.set("q", location.name);
 			params.set("for", searchType);
-			router.push(`/buy?${params.toString()}`);
+			router.push(`/${currentLanguage}/${buyRoute}?${params.toString()}`);
 		} else if (query.trim()) {
 			// Otherwise just use the query text
 			const params = new URLSearchParams();
 			params.set("q", query.trim());
 			params.set("for", searchType);
-			router.push(`/buy?${params.toString()}`);
+			router.push(`/${currentLanguage}/${buyRoute}?${params.toString()}`);
 		}
 	}
 
@@ -92,13 +108,14 @@ export function HeroSearch() {
 					setShowSuggestions(false);
 					// Submit with selected location
 					setTimeout(() => {
+						const buyRoute = routeTranslations[currentLanguage]?.buy || 'buy';
 						const params = new URLSearchParams();
 						params.set("lat", location.lat.toString());
 						params.set("lng", location.lng.toString());
 						params.set("zoom", "12");
 						params.set("q", location.name);
 						params.set("for", searchType);
-						router.push(`/buy?${params.toString()}`);
+						router.push(`/${currentLanguage}/${buyRoute}?${params.toString()}`);
 					}, 0);
 				}
 				break;
@@ -113,13 +130,14 @@ export function HeroSearch() {
 		setQuery(location.name);
 		setShowSuggestions(false);
 		// Auto-submit with geocoded location
+		const buyRoute = routeTranslations[currentLanguage]?.buy || 'buy';
 		const params = new URLSearchParams();
 		params.set("lat", location.lat.toString());
 		params.set("lng", location.lng.toString());
 		params.set("zoom", "12");
 		params.set("q", location.name);
 		params.set("for", searchType);
-		router.push(`/homes?${params.toString()}`);
+		router.push(`/${currentLanguage}/${buyRoute}?${params.toString()}`);
 	}
 
 	// Close dropdown when clicking outside
