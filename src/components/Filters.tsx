@@ -228,7 +228,7 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 				{showSuggestions && (suggestions.length > 0 || properties.length > 0) && (
 					<div
 						ref={dropdownRef}
-						className="absolute top-full left-0 right-0 z-[1000] mt-1 w-[420px]"
+						className="absolute top-full left-0 z-[1000] mt-1"
 					>
 						<EnhancedSearchDropdown
 							cities={suggestions}
