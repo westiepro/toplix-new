@@ -6,6 +6,7 @@ import { Navbar } from "@/components/Navbar";
 import { Filters, FiltersState } from "@/components/Filters";
 import { PropertyCard, type Property } from "@/components/PropertyCard";
 import { MapView } from "@/components/MapView";
+import { fetchProperties, getCachedProperties } from "@/lib/properties-cache";
 
 // Helper function to get city coordinates (shared with Filters)
 function getCityCoordinates(city: string): { lat: number; lng: number; zoom: number } | null {
@@ -70,36 +71,42 @@ function HomesPageContent() {
 
 	const [bounds, setBounds] = useState<{ minLat: number; maxLat: number; minLng: number; maxLng: number } | null>(null);
 
-	// Fetch properties from database
+	// Fetch properties with instant cache support
 	useEffect(() => {
-		const fetchProperties = async () => {
+		// Try to get cached data immediately for instant display
+		const cachedData = getCachedProperties();
+		if (cachedData) {
+			setProperties(cachedData);
+			setTotalCount(cachedData.length);
+			setIsLoading(false);
+			console.log('⚡ Instant load from cache:', cachedData.length, 'properties');
+		}
+
+		// Fetch fresh data in background (will use cache if still valid)
+		const loadProperties = async () => {
 			try {
-				setIsLoading(true);
-				const response = await fetch('/api/properties');
-				if (response.ok) {
-					const data = await response.json();
-					// Only show active properties on the public site
-					const activeProperties = (data.properties || []).filter((p: any) => 
-						p.status === 'active' || !p.status // Show if active or if status is not set
-					);
-					setProperties(activeProperties);
-					setTotalCount(activeProperties.length);
-					console.log('📍 Total active properties loaded:', activeProperties.length);
-					console.log('📍 Properties with coordinates:', activeProperties.filter((p: any) => p.lat && p.lng).length);
-				} else {
-					console.error('Failed to fetch properties');
+				if (!cachedData) {
+					setIsLoading(true);
+				}
+				
+				const activeProperties = await fetchProperties();
+				setProperties(activeProperties);
+				setTotalCount(activeProperties.length);
+				console.log('📍 Properties loaded:', activeProperties.length);
+				console.log('📍 With coordinates:', activeProperties.filter((p: any) => p.lat && p.lng).length);
+			} catch (error) {
+				console.error('Error loading properties:', error);
+				// Keep cached data if we have it
+				if (!cachedData) {
 					setProperties([]);
 					setTotalCount(0);
 				}
-			} catch (error) {
-				console.error('Error fetching properties:', error);
-				setProperties([]);
 			} finally {
 				setIsLoading(false);
 			}
 		};
 
-		fetchProperties();
+		loadProperties();
 	}, []);
 
 	// Initialize filters from URL params on mount

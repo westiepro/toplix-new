@@ -417,7 +417,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       properties,
       count: properties.length,
       filters: {
@@ -436,6 +436,12 @@ export async function GET(request: NextRequest) {
         minArea: minArea ? parseInt(minArea) : null,
       }
     });
+
+    // Add cache headers for faster subsequent loads
+    // Cache for 5 minutes (300 seconds), but allow stale content while revalidating
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    
+    return response;
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json(

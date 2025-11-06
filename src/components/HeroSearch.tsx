@@ -8,6 +8,7 @@ import { searchLocations, debounce, type SearchLocation } from "@/lib/geocoding"
 import { MapPin, Loader2 } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Locale } from "@/lib/i18n-config";
+import { prefetchProperties } from "@/lib/properties-cache";
 
 // Route translations
 const routeTranslations: Record<Locale, Record<string, string>> = {
@@ -58,6 +59,9 @@ export function HeroSearch() {
 		e.preventDefault();
 		setShowSuggestions(false);
 		
+		// Prefetch properties before navigation
+		prefetchProperties();
+		
 		// Get translated route for current language
 		const buyRoute = routeTranslations[currentLanguage]?.buy || 'buy';
 		
@@ -106,7 +110,8 @@ export function HeroSearch() {
 					const location = suggestions[selectedIndex];
 					setQuery(location.name);
 					setShowSuggestions(false);
-					// Submit with selected location
+					// Prefetch and submit with selected location
+					prefetchProperties();
 					setTimeout(() => {
 						const buyRoute = routeTranslations[currentLanguage]?.buy || 'buy';
 						const params = new URLSearchParams();
@@ -129,7 +134,8 @@ export function HeroSearch() {
 	function handleSelect(location: SearchLocation) {
 		setQuery(location.name);
 		setShowSuggestions(false);
-		// Auto-submit with geocoded location
+		// Prefetch and auto-submit with geocoded location
+		prefetchProperties();
 		const buyRoute = routeTranslations[currentLanguage]?.buy || 'buy';
 		const params = new URLSearchParams();
 		params.set("lat", location.lat.toString());
@@ -191,7 +197,10 @@ export function HeroSearch() {
 							ref={inputRef}
 							value={query}
 							onChange={(e) => setQuery(e.target.value)}
-							onFocus={() => query.length > 0 && suggestions.length > 0 && setShowSuggestions(true)}
+							onFocus={() => {
+								if (query.length > 0 && suggestions.length > 0) setShowSuggestions(true);
+								prefetchProperties(); // Start prefetching when user focuses on search
+							}}
 							onKeyDown={handleKeyDown}
 							placeholder="Enter a city, neighborhood, or ZIP"
 							className="h-16 w-full rounded-l-xl border-0 bg-white pl-6 pr-12 text-base shadow-md placeholder:text-gray-400 focus:ring-2 focus:ring-[#2C477D]"

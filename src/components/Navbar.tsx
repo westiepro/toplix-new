@@ -17,6 +17,7 @@ import { LocaleLink } from "@/components/LocaleLink";
 import { useLanguage } from "@/contexts/LanguageContext";
 import type { Property } from "@/components/PropertyCard";
 import { toast } from "sonner";
+import { prefetchProperties } from "@/lib/properties-cache";
 
 export function Navbar() {
 	const { t } = useTranslation();
@@ -71,15 +72,15 @@ export function Navbar() {
 						<Home className="h-5 w-5" />
 						<span>{t("navbar.brand")}</span>
 					</LocaleLink>
-					<nav className="hidden items-center gap-6 md:flex">
-						<LocaleLink href="/buy" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.buy")}</LocaleLink>
-						<LocaleLink href="/buy?for=rent" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.rent")}</LocaleLink>
-						<LocaleLink href="/sell" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.sell")}</LocaleLink>
-					</nav>
-					<div className="flex items-center gap-2">
-						<LocaleLink href="/buy">
-							<Button variant="secondary" size="sm" className="gap-2"><Map className="h-4 w-4" /> {t("navbar.explore")}</Button>
-						</LocaleLink>
+				<nav className="hidden items-center gap-6 md:flex">
+					<LocaleLink href="/buy" className="text-sm text-muted-foreground hover:text-foreground" onMouseEnter={prefetchProperties}>{t("home.nav.buy")}</LocaleLink>
+					<LocaleLink href="/buy?for=rent" className="text-sm text-muted-foreground hover:text-foreground" onMouseEnter={prefetchProperties}>{t("home.nav.rent")}</LocaleLink>
+					<LocaleLink href="/sell" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.sell")}</LocaleLink>
+				</nav>
+				<div className="flex items-center gap-2">
+					<LocaleLink href="/buy" onMouseEnter={prefetchProperties}>
+						<Button variant="secondary" size="sm" className="gap-2"><Map className="h-4 w-4" /> {t("navbar.explore")}</Button>
+					</LocaleLink>
 						
 					{user ? (
 						<DropdownMenu open={userDropdownOpen} onOpenChange={setUserDropdownOpen}>
