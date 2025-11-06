@@ -6,8 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { searchLocations, debounce, type SearchLocation } from "@/lib/geocoding";
+import { searchLocations, type SearchLocation } from "@/lib/geocoding";
 import { useTranslation } from "@/hooks/useTranslation";
+import { EnhancedSearchDropdown } from "@/components/EnhancedSearchDropdown";
+import type { Property } from "@/components/PropertyCard";
+import { useRouter } from "next/navigation";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { generatePropertyUrl } from "@/lib/generate-property-url";
 
 export type FiltersState = {
 	q?: string;
@@ -22,9 +27,13 @@ export type FiltersState = {
 
 export function Filters({ value, onChange, onClearBounds }: { value: FiltersState; onChange: (v: FiltersState) => void; onClearBounds?: () => void; }) {
 	const { t } = useTranslation();
+	const router = useRouter();
+	const { currentLanguage } = useLanguage();
 	const [local, setLocal] = useState<FiltersState>(value);
 	const [searchQuery, setSearchQuery] = useState(value.q || "");
 	const [suggestions, setSuggestions] = useState<SearchLocation[]>([]);
+	const [properties, setProperties] = useState<Property[]>([]);
+	const [propertyCounts, setPropertyCounts] = useState<Record<string, number>>({});
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const [isSearching, setIsSearching] = useState(false);
@@ -41,15 +50,45 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 	const performSearch = useCallback(async (searchQuery: string) => {
 		if (searchQuery.length < 2) {
 			setSuggestions([]);
+			setProperties([]);
+			setPropertyCounts({});
 			setShowSuggestions(false);
 			setIsSearching(false);
 			return;
 		}
 
 		setIsSearching(true);
-		const results = await searchLocations(searchQuery);
-		setSuggestions(results);
-		setShowSuggestions(results.length > 0);
+		
+		// Search both cities and properties in parallel
+		const [cityResults, propertyResults] = await Promise.all([
+			searchLocations(searchQuery),
+			fetch(`/api/properties?search=${encodeURIComponent(searchQuery)}&limit=5`)
+				.then(res => res.ok ? res.json() : { properties: [] })
+				.then(data => data.properties || [])
+				.catch(() => [])
+		]);
+		
+		// Count properties per city
+		const counts: Record<string, number> = {};
+		if (cityResults.length > 0) {
+			const countPromises = cityResults.slice(0, 5).map(async (city) => {
+				try {
+					const res = await fetch(`/api/properties?city=${encodeURIComponent(city.name.split(',')[0])}`);
+					if (res.ok) {
+						const data = await res.json();
+						counts[city.name] = data.count || data.properties?.length || 0;
+					}
+				} catch (error) {
+					counts[city.name] = 0;
+				}
+			});
+			await Promise.all(countPromises);
+		}
+		
+		setSuggestions(cityResults.slice(0, 5));
+		setProperties(propertyResults.slice(0, 5));
+		setPropertyCounts(counts);
+		setShowSuggestions(cityResults.length > 0 || propertyResults.length > 0);
 		setSelectedIndex(-1);
 		setIsSearching(false);
 	}, []);
@@ -99,7 +138,7 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 		searchInputRef.current?.focus();
 	}
 
-	function handleSelectCity(location: SearchLocation) {
+	function handleCitySelect(location: SearchLocation) {
 		setSearchQuery(location.name);
 		// Update location to trigger map zoom
 		update("location", {
@@ -112,20 +151,44 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 		setShowSuggestions(false);
 	}
 
+	function handlePropertySelect(property: Property) {
+		setShowSuggestions(false);
+		// Navigate to property detail page
+		const propertyUrl = generatePropertyUrl(
+			{
+				id: property.id,
+				url_slug_id: property.url_slug_id,
+				transaction_type: property.transaction_type || 'buy',
+				city: property.city,
+			},
+			currentLanguage
+		);
+		router.push(propertyUrl);
+	}
+
 	function handleSearchKeyDown(e: React.KeyboardEvent) {
+		const totalItems = suggestions.length + properties.length;
+		
 		if (e.key === "ArrowDown") {
 			e.preventDefault();
-			setSelectedIndex(prev => prev < suggestions.length - 1 ? prev + 1 : prev);
+			setSelectedIndex(prev => prev < totalItems - 1 ? prev + 1 : prev);
 		} else if (e.key === "ArrowUp") {
 			e.preventDefault();
 			setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
 		} else if (e.key === "Enter") {
 			e.preventDefault();
-			if (selectedIndex >= 0 && suggestions[selectedIndex]) {
-				// Select location from dropdown if one is highlighted
-				handleSelectCity(suggestions[selectedIndex]);
+			if (selectedIndex >= 0) {
+				// Check if selection is a city or property
+				if (selectedIndex < suggestions.length) {
+					// City selected
+					handleCitySelect(suggestions[selectedIndex]);
+				} else {
+					// Property selected
+					const propertyIndex = selectedIndex - suggestions.length;
+					const property = properties[propertyIndex];
+					handlePropertySelect(property);
+				}
 			}
-			// Otherwise, don't filter - wait for user to select from dropdown
 		} else if (e.key === "Escape") {
 			setShowSuggestions(false);
 		}
@@ -162,27 +225,19 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 						</div>
 					)}
 				</div>
-				{showSuggestions && suggestions.length > 0 && (
+				{showSuggestions && (suggestions.length > 0 || properties.length > 0) && (
 					<div
 						ref={dropdownRef}
-						className="absolute top-full left-0 right-0 z-[1000] mt-1 max-h-72 w-full overflow-auto rounded-lg border border-gray-300 bg-white shadow-2xl"
+						className="absolute top-full left-0 right-0 z-[1000] mt-1 w-[420px]"
 					>
-						{suggestions.map((location, index) => (
-							<button
-								key={location.id}
-								type="button"
-								onClick={() => handleSelectCity(location)}
-								className={`w-full px-4 py-3 text-left text-sm transition-colors cursor-pointer flex items-center gap-3 border-b border-gray-100 last:border-b-0 ${
-									index === selectedIndex ? "bg-[#2C477D]/10 text-[#2C477D]" : "hover:bg-gray-50 text-gray-700"
-								}`}
-							>
-								<MapPin className={`h-4 w-4 flex-shrink-0 ${index === selectedIndex ? "text-[#2C477D]" : "text-gray-400"}`} />
-								<div className="flex-1 min-w-0">
-									<div className="font-medium truncate">{location.name}</div>
-									<div className="text-xs text-gray-500 truncate">{location.displayName}</div>
-								</div>
-							</button>
-						))}
+						<EnhancedSearchDropdown
+							cities={suggestions}
+							properties={properties}
+							propertyCounts={propertyCounts}
+							selectedIndex={selectedIndex}
+							onCitySelect={handleCitySelect}
+							onPropertySelect={handlePropertySelect}
+						/>
 					</div>
 				)}
 			</div>
