@@ -35,10 +35,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			return;
 		}
 
-		// Check if admin is logged in - if so, don't interfere
+		// Check if admin is logged in - if so, create a mock user object
 		const isAdminAuth = localStorage.getItem("admin-authenticated") === "true";
-		if (isAdminAuth) {
-			console.log("👑 Admin session detected, AuthContext will not interfere");
+		const adminUser = localStorage.getItem("admin-user");
+		if (isAdminAuth && adminUser) {
+			console.log("👑 Admin session detected, creating admin user context");
+			try {
+				const parsedAdminUser = JSON.parse(adminUser);
+				// Create a mock User object for admin
+				const mockAdminUser: User = {
+					id: parsedAdminUser.id || 'admin-id',
+					email: parsedAdminUser.email || 'admin@toplix.com',
+					user_metadata: { ...parsedAdminUser },
+					app_metadata: { role: 'admin' },
+					aud: 'authenticated',
+					created_at: parsedAdminUser.created_at || new Date().toISOString(),
+					role: 'authenticated',
+				} as User;
+				setUser(mockAdminUser);
+				setIsGuest(false);
+			} catch (e) {
+				console.error("Failed to parse admin user", e);
+			}
 			setLoading(false);
 			return;
 		}
