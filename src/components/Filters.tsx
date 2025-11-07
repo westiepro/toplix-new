@@ -9,6 +9,7 @@ import { Slider } from "@/components/ui/slider";
 import { searchLocations, type SearchLocation } from "@/lib/geocoding";
 import { useTranslation } from "@/hooks/useTranslation";
 import { EnhancedSearchDropdown } from "@/components/EnhancedSearchDropdown";
+import { PriceFilterModal } from "@/components/PriceFilterModal";
 import type { Property } from "@/components/PropertyCard";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -37,6 +38,7 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 	const [showSuggestions, setShowSuggestions] = useState(false);
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const [isSearching, setIsSearching] = useState(false);
+	const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const dropdownRef = useRef<HTMLDivElement>(null);
 	
@@ -274,24 +276,21 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 				)}
 			</div>
 			<div>
-				<Select onValueChange={(v) => update("minPrice", Number(v))}>
-					<SelectTrigger className="w-[140px]"><SelectValue placeholder={t("filters.minPrice")} /></SelectTrigger>
-					<SelectContent>
-						{[0, 250000, 500000, 750000, 1000000].map((p) => (
-							<SelectItem key={p} value={String(p)}>{p === 0 ? t("filters.noMin") : `$${p.toLocaleString()}`}</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
-			</div>
-			<div>
-				<Select onValueChange={(v) => update("maxPrice", Number(v))}>
-					<SelectTrigger className="w-[140px]"><SelectValue placeholder={t("filters.maxPrice")} /></SelectTrigger>
-					<SelectContent>
-						{[500000, 750000, 1000000, 1500000, 2000000].map((p) => (
-							<SelectItem key={p} value={String(p)}>{`$${p.toLocaleString()}`}</SelectItem>
-						))}
-					</SelectContent>
-				</Select>
+				<Button
+					type="button"
+					variant="outline"
+					onClick={() => setIsPriceModalOpen(true)}
+					className="w-[140px] justify-between"
+				>
+					<span className="truncate">
+						{local.minPrice || local.maxPrice
+							? `${local.minPrice ? `€${(local.minPrice / 1000).toFixed(0)}K` : '€50K'} - ${local.maxPrice ? `€${local.maxPrice >= 1000000 ? (local.maxPrice / 1000000).toFixed(1) + 'M' : (local.maxPrice / 1000).toFixed(0) + 'K'}` : '€10M'}`
+							: t("filters.price") || "Price"}
+					</span>
+					<svg className="h-4 w-4 ml-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+					</svg>
+				</Button>
 			</div>
 			<div>
 				<Select onValueChange={(v) => update("beds", Number(v))}>
@@ -326,6 +325,19 @@ export function Filters({ value, onChange, onClearBounds }: { value: FiltersStat
 				<span className="text-sm text-muted-foreground">{t("filters.minArea")}</span>
 				<Slider className="w-[180px]" min={0} max={5000} step={100} defaultValue={[local.minArea ?? 0]} onValueChange={(v) => update("minArea", v[0] ?? 0)} />
 			</div>
+			
+			{/* Price Filter Modal */}
+			<PriceFilterModal
+				isOpen={isPriceModalOpen}
+				onClose={() => setIsPriceModalOpen(false)}
+				minPrice={local.minPrice}
+				maxPrice={local.maxPrice}
+				onApply={(minPrice, maxPrice) => {
+					const next = { ...local, minPrice, maxPrice };
+					setLocal(next);
+					onChange(next);
+				}}
+			/>
 		</div>
 	);
 }
