@@ -33,19 +33,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Format users data
-    const formattedUsers = users.map((user) => ({
-      id: user.id,
-      email: user.email,
-      emailConfirmed: user.email_confirmed_at !== null,
-      phone: user.phone,
-      phoneConfirmed: user.phone_confirmed_at !== null,
-      createdAt: user.created_at,
-      lastSignInAt: user.last_sign_in_at,
-      updatedAt: user.updated_at,
-      confirmedAt: user.confirmed_at,
-      metadata: user.user_metadata || {},
-      appMetadata: user.app_metadata || {},
-    }));
+    const formattedUsers = users.map((user) => {
+      // Log for debugging
+      console.log('📋 User from Supabase:', user.email, {
+        hasUserMetadata: !!user.user_metadata,
+        hasAppMetadata: !!user.app_metadata,
+        userMetadataKeys: user.user_metadata ? Object.keys(user.user_metadata) : [],
+        countryInMetadata: user.user_metadata?.country,
+        countryInAppMetadata: user.app_metadata?.country,
+      });
+
+      return {
+        id: user.id,
+        email: user.email,
+        emailConfirmed: user.email_confirmed_at !== null,
+        phone: user.phone,
+        phoneConfirmed: user.phone_confirmed_at !== null,
+        createdAt: user.created_at,
+        lastSignInAt: user.last_sign_in_at,
+        updatedAt: user.updated_at,
+        confirmedAt: user.confirmed_at,
+        metadata: user.user_metadata || {},
+        appMetadata: user.app_metadata || {},
+      };
+    });
 
     return NextResponse.json({
       users: formattedUsers || [],

@@ -18,6 +18,7 @@ import {
 	Building2,
 	ChevronRight,
 	ChevronLeft,
+	ChevronDown,
 	ShieldCheck,
 	Map,
 	Heart,
@@ -404,10 +405,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 										suppressHydrationWarning
 										onMouseEnter={() => {
 											if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+											if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+											setFavoritesDropdownOpen(false); // Close favorites when entering user menu
 											setUserDropdownOpen(true);
 										}}
 										onMouseLeave={() => {
-											userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 100);
+											userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 1000);
 										}}
 									>
 										<Avatar className="h-7 w-7 ring-2 ring-blue-500/20">
@@ -418,18 +421,21 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 										<span className="hidden md:inline truncate max-w-[150px]">
 											{adminUser?.email || 'Admin'}
 										</span>
+										<ChevronDown className="h-3 w-3 opacity-50" />
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent 
 									align="end" 
 									className="w-64"
-									sideOffset={2}
+									sideOffset={12}
 									onMouseEnter={() => {
 										if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+										if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+										setFavoritesDropdownOpen(false); // Close favorites when entering user dropdown content
 										setUserDropdownOpen(true);
 									}}
 									onMouseLeave={() => {
-										userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 100);
+										userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 1000);
 									}}
 								>
 									{/* User Email and Name */}
@@ -483,10 +489,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 										suppressHydrationWarning
 										onMouseEnter={() => {
 											if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+											if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+											setUserDropdownOpen(false); // Close user menu when entering favorites
 											setFavoritesDropdownOpen(true);
 										}}
 										onMouseLeave={() => {
-											favoritesTimeoutRef.current = setTimeout(() => setFavoritesDropdownOpen(false), 100);
+											favoritesTimeoutRef.current = setTimeout(() => setFavoritesDropdownOpen(false), 1000);
 										}}
 									>
 										<Heart className="h-4 w-4" />
@@ -496,18 +504,21 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 												{favoriteProperties.length}
 											</Badge>
 										)}
+										<ChevronDown className="h-3 w-3 opacity-50" />
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent 
 									align="end" 
 									className="p-0"
-									sideOffset={2}
+									sideOffset={12}
 									onMouseEnter={() => {
 										if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+										if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+										setUserDropdownOpen(false); // Close user menu when entering favorites dropdown content
 										setFavoritesDropdownOpen(true);
 									}}
 									onMouseLeave={() => {
-										favoritesTimeoutRef.current = setTimeout(() => setFavoritesDropdownOpen(false), 100);
+										favoritesTimeoutRef.current = setTimeout(() => setFavoritesDropdownOpen(false), 1000);
 									}}
 								>
 									<FavoritesDropdown favorites={favoriteProperties} />

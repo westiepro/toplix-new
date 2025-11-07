@@ -2,15 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useLanguage } from "@/contexts/LanguageContext";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
 	const router = useRouter();
 	const pathname = usePathname();
-	const { currentLanguage } = useLanguage();
 	const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
+	// Extract language from pathname (e.g., /en/admin/dashboard -> en)
+	const getLanguageFromPath = () => {
+		const segments = pathname.split('/').filter(Boolean);
+		return segments[0] || 'en'; // Default to 'en' if no language found
+	};
+
 	useEffect(() => {
+		const currentLanguage = getLanguageFromPath();
 		console.log("🛡️ AuthGuard checking...", {
 			pathname,
 			currentLanguage
@@ -40,7 +45,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 			console.log("✅ Auth check passed, rendering children");
 			setIsAuthenticated(authenticated);
 		}
-	}, [router, pathname, currentLanguage]);
+	}, [router, pathname]);
 
 	// Show nothing while checking authentication
 	const isLoginPage = pathname.endsWith("/admin/login");

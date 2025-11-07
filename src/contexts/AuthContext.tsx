@@ -102,10 +102,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			return { error: new Error("Supabase not configured") as AuthError };
 		}
 
-		const { error } = await supabase.auth.signInWithPassword({
+		// Detect country from IP address (to update user metadata if missing)
+		let country: string | undefined;
+		try {
+			const geoResponse = await fetch('/api/geolocation');
+			if (geoResponse.ok) {
+				const geoData = await geoResponse.json();
+				country = geoData.country;
+			}
+		} catch (error) {
+			console.error("Error detecting country:", error);
+		}
+
+		const { error, data } = await supabase.auth.signInWithPassword({
 			email,
 			password,
 		});
+
+		// Update user metadata with country if detected and not already set
+		if (!error && data?.user && country && !data.user.user_metadata?.country) {
+			try {
+				await supabase.auth.updateUser({
+					data: {
+						...data.user.user_metadata,
+						country: country,
+					},
+				});
+				console.log("Updated user country to:", country);
+			} catch (updateError) {
+				console.error("Error updating user country:", updateError);
+				// Don't fail sign-in if country update fails
+			}
+		}
 
 		return { error };
 	};
@@ -120,47 +148,141 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		const pathSegments = window.location.pathname.split('/');
 		const locale = pathSegments[1] || 'en'; // Default to 'en' if not found
 
-		// Create user with a temporary random password
-		// They'll be logged in immediately without email verification
-		const tempPassword = Math.random().toString(36).slice(-12) + "Aa1!";
+		// Try to detect country client-side as fallback
+		let clientCountry: string | undefined;
+		try {
+			const geoResponse = await fetch('/api/geolocation');
+			if (geoResponse.ok) {
+				const geoData = await geoResponse.json();
+				clientCountry = geoData.country;
+				console.log('🌍 Client-side country detection:', clientCountry);
+			}
+		} catch (error) {
+			console.error("Error detecting country client-side:", error);
+		}
+
+		// Use server-side signup API for proper country detection
+		// This ensures Vercel geo headers are available
+		console.log("Attempting server-side signup for:", email);
 		
-		console.log("Attempting instant signup for:", email);
-		
-		const { data, error } = await supabase.auth.signUp({
-			email,
-			password: tempPassword,
-			options: {
-				emailRedirectTo: `${window.location.origin}/${locale}/auth/callback`,
-				data: {
-					instant_signup: true,
+		try {
+			const signupResponse = await fetch('/api/auth/signup', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
 				},
-			},
-		});
+				body: JSON.stringify({
+					email,
+					locale,
+					clientCountry, // Send client-detected country as fallback
+				}),
+			});
 
-		console.log("Signup result:", { data, error });
+			const signupData = await signupResponse.json();
 
-		// If user already exists, try to sign in with magic link for instant login
-		if (error?.message?.includes("already registered")) {
-			console.log("User already exists, trying OTP");
-			const { error: otpError } = await supabase.auth.signInWithOtp({
+			if (!signupResponse.ok) {
+				return { error: new Error(signupData.error || 'Signup failed') as AuthError };
+			}
+
+			console.log("✅ Server-side signup successful:", {
+				userId: signupData.user?.id,
+				country: signupData.country,
+				hasSession: !!signupData.session,
+			});
+
+			// If we got a session from server-side signup, we're done
+			if (signupData.session) {
+				return { error: null, data: { user: signupData.user, session: signupData.session } };
+			}
+
+			// If user was created successfully by server, don't try to create again
+			// Just send OTP for login
+			if (signupData.user && !signupData.session) {
+				console.log("User created by server, sending OTP for login");
+				const { error: otpError } = await supabase.auth.signInWithOtp({
+					email,
+					options: {
+						shouldCreateUser: false,
+					},
+				});
+				return { error: otpError, data: { user: signupData.user } };
+			}
+
+			// Fallback: if server didn't create user, try client-side
+			const { data, error } = await supabase.auth.signUp({
 				email,
+				password: Math.random().toString(36).slice(-12) + "Aa1!",
 				options: {
-					shouldCreateUser: false,
+					emailRedirectTo: `${window.location.origin}/${locale}/auth/callback`,
+					data: {
+						instant_signup: true,
+						country: signupData.country || clientCountry, // Use country from server or client
+					},
 				},
 			});
-			return { error: otpError };
-		}
 
-		// Check if email confirmation is required
-		if (data?.user && !data.session) {
-			console.warn("Email confirmation required! User created but not logged in.");
-			return { 
-				error: new Error("Email confirmation is enabled. Please disable it in Supabase Dashboard → Authentication → Providers → Email → Turn OFF 'Confirm email'") as AuthError,
-				data 
-			};
-		}
+			// Handle "already registered" error
+			if (error?.message?.includes("already registered")) {
+				console.log("User already exists, trying OTP");
+				const { error: otpError } = await supabase.auth.signInWithOtp({
+					email,
+					options: {
+						shouldCreateUser: false,
+					},
+				});
+				return { error: otpError };
+			}
 
-		return { error, data };
+			// Check if email confirmation is required
+			if (data?.user && !data.session) {
+				console.warn("Email confirmation required! User created but not logged in.");
+				return { 
+					error: new Error("Email confirmation is enabled. Please disable it in Supabase Dashboard → Authentication → Providers → Email → Turn OFF 'Confirm email'") as AuthError,
+					data 
+				};
+			}
+
+			return { error, data };
+		} catch (error) {
+			console.error("❌ Server-side signup error, falling back to client-side:", error);
+			
+			// Fallback to client-side signup if server-side fails
+			const tempPassword = Math.random().toString(36).slice(-12) + "Aa1!";
+			const { data, error: signupError } = await supabase.auth.signUp({
+				email,
+				password: tempPassword,
+				options: {
+					emailRedirectTo: `${window.location.origin}/${locale}/auth/callback`,
+					data: {
+						instant_signup: true,
+						country: clientCountry, // Use client-detected country
+					},
+				},
+			});
+
+			// Handle "already registered" error in fallback
+			if (signupError?.message?.includes("already registered")) {
+				console.log("User already exists, trying OTP");
+				const { error: otpError } = await supabase.auth.signInWithOtp({
+					email,
+					options: {
+						shouldCreateUser: false,
+					},
+				});
+				return { error: otpError };
+			}
+
+			// Check if email confirmation is required
+			if (data?.user && !data.session) {
+				console.warn("Email confirmation required! User created but not logged in.");
+				return { 
+					error: new Error("Email confirmation is enabled. Please disable it in Supabase Dashboard → Authentication → Providers → Email → Turn OFF 'Confirm email'") as AuthError,
+					data 
+				};
+			}
+
+			return { error: signupError, data };
+		}
 	};
 
 	const signInWithOAuth = async (provider: "google" | "apple") => {
@@ -173,10 +295,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		const pathSegments = window.location.pathname.split('/');
 		const locale = pathSegments[1] || 'en'; // Default to 'en' if not found
 
+		// Detect country from IP address (for new users)
+		let country: string | undefined;
+		try {
+			const geoResponse = await fetch('/api/geolocation');
+			if (geoResponse.ok) {
+				const geoData = await geoResponse.json();
+				country = geoData.country;
+			}
+		} catch (error) {
+			console.error("Error detecting country:", error);
+			// Continue without country - not critical
+		}
+
 		const { error } = await supabase.auth.signInWithOAuth({
 			provider,
 			options: {
 				redirectTo: `${window.location.origin}/${locale}/auth/callback`,
+				queryParams: country ? {
+					// Pass country as query param to be picked up in callback
+					country: country,
+				} : undefined,
 			},
 		});
 

@@ -7,6 +7,7 @@ import { getTranslations } from "@/lib/get-translations";
 import { locales, localeNames, localeFlags, type Locale } from "@/lib/i18n-config";
 import { createClient } from "@supabase/supabase-js";
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { LiveViewerTracker } from "@/components/LiveViewerTracker";
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -88,26 +89,23 @@ export default async function LocaleLayout({
 	const languages = await getLanguages();
 
 	return (
-		<html lang={validLang} suppressHydrationWarning>
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+		<Providers>
+			<LanguageProvider
+				locale={validLang}
+				translations={translations}
+				languages={languages}
 			>
-				<Providers>
-					<LanguageProvider
-						locale={validLang}
-						translations={translations}
-						languages={languages}
-					>
-						{children}
-					</LanguageProvider>
-				</Providers>
-				
-				{/* Google Analytics 4 */}
-				{process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
-					<GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
-				)}
-			</body>
-		</html>
+				{children}
+			</LanguageProvider>
+			
+			{/* Live Viewer Tracker - tracks all visitors */}
+			<LiveViewerTracker />
+			
+			{/* Google Analytics 4 */}
+			{process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID && (
+				<GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID} />
+			)}
+		</Providers>
 	);
 }
 
