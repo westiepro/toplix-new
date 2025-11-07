@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Breadcrumbs } from "@/components/admin/Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
 	Users, 
 	TrendingUp, 
@@ -214,10 +215,63 @@ const userProfiles = [
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'];
 
+type User = {
+	id: string;
+	email: string | null;
+	emailConfirmed: boolean;
+	phone: string | null;
+	phoneConfirmed: boolean;
+	createdAt: string;
+	lastSignInAt: string | null;
+	updatedAt: string;
+	confirmedAt: string | null;
+	metadata: Record<string, any>;
+	appMetadata: Record<string, any>;
+};
+
 export default function SiteUsersPage() {
 	const [selectedUser, setSelectedUser] = useState<typeof userProfiles[0] | null>(null);
 	const [newNote, setNewNote] = useState('');
 	const [newTag, setNewTag] = useState('');
+	const [users, setUsers] = useState<User[]>([]);
+	const [loadingUsers, setLoadingUsers] = useState(true);
+	const [usersError, setUsersError] = useState<string | null>(null);
+
+	// Fetch users from API
+	useEffect(() => {
+		const fetchUsers = async () => {
+			try {
+				setLoadingUsers(true);
+				const response = await fetch('/api/users');
+				if (!response.ok) {
+					throw new Error('Failed to fetch users');
+				}
+				const data = await response.json();
+				setUsers(data.users || []);
+				setUsersError(null);
+			} catch (error) {
+				console.error('Error fetching users:', error);
+				setUsersError(error instanceof Error ? error.message : 'Failed to load users');
+			} finally {
+				setLoadingUsers(false);
+			}
+		};
+
+		fetchUsers();
+	}, []);
+
+	// Format date helper
+	const formatDate = (dateString: string | null) => {
+		if (!dateString) return 'Never';
+		const date = new Date(dateString);
+		return date.toLocaleDateString('en-US', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit',
+		});
+	};
 
 	return (
 		<div className="space-y-6">
@@ -249,9 +303,11 @@ export default function SiteUsersPage() {
 								<Users className="h-4 w-4 text-emerald-600" />
 							</CardHeader>
 							<CardContent>
-								<div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">450</div>
+								<div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
+									{loadingUsers ? '...' : users.filter(u => u.email?.toLowerCase() !== 'admin@toplix.com').length}
+								</div>
 								<p className="text-xs text-emerald-600 dark:text-emerald-500">
-									<TrendingUp className="inline h-3 w-3" /> +18% from last month
+									{loadingUsers ? 'Loading...' : `${users.filter(u => u.email?.toLowerCase() !== 'admin@toplix.com' && u.emailConfirmed).length} verified`}
 								</p>
 							</CardContent>
 						</Card>
@@ -295,6 +351,87 @@ export default function SiteUsersPage() {
 							</CardContent>
 						</Card>
 					</div>
+
+					{/* All Registered Users Table */}
+					<Card>
+						<CardHeader>
+							<CardTitle>All Registered Users</CardTitle>
+							<CardDescription>Complete list of all users in the database (5 total)</CardDescription>
+						</CardHeader>
+						<CardContent>
+							{loadingUsers ? (
+								<div className="flex items-center justify-center py-8">
+									<div className="text-muted-foreground">Loading users...</div>
+								</div>
+							) : usersError ? (
+								<div className="flex items-center justify-center py-8">
+									<div className="text-destructive">Error: {usersError}</div>
+								</div>
+							) : users.length === 0 ? (
+								<div className="flex items-center justify-center py-8">
+									<div className="text-muted-foreground">No users found</div>
+								</div>
+							) : (
+								<div className="rounded-md border">
+									<Table>
+										<TableHeader>
+											<TableRow>
+												<TableHead>Email</TableHead>
+												<TableHead>Status</TableHead>
+												<TableHead>Phone</TableHead>
+												<TableHead>Created</TableHead>
+												<TableHead>Last Sign In</TableHead>
+											</TableRow>
+										</TableHeader>
+										<TableBody>
+											{users
+												.filter((user) => user.email?.toLowerCase() !== 'admin@toplix.com')
+												.map((user) => (
+													<TableRow key={user.id}>
+														<TableCell className="font-medium">
+															{user.email || 'No email'}
+														</TableCell>
+														<TableCell>
+															<div className="flex items-center gap-2">
+																{user.emailConfirmed ? (
+																	<Badge className="bg-green-500 text-white">
+																		<CheckCircle className="h-3 w-3 mr-1" />
+																		Verified
+																	</Badge>
+																) : (
+																	<Badge variant="secondary">
+																		<XCircle className="h-3 w-3 mr-1" />
+																		Unverified
+																	</Badge>
+																)}
+															</div>
+														</TableCell>
+														<TableCell>
+															{user.phone ? (
+																<div className="flex items-center gap-2">
+																	{user.phone}
+																	{user.phoneConfirmed && (
+																		<CheckCircle className="h-3 w-3 text-green-500" />
+																	)}
+																</div>
+															) : (
+																<span className="text-muted-foreground">-</span>
+															)}
+														</TableCell>
+														<TableCell className="text-sm text-muted-foreground">
+															{formatDate(user.createdAt)}
+														</TableCell>
+														<TableCell className="text-sm text-muted-foreground">
+															{formatDate(user.lastSignInAt)}
+														</TableCell>
+													</TableRow>
+												))}
+										</TableBody>
+									</Table>
+								</div>
+							)}
+						</CardContent>
+					</Card>
 
 					{/* Charts Row 1 */}
 					<div className="grid gap-4 md:grid-cols-2">

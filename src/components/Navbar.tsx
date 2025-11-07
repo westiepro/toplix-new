@@ -161,20 +161,20 @@ export function Navbar() {
 									<ChevronDown className="h-3 w-3 opacity-50" />
 								</Button>
 							</DropdownMenuTrigger>
-								<DropdownMenuContent 
-									align="end" 
-									className="w-64 mt-[-4px]"
-									sideOffset={-4}
-									onMouseEnter={() => {
-										if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
-										if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
-										setFavoritesDropdownOpen(false); // Close favorites when entering user dropdown content
-										setUserDropdownOpen(true);
-									}}
-									onMouseLeave={() => {
-										userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 1000);
-									}}
-								>
+							<DropdownMenuContent 
+								align="end" 
+								className="w-64"
+								sideOffset={12}
+								onMouseEnter={() => {
+									if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+									if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+									setFavoritesDropdownOpen(false); // Close favorites when entering user dropdown content
+									setUserDropdownOpen(true);
+								}}
+								onMouseLeave={() => {
+									userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 1000);
+								}}
+							>
 								<div className="px-2 py-1.5 text-sm">
 									<p className="font-medium truncate">
 										{isAdmin 
@@ -188,7 +188,7 @@ export function Navbar() {
 								</div>
 								<DropdownMenuSeparator />
 								{isAdmin && (
-									<LocaleLink href="/admin/properties" className="block">
+									<LocaleLink href="/admin/dashboard" className="block">
 										<DropdownMenuItem className="cursor-pointer">
 											<Settings className="mr-2 h-4 w-4 text-purple-600" />
 											Admin Panel
@@ -257,8 +257,8 @@ export function Navbar() {
 						</DropdownMenuTrigger>
 							<DropdownMenuContent 
 								align="end" 
-								className="p-0 mt-[-4px]"
-								sideOffset={-4}
+								className="p-0"
+								sideOffset={12}
 								onMouseEnter={() => {
 									if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
 									if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
