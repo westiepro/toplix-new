@@ -119,4 +119,25 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Mobile touch optimizations */
+  @media (hover: none) and (pointer: coarse) {
+    /* Increase tap target size for touch devices */
+    button, a {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Improve touch scrolling */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+    }
+    
+    /* Smooth scrolling for mobile */
+    html {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 }

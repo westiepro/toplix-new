@@ -249,68 +249,73 @@ export function HeroSearch() {
 	return (
 		<div className="relative mx-auto w-full">
 			<form onSubmit={onSubmit}>
-				<div className="relative group flex gap-2 items-center">
-					{/* Buy/Rent Buttons */}
-					<button
-						type="button"
-						onClick={() => setSearchType("buy")}
-						className={`px-6 py-4 rounded-xl font-semibold transition-all text-base ${
-							searchType === "buy"
-								? "bg-[#2C477D] text-white border-2 border-[#6A90D0] shadow-lg"
-								: "bg-white text-gray-700 hover:bg-gray-50 shadow-md"
-						}`}
-					>
-						Buy
-					</button>
-					<button
-						type="button"
-						onClick={() => setSearchType("rent")}
-						className={`px-6 py-4 rounded-xl font-semibold transition-all text-base ${
-							searchType === "rent"
-								? "bg-[#2C477D] text-white border-2 border-[#6A90D0] shadow-lg"
-								: "bg-white text-gray-700 hover:bg-gray-50 shadow-md"
-						}`}
-					>
-						Rent
-					</button>
-
-					{/* Search Input Container */}
-					<div className="relative flex-1">
-						<Input
-							ref={inputRef}
-							value={query}
-							onChange={(e) => setQuery(e.target.value)}
-							onFocus={() => {
-								if (query.length > 0 && suggestions.length > 0) setShowSuggestions(true);
-								prefetchProperties(); // Start prefetching when user focuses on search
-							}}
-							onKeyDown={handleKeyDown}
-							placeholder="Enter a city, neighborhood, or ZIP"
-							className="h-16 w-full rounded-l-xl border-0 bg-white pl-6 pr-12 text-base shadow-md placeholder:text-gray-400 focus:ring-2 focus:ring-[#2C477D]"
-						/>
-						{isSearching && (
-							<div className="absolute right-4 top-1/2 -translate-y-1/2">
-								<Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-							</div>
-						)}
+				{/* Mobile: Stacked Layout, Desktop: Horizontal */}
+				<div className="space-y-3 md:space-y-0">
+					{/* Buy/Rent Buttons - Full width on mobile, inline on desktop */}
+					<div className="flex gap-2 w-full md:w-auto md:inline-flex">
+						<button
+							type="button"
+							onClick={() => setSearchType("buy")}
+							className={`flex-1 md:flex-none px-4 md:px-6 py-3 md:py-4 rounded-xl font-semibold transition-all text-sm md:text-base ${
+								searchType === "buy"
+									? "bg-[#2C477D] text-white border-2 border-[#6A90D0] shadow-lg"
+									: "bg-white text-gray-700 hover:bg-gray-50 shadow-md"
+							}`}
+						>
+							Buy
+						</button>
+						<button
+							type="button"
+							onClick={() => setSearchType("rent")}
+							className={`flex-1 md:flex-none px-4 md:px-6 py-3 md:py-4 rounded-xl font-semibold transition-all text-sm md:text-base ${
+								searchType === "rent"
+									? "bg-[#2C477D] text-white border-2 border-[#6A90D0] shadow-lg"
+									: "bg-white text-gray-700 hover:bg-gray-50 shadow-md"
+							}`}
+						>
+							Rent
+						</button>
 					</div>
 
-					{/* Search Button */}
-					<Button 
-						type="submit" 
-						className="h-16 rounded-r-xl px-6 bg-[#2C477D] hover:bg-[#1e3a8a] shadow-md border-0"
-					>
-						<svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-						</svg>
-					</Button>
+					{/* Search Input Container with Button */}
+					<div className="relative group flex gap-0 md:gap-2 items-center md:inline-flex md:flex-1 md:ml-2">
+						<div className="relative flex-1">
+							<Input
+								ref={inputRef}
+								value={query}
+								onChange={(e) => setQuery(e.target.value)}
+								onFocus={() => {
+									if (query.length > 0 && suggestions.length > 0) setShowSuggestions(true);
+									prefetchProperties(); // Start prefetching when user focuses on search
+								}}
+								onKeyDown={handleKeyDown}
+								placeholder="Enter a city, neighborhood, or ZIP"
+								className="h-14 md:h-16 w-full rounded-l-xl border-0 bg-white pl-4 md:pl-6 pr-12 text-sm md:text-base shadow-md placeholder:text-gray-400 focus:ring-2 focus:ring-[#2C477D]"
+							/>
+							{isSearching && (
+								<div className="absolute right-4 top-1/2 -translate-y-1/2">
+									<Loader2 className="h-4 w-4 md:h-5 md:w-5 animate-spin text-gray-400" />
+								</div>
+							)}
+						</div>
+
+						{/* Search Button */}
+						<Button 
+							type="submit" 
+							className="h-14 md:h-16 rounded-r-xl px-4 md:px-6 bg-[#2C477D] hover:bg-[#1e3a8a] shadow-md border-0"
+						>
+							<svg className="h-4 w-4 md:h-5 md:w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+							</svg>
+						</Button>
+					</div>
 				</div>
 
-				{/* Enhanced Search Dropdown */}
+				{/* Enhanced Search Dropdown - Responsive positioning */}
 				{showSuggestions && (suggestions.length > 0 || properties.length > 0) && (
 					<div
 						ref={dropdownRef}
-						className="absolute top-full left-[180px] right-[65px] z-50 mt-3 animate-in fade-in slide-in-from-top-2 duration-300"
+						className="absolute top-full left-0 right-0 md:left-[180px] md:right-[65px] z-50 mt-3 animate-in fade-in slide-in-from-top-2 duration-300"
 					>
 						<EnhancedSearchDropdown
 							cities={suggestions}
