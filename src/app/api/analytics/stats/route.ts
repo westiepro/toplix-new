@@ -102,18 +102,21 @@ export async function GET(request: NextRequest) {
         : 0;
     }
 
+    // Ensure totalPageViews is a number (handle null case)
+    const totalPageViewsCount = totalPageViews ?? 0;
+
     // Calculate percentage changes
     const visitorsChange = previousVisitors > 0
       ? ((uniqueVisitors - previousVisitors) / previousVisitors) * 100
       : 0;
     
     const pageViewsChange = previousPageViews > 0
-      ? ((totalPageViews - previousPageViews) / previousPageViews) * 100
+      ? ((totalPageViewsCount - previousPageViews) / previousPageViews) * 100
       : 0;
 
     return NextResponse.json({
       visitors: uniqueVisitors,
-      pageViews: totalPageViews || 0,
+      pageViews: totalPageViewsCount,
       visitorsChange: Math.round(visitorsChange * 10) / 10, // Round to 1 decimal
       pageViewsChange: Math.round(pageViewsChange * 10) / 10,
       period,
