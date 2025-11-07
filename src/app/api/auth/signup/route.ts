@@ -6,10 +6,13 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // Helper to get country from Vercel geo
 function getCountryFromRequest(request: NextRequest): string | undefined {
+  // Type assertion for Vercel's geo property (available at runtime)
+  const geo = (request as any).geo;
+  
   // Vercel provides geo information
-  if (request.geo?.country) {
-    console.log('✅ Country from request.geo:', request.geo.country);
-    return request.geo.country;
+  if (geo?.country) {
+    console.log('✅ Country from request.geo:', geo.country);
+    return geo.country;
   }
   
   // Check headers as fallback
@@ -17,7 +20,7 @@ function getCountryFromRequest(request: NextRequest): string | undefined {
   const cfCountry = request.headers.get('cf-ipcountry');
   
   console.log('🌍 Geo detection:', {
-    'request.geo.country': request.geo?.country,
+    'request.geo.country': geo?.country,
     'x-vercel-ip-country': vercelCountry,
     'cf-ipcountry': cfCountry,
   });

@@ -25,10 +25,13 @@ function getCountryFromHeaders(request: NextRequest): string | undefined {
   // 2. x-vercel-ip-country header
   // 3. cf-ipcountry (Cloudflare)
   
+  // Type assertion for Vercel's geo property (available at runtime)
+  const geo = (request as any).geo;
+  
   // Try request.geo first (Vercel's recommended way)
-  if (request.geo?.country) {
-    console.log('✅ Country from request.geo:', request.geo.country);
-    return request.geo.country;
+  if (geo?.country) {
+    console.log('✅ Country from request.geo:', geo.country);
+    return geo.country;
   }
   
   // Check headers
@@ -37,7 +40,7 @@ function getCountryFromHeaders(request: NextRequest): string | undefined {
   
   // Log for debugging
   console.log('🌍 Geo detection:', {
-    'request.geo.country': request.geo?.country,
+    'request.geo.country': geo?.country,
     'x-vercel-ip-country': vercelCountry,
     'cf-ipcountry': cfCountry,
     'VERCEL env': !!process.env.VERCEL,

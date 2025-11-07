@@ -51,10 +51,14 @@ function getClientIP(request: NextRequest): string | undefined {
 // Helper function to get country from request (Vercel provides this)
 function getCountryFromRequest(request: NextRequest): string | undefined {
   // Vercel provides geo information in headers
-  const country = request.headers.get('x-vercel-ip-country') || 
-                  request.headers.get('cf-ipcountry') || // Cloudflare
-                  request.geo?.country;
-  return country || undefined;
+  const vercelCountry = request.headers.get('x-vercel-ip-country');
+  const cfCountry = request.headers.get('cf-ipcountry'); // Cloudflare
+  
+  // Type assertion for Vercel's geo property (available at runtime)
+  const geo = (request as any).geo;
+  const geoCountry = geo?.country;
+  
+  return vercelCountry || cfCountry || geoCountry || undefined;
 }
 
 // POST - Register/update active viewer
