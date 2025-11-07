@@ -118,19 +118,19 @@ export function Navbar() {
 	return (
 		<>
 			<header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur" suppressHydrationWarning>
-				<div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
-					<LocaleLink href="/" className="flex items-center gap-2 font-semibold">
-						<Home className="h-5 w-5" />
-						<span>{t("navbar.brand")}</span>
+				<div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-3 sm:px-4">
+					<LocaleLink href="/" className="flex items-center gap-1.5 sm:gap-2 font-semibold text-sm sm:text-base">
+						<Home className="h-4 w-4 sm:h-5 sm:w-5" />
+						<span className="truncate max-w-[100px] sm:max-w-none">{t("navbar.brand")}</span>
 					</LocaleLink>
-				<nav className="hidden items-center gap-6 md:flex">
+				<nav className="hidden items-center gap-4 lg:gap-6 md:flex">
 					<LocaleLink href="/buy" className="text-sm text-muted-foreground hover:text-foreground" onMouseEnter={prefetchProperties}>{t("home.nav.buy")}</LocaleLink>
 					<LocaleLink href="/buy?for=rent" className="text-sm text-muted-foreground hover:text-foreground" onMouseEnter={prefetchProperties}>{t("home.nav.rent")}</LocaleLink>
 					<LocaleLink href="/sell" className="text-sm text-muted-foreground hover:text-foreground">{t("home.nav.sell")}</LocaleLink>
 				</nav>
-				<div className="flex items-center gap-2">
-					<LocaleLink href="/buy" onMouseEnter={prefetchProperties}>
-						<Button variant="secondary" size="sm" className="gap-2"><Map className="h-4 w-4" /> {t("navbar.explore")}</Button>
+				<div className="flex items-center gap-1 sm:gap-2">
+					<LocaleLink href="/buy" onMouseEnter={prefetchProperties} className="hidden sm:block">
+						<Button variant="secondary" size="sm" className="gap-2 h-8 sm:h-9"><Map className="h-4 w-4" /> <span className="hidden lg:inline">{t("navbar.explore")}</span></Button>
 					</LocaleLink>
 						
 					{(user || isAdmin) ? (
@@ -139,7 +139,7 @@ export function Navbar() {
 								<Button 
 									variant="ghost" 
 									size="sm" 
-									className="gap-2" 
+									className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3" 
 									suppressHydrationWarning
 									onMouseEnter={() => {
 										if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
@@ -151,14 +151,14 @@ export function Navbar() {
 										userTimeoutRef.current = setTimeout(() => setUserDropdownOpen(false), 1000);
 									}}
 								>
-									<User className="h-4 w-4" />
-									<span className="hidden md:inline truncate max-w-[150px]">
+									<User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+									<span className="hidden md:inline truncate max-w-[100px] lg:max-w-[150px] text-xs sm:text-sm">
 										{isAdmin 
 											? JSON.parse(localStorage.getItem("admin-user") || '{}').email 
 											: user?.email
 										}
 									</span>
-									<ChevronDown className="h-3 w-3 opacity-50" />
+									<ChevronDown className="hidden sm:block h-3 w-3 opacity-50" />
 								</Button>
 							</DropdownMenuTrigger>
 							<DropdownMenuContent 
@@ -220,11 +220,11 @@ export function Navbar() {
 							<Button 
 								variant="ghost" 
 								size="sm" 
-								className="gap-2"
+								className="gap-1 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3"
 								onClick={() => setShowLoginModal(true)}
 							>
-								<User className="h-4 w-4" />
-								{t("navbar.signIn")}
+								<User className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+								<span className="hidden sm:inline text-xs sm:text-sm">{t("navbar.signIn")}</span>
 							</Button>
 						)}
 
@@ -233,7 +233,7 @@ export function Navbar() {
 						<Button 
 							variant="ghost" 
 							size="sm" 
-							className="gap-2 relative" 
+							className="gap-1 sm:gap-2 relative h-8 sm:h-9 px-2 sm:px-3" 
 							suppressHydrationWarning
 							onMouseEnter={() => {
 								if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
@@ -245,14 +245,14 @@ export function Navbar() {
 								favoritesTimeoutRef.current = setTimeout(() => setFavoritesDropdownOpen(false), 1000);
 							}}
 						>
-							<Heart className="h-4 w-4" />
-							<span className="hidden md:inline">{t("navbar.favorites")}</span>
+							<Heart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+							<span className="hidden lg:inline text-xs sm:text-sm">{t("navbar.favorites")}</span>
 							{favoriteProperties.length > 0 && (
-								<Badge variant="secondary" className="ml-1 px-1.5 py-0 h-5 text-xs">
+								<Badge variant="secondary" className="ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0 h-4 sm:h-5 text-[10px] sm:text-xs">
 									{favoriteProperties.length}
 								</Badge>
 							)}
-							<ChevronDown className="h-3 w-3 opacity-50" />
+							<ChevronDown className="hidden sm:block h-3 w-3 opacity-50" />
 							</Button>
 						</DropdownMenuTrigger>
 							<DropdownMenuContent 
