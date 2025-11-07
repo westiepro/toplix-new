@@ -190,22 +190,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				hasSession: !!signupData.session,
 			});
 
-			// If we got a session from server-side signup, we're done
+			// If we got a session from server-side signup, set it on the client
 			if (signupData.session) {
+				// Set the session on the client Supabase instance
+				// The session from server needs to be set using setSession
+				const { error: setSessionError } = await supabase.auth.setSession({
+					access_token: signupData.session.access_token,
+					refresh_token: signupData.session.refresh_token,
+				});
+				
+				if (setSessionError) {
+					console.error('Error setting session:', setSessionError);
+					// Still return success, the session might work anyway
+				}
+				
+				// Refresh to get the latest session state
+				await supabase.auth.getSession();
+				
 				return { error: null, data: { user: signupData.user, session: signupData.session } };
 			}
 
-			// If user was created successfully by server, don't try to create again
-			// Just send OTP for login
+			// If user was created but no session (email confirmation might be required)
+			// Send OTP so user can sign in
 			if (signupData.user && !signupData.session) {
-				console.log("User created by server, sending OTP for login");
+				console.log("User created but no session, sending OTP for login");
 				const { error: otpError } = await supabase.auth.signInWithOtp({
 					email,
 					options: {
 						shouldCreateUser: false,
 					},
 				});
-				return { error: otpError, data: { user: signupData.user } };
+				if (otpError) {
+					return { error: otpError };
+				}
+				// Return success but indicate OTP was sent (no session yet)
+				return { error: null, data: { user: signupData.user, otpSent: true } };
 			}
 
 			// Fallback: if server didn't create user, try client-side

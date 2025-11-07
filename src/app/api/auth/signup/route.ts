@@ -98,35 +98,62 @@ export async function POST(request: NextRequest) {
     // Generate temporary password
     const tempPassword = Math.random().toString(36).slice(-12) + "Aa1!";
 
-    // Create user using admin API with country in metadata
-    const { data: createdUser, error: createError } = await supabase.auth.admin.createUser({
+    // Use regular signUp which creates a session automatically
+    // We'll use anon key for this to get a proper client session
+    const supabaseAnon = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
+
+    const { data: signupData, error: signupError } = await supabaseAnon.auth.signUp({
       email,
       password: tempPassword,
-      email_confirm: true, // Auto-confirm email
-      user_metadata: {
-        instant_signup: true,
-        country: country || undefined, // Store country in user metadata
+      options: {
+        emailRedirectTo: `${request.nextUrl.origin}/${locale}/auth/callback`,
+        data: {
+          instant_signup: true,
+          country: country || undefined, // Store country in user metadata
+        },
       },
     });
 
-    if (createError) {
-      console.error('❌ Create user error:', createError);
+    if (signupError) {
+      console.error('❌ Signup error:', signupError);
       return NextResponse.json(
-        { error: createError.message },
+        { error: signupError.message },
         { status: 400 }
       );
     }
 
-    console.log('✅ User created successfully:', {
-      userId: createdUser.user?.id,
-      email: createdUser.user?.email,
-      storedCountry: createdUser.user?.user_metadata?.country,
+    // If user was created but no session (email confirmation required), update country via admin API
+    if (signupData.user && !signupData.session && country) {
+      console.log('Updating country for user without session');
+      try {
+        await supabase.auth.admin.updateUserById(signupData.user.id, {
+          user_metadata: {
+            ...signupData.user.user_metadata,
+            country: country,
+          },
+        });
+      } catch (updateError) {
+        console.error('Error updating country:', updateError);
+      }
+    }
+
+    console.log('✅ Signup successful:', {
+      userId: signupData.user?.id,
+      email: signupData.user?.email,
+      storedCountry: signupData.user?.user_metadata?.country,
       detectedCountry: country,
+      hasSession: !!signupData.session,
     });
 
     return NextResponse.json({
       success: true,
-      user: createdUser.user,
+      user: signupData.user,
+      session: signupData.session,
       country: country,
     });
   } catch (error) {

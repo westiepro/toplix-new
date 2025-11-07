@@ -76,16 +76,21 @@ export function LoginModal({ open, onOpenChange }: LoginModalProps) {
 				setIsLoading(true);
 				setIsCheckingEmail(false);
 
-				const { error: signUpError } = await signUp(email);
+				const { error: signUpError, data: signUpData } = await signUp(email);
 
 				if (signUpError) {
 					toast.error(signUpError.message, { duration: 10000 });
 					setIsLoading(false);
-				} else {
+				} else if (signUpData?.session) {
 					// Success! User is created and logged in instantly
 					toast.success(t("login.welcomeLoggedIn"));
 					setIsLoading(false);
 					onOpenChange(false);
+				} else {
+					// User created but needs to verify email (OTP sent)
+					toast.success("Account created! Please check your email for a magic link to sign in.", { duration: 8000 });
+					setIsLoading(false);
+					setModalState("check_email");
 				}
 			}
 		} catch (error) {
