@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Heart, User, Map, Home, LogOut, Settings, Briefcase } from "lucide-react";
+import { Heart, User, Map, Home, LogOut, Settings, Briefcase, ChevronDown } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -143,6 +143,8 @@ export function Navbar() {
 									suppressHydrationWarning
 									onMouseEnter={() => {
 										if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+										if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+										setFavoritesDropdownOpen(false); // Close favorites when entering user menu
 										setUserDropdownOpen(true);
 									}}
 									onMouseLeave={() => {
@@ -156,6 +158,7 @@ export function Navbar() {
 											: user?.email
 										}
 									</span>
+									<ChevronDown className="h-3 w-3 opacity-50" />
 								</Button>
 							</DropdownMenuTrigger>
 								<DropdownMenuContent 
@@ -164,6 +167,8 @@ export function Navbar() {
 									sideOffset={-4}
 									onMouseEnter={() => {
 										if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+										if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+										setFavoritesDropdownOpen(false); // Close favorites when entering user dropdown content
 										setUserDropdownOpen(true);
 									}}
 									onMouseLeave={() => {
@@ -232,6 +237,8 @@ export function Navbar() {
 							suppressHydrationWarning
 							onMouseEnter={() => {
 								if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+								if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+								setUserDropdownOpen(false); // Close user menu when entering favorites
 								setFavoritesDropdownOpen(true);
 							}}
 							onMouseLeave={() => {
@@ -245,6 +252,7 @@ export function Navbar() {
 									{favoriteProperties.length}
 								</Badge>
 							)}
+							<ChevronDown className="h-3 w-3 opacity-50" />
 							</Button>
 						</DropdownMenuTrigger>
 							<DropdownMenuContent 
@@ -253,6 +261,8 @@ export function Navbar() {
 								sideOffset={-4}
 								onMouseEnter={() => {
 									if (favoritesTimeoutRef.current) clearTimeout(favoritesTimeoutRef.current);
+									if (userTimeoutRef.current) clearTimeout(userTimeoutRef.current);
+									setUserDropdownOpen(false); // Close user menu when entering favorites dropdown content
 									setFavoritesDropdownOpen(true);
 								}}
 								onMouseLeave={() => {
