@@ -11,7 +11,9 @@ function getCountryFromRequest(request: NextRequest): string | undefined {
   
   // Vercel provides geo information
   if (geo?.country) {
-    console.log('✅ Country from request.geo:', geo.country);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Country from request.geo:', geo.country);
+    }
     return geo.country;
   }
   
@@ -19,11 +21,13 @@ function getCountryFromRequest(request: NextRequest): string | undefined {
   const vercelCountry = request.headers.get('x-vercel-ip-country');
   const cfCountry = request.headers.get('cf-ipcountry');
   
-  console.log('🌍 Geo detection:', {
-    'request.geo.country': geo?.country,
-    'x-vercel-ip-country': vercelCountry,
-    'cf-ipcountry': cfCountry,
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🌍 Geo detection:', {
+      'request.geo.country': geo?.country,
+      'x-vercel-ip-country': vercelCountry,
+      'cf-ipcountry': cfCountry,
+    });
+  }
   
   return vercelCountry || cfCountry || undefined;
 }
@@ -53,16 +57,20 @@ export async function POST(request: NextRequest) {
     
     // If server-side detection failed, use client-detected country as fallback
     if (!country && clientCountry) {
-      console.log('⚠️ Server-side country detection failed, using client-detected country:', clientCountry);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('⚠️ Server-side country detection failed, using client-detected country:', clientCountry);
+      }
       country = clientCountry;
     }
     
-    console.log('🌍 Country detection result:', {
-      serverDetected: getCountryFromRequest(request),
-      clientDetected: clientCountry,
-      finalCountry: country,
-      email: email
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🌍 Country detection result:', {
+        serverDetected: getCountryFromRequest(request),
+        clientDetected: clientCountry,
+        finalCountry: country,
+        email: email
+      });
+    }
 
     // Use service role key for server-side operations (can set user metadata)
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
@@ -78,7 +86,9 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       // User exists, try to send magic link
-      console.log('User already exists, sending magic link');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('User already exists, sending magic link');
+      }
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -129,7 +139,9 @@ export async function POST(request: NextRequest) {
 
     // If user was created but no session (email confirmation required), update country via admin API
     if (signupData.user && !signupData.session && country) {
-      console.log('Updating country for user without session');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Updating country for user without session');
+      }
       try {
         await supabase.auth.admin.updateUserById(signupData.user.id, {
           user_metadata: {
@@ -142,13 +154,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('✅ Signup successful:', {
-      userId: signupData.user?.id,
-      email: signupData.user?.email,
-      storedCountry: signupData.user?.user_metadata?.country,
-      detectedCountry: country,
-      hasSession: !!signupData.session,
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Signup successful:', {
+        userId: signupData.user?.id,
+        email: signupData.user?.email,
+        storedCountry: signupData.user?.user_metadata?.country,
+        detectedCountry: country,
+        hasSession: !!signupData.session,
+      });
+    }
 
     return NextResponse.json({
       success: true,

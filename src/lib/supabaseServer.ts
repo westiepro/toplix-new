@@ -10,7 +10,9 @@ export function getSupabaseServer() {
 	const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 	if (!supabaseUrl || !supabaseKey) {
-		console.error("Missing Supabase environment variables");
+		if (process.env.NODE_ENV === 'development') {
+			console.error("Missing Supabase environment variables");
+		}
 		return null;
 	}
 

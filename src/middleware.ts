@@ -119,7 +119,9 @@ export async function middleware(request: NextRequest) {
 	const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 	if (!supabaseUrl || !supabaseAnonKey) {
-		console.log("Middleware: Supabase not configured, allowing access");
+		if (process.env.NODE_ENV === 'development') {
+			console.log("Middleware: Supabase not configured, allowing access");
+		}
 		return response;
 	}
 
@@ -150,7 +152,9 @@ export async function middleware(request: NextRequest) {
 	// Allow all admin routes to pass through
 	// (AuthGuard component will handle admin authentication)
 	if (isAdminRoute) {
-		console.log("Middleware: Admin route detected, allowing through (AuthGuard will verify)");
+		if (process.env.NODE_ENV === 'development') {
+			console.log("Middleware: Admin route detected, allowing through (AuthGuard will verify)");
+		}
 		return response;
 	}
 
@@ -162,12 +166,16 @@ export async function middleware(request: NextRequest) {
 
 	// If accessing a protected route without a session, redirect to home
 	if (isProtectedRoute && !session) {
-		console.log("Middleware: No session found, redirecting to home");
+		if (process.env.NODE_ENV === 'development') {
+			console.log("Middleware: No session found, redirecting to home");
+		}
 		const redirectUrl = new URL(`/${pathnameLocale}`, request.url);
 		return NextResponse.redirect(redirectUrl);
 	}
 
-	console.log("Middleware: User authenticated, allowing access to", pathname);
+	if (process.env.NODE_ENV === 'development') {
+		console.log("Middleware: User authenticated, allowing access to", pathname);
+	}
 	return response;
 }
 

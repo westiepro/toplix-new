@@ -16,33 +16,44 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
 	useEffect(() => {
 		const currentLanguage = getLanguageFromPath();
-		console.log("🛡️ AuthGuard checking...", {
-			pathname,
-			currentLanguage
-		});
+		
+		if (process.env.NODE_ENV === 'development') {
+			console.log("🛡️ AuthGuard checking...", {
+				pathname,
+				currentLanguage
+			});
+		}
 		
 		// Check if user is authenticated
 		const authenticated = localStorage.getItem("admin-authenticated") === "true";
 		const adminUser = localStorage.getItem("admin-user");
 		
-		console.log("🛡️ Auth status:", {
-			authenticated,
-			hasUserData: !!adminUser,
-			authValue: localStorage.getItem("admin-authenticated")
-		});
+		if (process.env.NODE_ENV === 'development') {
+			console.log("🛡️ Auth status:", {
+				authenticated,
+				hasUserData: !!adminUser,
+				authValue: localStorage.getItem("admin-authenticated")
+			});
+		}
 		
 		// Check if we're on the login page (with locale prefix)
 		const isLoginPage = pathname.endsWith("/admin/login");
 		
 		// If not on login page and not authenticated, redirect to login
 		if (!authenticated && !isLoginPage) {
-			console.log("❌ Not authenticated, redirecting to login");
+			if (process.env.NODE_ENV === 'development') {
+				console.log("❌ Not authenticated, redirecting to login");
+			}
 			router.push(`/${currentLanguage}/admin/login`);
 		} else if (authenticated && isLoginPage) {
-			console.log("✅ Authenticated on login page, redirecting to dashboard");
+			if (process.env.NODE_ENV === 'development') {
+				console.log("✅ Authenticated on login page, redirecting to dashboard");
+			}
 			router.push(`/${currentLanguage}/admin/dashboard`);
 		} else {
-			console.log("✅ Auth check passed, rendering children");
+			if (process.env.NODE_ENV === 'development') {
+				console.log("✅ Auth check passed, rendering children");
+			}
 			setIsAuthenticated(authenticated);
 		}
 	}, [router, pathname]);
@@ -50,11 +61,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 	// Show nothing while checking authentication
 	const isLoginPage = pathname.endsWith("/admin/login");
 	if (isAuthenticated === null || (!isAuthenticated && !isLoginPage)) {
-		console.log("⏳ AuthGuard waiting...", { isAuthenticated, isLoginPage });
 		return null;
 	}
 
-	console.log("✅ AuthGuard rendering children");
 	return <>{children}</>;
 }
 

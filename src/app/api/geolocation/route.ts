@@ -30,7 +30,9 @@ function getCountryFromHeaders(request: NextRequest): string | undefined {
   
   // Try request.geo first (Vercel's recommended way)
   if (geo?.country) {
-    console.log('✅ Country from request.geo:', geo.country);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('✅ Country from request.geo:', geo.country);
+    }
     return geo.country;
   }
   
@@ -39,12 +41,14 @@ function getCountryFromHeaders(request: NextRequest): string | undefined {
   const cfCountry = request.headers.get('cf-ipcountry');
   
   // Log for debugging
-  console.log('🌍 Geo detection:', {
-    'request.geo.country': geo?.country,
-    'x-vercel-ip-country': vercelCountry,
-    'cf-ipcountry': cfCountry,
-    'VERCEL env': !!process.env.VERCEL,
-  });
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🌍 Geo detection:', {
+      'request.geo.country': geo?.country,
+      'x-vercel-ip-country': vercelCountry,
+      'cf-ipcountry': cfCountry,
+      'VERCEL env': !!process.env.VERCEL,
+    });
+  }
   
   const country = vercelCountry || cfCountry;
   return country || undefined;
@@ -56,13 +60,17 @@ export async function GET(request: NextRequest) {
     // First, try to get country from headers (fastest, no external API call)
     const countryFromHeaders = getCountryFromHeaders(request);
     if (countryFromHeaders) {
-      console.log('✅ Country detected from headers:', countryFromHeaders);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Country detected from headers:', countryFromHeaders);
+      }
       return NextResponse.json({
         country: countryFromHeaders,
         source: 'headers',
       });
     } else {
-      console.log('⚠️ No country found in headers, trying IP geolocation');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('⚠️ No country found in headers, trying IP geolocation');
+      }
     }
 
     // Fallback: Use IP geolocation service
@@ -72,7 +80,9 @@ export async function GET(request: NextRequest) {
     if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
       // In development, you might want to return a test country or null
       // For now, we'll try the geolocation service anyway, but with a fallback
-      console.log('Localhost detected, using geolocation service with fallback');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Localhost detected, using geolocation service with fallback');
+      }
     }
     
     if (!ip) {
