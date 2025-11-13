@@ -1,0 +1,14 @@
+<svg viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Red square with rounded corners -->
+  <rect x="5" y="5" width="50" height="50" rx="8" fill="#DC2626"/>
+  
+  <!-- White house icon -->
+  <path d="M30 20L15 30V45H20V35H40V45H45V30L30 20Z" fill="white" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Door outline -->
+  <rect x="25" y="35" width="10" height="10" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- TopLix text -->
+  <text x="70" y="38" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1F2937">TopLix</text>
+</svg>
+

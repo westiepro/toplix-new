@@ -22,7 +22,7 @@ import {
 	Legend, 
 	ResponsiveContainer 
 } from "recharts";
-import { Download, Eye, TrendingUp, Home, Users, Building2, UserCircle, Radio, Globe } from "lucide-react";
+import { Download, Eye, TrendingUp, Home, Users, Building2, UserCircle, Radio, Globe, BarChart3 } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 // Mock data
@@ -90,6 +90,19 @@ export default function AdminDashboard() {
 		country?: string;
 	}>>([]);
 	const [loadingLastUsers, setLoadingLastUsers] = useState(false);
+	const [adminUser, setAdminUser] = useState<any>(null);
+
+	// Fetch admin user info
+	useEffect(() => {
+		const userJson = localStorage.getItem("admin-user");
+		if (userJson) {
+			try {
+				setAdminUser(JSON.parse(userJson));
+			} catch (e) {
+				console.error('Failed to parse admin user:', e);
+			}
+		}
+	}, []);
 
 	// Fetch live viewer count (registration is handled by LiveViewerTracker component)
 	useEffect(() => {
@@ -324,29 +337,62 @@ export default function AdminDashboard() {
 		<div className="space-y-6">
 			<Breadcrumbs items={[{ label: "Dashboard" }]} />
 
-			{/* Header */}
-			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-				<div>
-					<h1 className="text-3xl font-bold">Dashboard</h1>
-					<p className="text-muted-foreground">Overview of your real estate portal</p>
+			{/* Blue Gradient Banner Header */}
+			<div className="relative rounded-2xl bg-gradient-to-r from-blue-500 via-blue-600 to-cyan-500 shadow-lg p-6 md:p-8">
+				<div className="text-white">
+					<h1 className="text-3xl md:text-4xl font-bold mb-2">My Dashboard</h1>
+					<p className="text-blue-50 text-base md:text-lg">
+						Welcome back, {adminUser?.full_name || adminUser?.email?.split('@')[0] || 'Admin'}
+					</p>
 				</div>
-				<div className="flex items-center gap-2">
-					<Select value={dateRange} onValueChange={setDateRange}>
-						<SelectTrigger className="w-[180px]">
-							<SelectValue placeholder="Date range" />
-						</SelectTrigger>
-						<SelectContent>
-							<SelectItem value="all">All time</SelectItem>
-							<SelectItem value="7">Last 7 days</SelectItem>
-							<SelectItem value="30">Last 30 days</SelectItem>
-							<SelectItem value="90">Last 90 days</SelectItem>
-						</SelectContent>
-					</Select>
-					<Button variant="outline" size="sm">
-						<Download className="h-4 w-4 mr-2" />
-						Export
-					</Button>
-				</div>
+			</div>
+
+			{/* Tabs Navigation - Styled like user dashboard */}
+			<div className="bg-white rounded-2xl shadow-md p-2 mb-6">
+				<Tabs defaultValue="analytics" className="w-full">
+					<TabsList className="bg-transparent p-0 h-auto w-full justify-start gap-2">
+						<TabsTrigger 
+							value="analytics" 
+							className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-blue-700 data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-gray-100"
+						>
+							<BarChart3 className="h-5 w-5" />
+							Analytics
+						</TabsTrigger>
+						<TabsTrigger 
+							value="properties"
+							className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-blue-700 data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-gray-100"
+						>
+							<Home className="h-5 w-5" />
+							Properties
+						</TabsTrigger>
+						<TabsTrigger 
+							value="agents"
+							className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-blue-700 data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-gray-100"
+						>
+							<Users className="h-5 w-5" />
+							Agents
+						</TabsTrigger>
+					</TabsList>
+				</Tabs>
+			</div>
+
+			{/* Date Range and Export Controls */}
+			<div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4">
+				<Select value={dateRange} onValueChange={setDateRange}>
+					<SelectTrigger className="w-[180px]">
+						<SelectValue placeholder="Date range" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All time</SelectItem>
+						<SelectItem value="7">Last 7 days</SelectItem>
+						<SelectItem value="30">Last 30 days</SelectItem>
+						<SelectItem value="90">Last 90 days</SelectItem>
+					</SelectContent>
+				</Select>
+				<Button variant="outline" size="sm">
+					<Download className="h-4 w-4 mr-2" />
+					Export
+				</Button>
 			</div>
 
 			{/* Stats Grid */}
@@ -624,18 +670,6 @@ export default function AdminDashboard() {
 
 			{/* Charts and Tables */}
 			<Tabs defaultValue="analytics" className="space-y-4">
-				<TabsList className="bg-muted/50 p-1">
-					<TabsTrigger value="analytics" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-cyan-500 data-[state=active]:text-white">
-						Analytics
-					</TabsTrigger>
-					<TabsTrigger value="properties" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-500 data-[state=active]:text-white">
-						Properties
-					</TabsTrigger>
-					<TabsTrigger value="agents" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-500 data-[state=active]:text-white">
-						Agents
-					</TabsTrigger>
-				</TabsList>
-
 				<TabsContent value="analytics" className="space-y-4">
 					<div className="grid gap-4 md:grid-cols-2">
 						<Card className="shadow-lg">

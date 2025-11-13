@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-	title: "Real Estate Portal",
+	title: "TopLix - Real Estate Portal",
 	description: "Modern real estate portal with interactive maps",
 };
 

@@ -284,14 +284,42 @@ export default function SiteUsersPage() {
 				</div>
 			</div>
 
-			<Tabs defaultValue="analytics" className="space-y-6">
-				<TabsList className="grid w-full grid-cols-5 lg:w-auto">
-					<TabsTrigger value="analytics">📊 Analytics</TabsTrigger>
-					<TabsTrigger value="sessions">🔐 Sessions</TabsTrigger>
-					<TabsTrigger value="profiles">👥 Profiles</TabsTrigger>
-					<TabsTrigger value="verification">✓ Verification</TabsTrigger>
-					<TabsTrigger value="communication">💬 Messages</TabsTrigger>
-				</TabsList>
+			{/* Tabs Navigation - Styled like user dashboard */}
+			<Tabs defaultValue="analytics" className="w-full space-y-6">
+				<div className="bg-white rounded-2xl shadow-md p-2 mb-6">
+					<TabsList className="bg-transparent p-0 h-auto w-full justify-start gap-2 flex-wrap">
+						<TabsTrigger 
+							value="analytics"
+							className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-blue-700 data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-gray-100"
+						>
+							📊 Analytics
+						</TabsTrigger>
+						<TabsTrigger 
+							value="sessions"
+							className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-blue-700 data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-gray-100"
+						>
+							🔐 Sessions
+						</TabsTrigger>
+						<TabsTrigger 
+							value="profiles"
+							className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-blue-700 data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-gray-100"
+						>
+							👥 Profiles
+						</TabsTrigger>
+						<TabsTrigger 
+							value="verification"
+							className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-blue-700 data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-gray-100"
+						>
+							✓ Verification
+						</TabsTrigger>
+						<TabsTrigger 
+							value="communication"
+							className="flex items-center gap-2 px-6 py-3 rounded-xl transition-all data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:border-2 data-[state=active]:border-blue-700 data-[state=inactive]:text-gray-700 data-[state=inactive]:hover:bg-gray-100"
+						>
+							💬 Messages
+						</TabsTrigger>
+					</TabsList>
+				</div>
 
 				{/* TIER 3 FEATURE #11: User Analytics Dashboard */}
 				<TabsContent value="analytics" className="space-y-6">
