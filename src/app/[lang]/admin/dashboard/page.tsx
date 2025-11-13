@@ -350,8 +350,8 @@ export default function AdminDashboard() {
 				<Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Live Views</CardTitle>
-						<div className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded">
-							<Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+						<div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded">
+							<Eye className="h-4 w-4 text-green-600 dark:text-green-400" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -370,8 +370,8 @@ export default function AdminDashboard() {
 				<Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Companies</CardTitle>
-						<div className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded">
-							<Building2 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+						<div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded">
+							<Building2 className="h-4 w-4 text-orange-600 dark:text-orange-400" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -387,8 +387,8 @@ export default function AdminDashboard() {
 				<Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Properties</CardTitle>
-						<div className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded">
-							<Home className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+						<div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded">
+							<Home className="h-4 w-4 text-blue-600 dark:text-blue-400" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -404,8 +404,8 @@ export default function AdminDashboard() {
 				<Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Active Listings</CardTitle>
-						<div className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded">
-							<BarChart3 className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+						<div className="p-1.5 bg-cyan-100 dark:bg-cyan-900/30 rounded">
+							<BarChart3 className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -421,8 +421,8 @@ export default function AdminDashboard() {
 				<Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Total Users</CardTitle>
-						<div className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded">
-							<Users className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+						<div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded">
+							<Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
 						</div>
 					</CardHeader>
 					<CardContent>
@@ -438,8 +438,8 @@ export default function AdminDashboard() {
 				<Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 shadow-sm">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-gray-700 dark:text-gray-300">Average Sale Price</CardTitle>
-						<div className="p-1.5 bg-gray-100 dark:bg-gray-800 rounded">
-							<span className="text-gray-600 dark:text-gray-400 text-sm font-semibold">€</span>
+						<div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded">
+							<span className="text-emerald-600 dark:text-emerald-400 text-sm font-semibold">€</span>
 						</div>
 					</CardHeader>
 					<CardContent>

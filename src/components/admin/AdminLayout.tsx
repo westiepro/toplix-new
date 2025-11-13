@@ -46,6 +46,7 @@ import { useFavoritesContext } from "@/contexts/FavoritesContext";
 import { FavoritesDropdown } from "@/components/FavoritesDropdown";
 import { getPropertiesByIds } from "@/lib/favorites-helper";
 import type { Property } from "@/components/PropertyCard";
+import { TopLixLogoLink } from "@/components/TopLixLogo";
 
 const navigation = [
 	{ name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -368,10 +369,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 						</Button>
 
 						{/* 1. Brand Logo */}
-						<LocaleLink href="/" className="flex items-center gap-2 font-semibold">
-							<Home className="h-5 w-5" />
-							<span>{t("navbar.brand")}</span>
-						</LocaleLink>
+						<TopLixLogoLink size="md" />
 
 						{/* 2. Main Navigation (Buy, Rent, Sell) */}
 						<nav className="hidden items-center gap-6 md:flex">
