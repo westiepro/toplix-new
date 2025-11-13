@@ -49,14 +49,14 @@ import type { Property } from "@/components/PropertyCard";
 import { TopLixLogoLink } from "@/components/TopLixLogo";
 
 const navigation = [
-	{ name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-	{ name: "All Properties", href: "/admin/properties", icon: Home },
-	{ name: "Real Estate Companies", href: "/admin/companies", icon: Building2 },
-	{ name: "Site Users", href: "/admin/users", icon: Users },
-	{ name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-	{ name: "Translations", href: "/admin/translations", icon: Languages },
-	{ name: "Site Admins", href: "/admin/site-admins", icon: ShieldCheck, adminOnly: true },
-	{ name: "Settings", href: "/admin/settings", icon: Settings },
+	{ name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, color: "blue" },
+	{ name: "All Properties", href: "/admin/properties", icon: Home, color: "green" },
+	{ name: "Real Estate Companies", href: "/admin/companies", icon: Building2, color: "orange" },
+	{ name: "Site Users", href: "/admin/users", icon: Users, color: "purple" },
+	{ name: "Analytics", href: "/admin/analytics", icon: BarChart3, color: "cyan" },
+	{ name: "Translations", href: "/admin/translations", icon: Languages, color: "indigo" },
+	{ name: "Site Admins", href: "/admin/site-admins", icon: ShieldCheck, color: "red", adminOnly: true },
+	{ name: "Settings", href: "/admin/settings", icon: Settings, color: "gray" },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -202,17 +202,17 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 				onMouseEnter={() => !isPinned && setIsExpanded(true)}
 				onMouseLeave={() => !isPinned && setIsExpanded(false)}
 				className={cn(
-					"fixed top-0 left-0 z-50 h-screen bg-slate-900 border-r border-slate-800 will-change-[width] lg:translate-x-0 overflow-hidden",
-					(isExpanded || isPinned) && "shadow-2xl shadow-blue-500/10 transition-shadow duration-300",
+					"fixed top-0 left-0 z-50 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 will-change-[width] lg:translate-x-0 overflow-hidden",
+					(isExpanded || isPinned) && "shadow-2xl shadow-gray-200/50 dark:shadow-blue-500/10 transition-shadow duration-300",
 					sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
 				)}
 			>
 				<div className="flex h-full flex-col">
 					{/* Logo */}
-					<div className="flex h-16 items-center justify-between px-3 border-b border-slate-800 bg-gradient-to-r from-blue-600 to-cyan-600">
+					<div className="flex h-16 items-center justify-between px-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
 						<LocaleLink href="/admin/dashboard" className="flex items-center gap-2 min-w-0 flex-1">
-							<div className="h-8 w-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/30 flex-shrink-0">
-								<Home className="h-5 w-5 text-white" />
+							<div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+								<Home className="h-5 w-5 text-blue-600 dark:text-blue-400" />
 							</div>
 							<motion.span
 								initial={false}
@@ -224,7 +224,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 									duration: 0.2,
 									ease: "easeOut"
 								}}
-								className="font-bold text-lg text-white whitespace-nowrap overflow-hidden"
+								className="font-bold text-lg text-gray-900 dark:text-white whitespace-nowrap overflow-hidden"
 							>
 								Admin Panel
 							</motion.span>
@@ -234,7 +234,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 						<Button
 							variant="ghost"
 							size="icon"
-							className="hidden lg:flex text-white hover:bg-white/20 flex-shrink-0"
+							className="hidden lg:flex text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0"
 							onClick={togglePin}
 						>
 							{isPinned ? (
@@ -248,7 +248,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 						<Button
 							variant="ghost"
 							size="icon"
-							className="lg:hidden text-white hover:bg-white/20 flex-shrink-0"
+							className="lg:hidden text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 flex-shrink-0"
 							onClick={() => setSidebarOpen(false)}
 						>
 							<X className="h-5 w-5" />
@@ -268,6 +268,53 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 							.map((item) => {
 								const localizedHref = `/${currentLanguage}${item.href}`;
 								const isActive = pathname === localizedHref || pathname?.startsWith(localizedHref + "/");
+								
+								// Color mapping for icons
+								const colorClasses: Record<string, { icon: string; bg: string; activeBg: string }> = {
+									blue: { 
+										icon: "text-blue-600 dark:text-blue-400", 
+										bg: "bg-blue-100 dark:bg-blue-900/30",
+										activeBg: "bg-blue-500 dark:bg-blue-600"
+									},
+									green: { 
+										icon: "text-green-600 dark:text-green-400", 
+										bg: "bg-green-100 dark:bg-green-900/30",
+										activeBg: "bg-green-500 dark:bg-green-600"
+									},
+									orange: { 
+										icon: "text-orange-600 dark:text-orange-400", 
+										bg: "bg-orange-100 dark:bg-orange-900/30",
+										activeBg: "bg-orange-500 dark:bg-orange-600"
+									},
+									purple: { 
+										icon: "text-purple-600 dark:text-purple-400", 
+										bg: "bg-purple-100 dark:bg-purple-900/30",
+										activeBg: "bg-purple-500 dark:bg-purple-600"
+									},
+									cyan: { 
+										icon: "text-cyan-600 dark:text-cyan-400", 
+										bg: "bg-cyan-100 dark:bg-cyan-900/30",
+										activeBg: "bg-cyan-500 dark:bg-cyan-600"
+									},
+									indigo: { 
+										icon: "text-indigo-600 dark:text-indigo-400", 
+										bg: "bg-indigo-100 dark:bg-indigo-900/30",
+										activeBg: "bg-indigo-500 dark:bg-indigo-600"
+									},
+									red: { 
+										icon: "text-red-600 dark:text-red-400", 
+										bg: "bg-red-100 dark:bg-red-900/30",
+										activeBg: "bg-red-500 dark:bg-red-600"
+									},
+									gray: { 
+										icon: "text-gray-600 dark:text-gray-400", 
+										bg: "bg-gray-100 dark:bg-gray-800",
+										activeBg: "bg-gray-500 dark:bg-gray-600"
+									},
+								};
+								
+								const colors = colorClasses[item.color || "gray"];
+								
 								return (
 									<LocaleLink
 										key={item.name}
@@ -276,14 +323,19 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 										className={cn(
 											"flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group relative overflow-hidden",
 											isActive
-												? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/30"
-												: "text-slate-200 hover:bg-slate-800 hover:text-white"
+												? `${colors.activeBg} text-white shadow-lg shadow-gray-200/50 dark:shadow-gray-800/50`
+												: "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
 										)}
 									>
-										<item.icon className={cn(
-											"h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110",
-											isActive ? "text-white" : "text-slate-300"
-										)} />
+										<div className={cn(
+											"h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-all",
+											isActive ? "bg-white/20" : colors.bg
+										)}>
+											<item.icon className={cn(
+												"h-5 w-5 transition-transform group-hover:scale-110",
+												isActive ? "text-white" : colors.icon
+											)} />
+										</div>
 										<motion.span
 											initial={false}
 											animate={{ 
@@ -301,7 +353,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 										
 										{/* Tooltip for collapsed state */}
 										{!isExpanded && !isPinned && (
-											<div className="absolute left-full ml-2 px-2 py-1 bg-slate-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+											<div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
 												{item.name}
 											</div>
 										)}
@@ -311,7 +363,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 					</nav>
 
 					{/* Footer */}
-					<div className="p-3 border-t border-slate-800 bg-slate-950">
+					<div className="p-3 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
 						<div className="flex items-center gap-3 px-2 py-2 overflow-hidden">
 							<Avatar className="h-9 w-9 ring-2 ring-blue-500/30 flex-shrink-0">
 								<AvatarFallback className="bg-gradient-to-br from-blue-500 to-cyan-500 text-white font-bold text-xs">
@@ -330,10 +382,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
 								}}
 								className="flex-1 min-w-0 overflow-hidden"
 							>
-								<p className="text-xs font-semibold truncate text-white">
+								<p className="text-xs font-semibold truncate text-gray-900 dark:text-white">
 									{adminUser?.full_name || 'Admin User'}
 								</p>
-								<p className="text-[10px] text-slate-400 truncate">
+								<p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
 									{adminUser?.email || 'admin@example.com'}
 								</p>
 							</motion.div>
